@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { BootScene } from './scenes/BootScene.js';
 import { MenuScene } from './scenes/MenuScene.js';
+import { SettingsScene } from './scenes/SettingsScene.js';
 import { BriefingScene } from './scenes/BriefingScene.js';
 import { OfficeScene } from './scenes/OfficeScene.js';
 import { CallScene } from './scenes/CallScene.js';
@@ -17,6 +18,7 @@ const config = {
   scene: [
     BootScene,
     MenuScene,
+    SettingsScene,
     BriefingScene,
     OfficeScene,
     CallScene,

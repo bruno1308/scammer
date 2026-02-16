@@ -9,6 +9,7 @@
 import Phaser from 'phaser';
 import gameState from '../state/GameState.js';
 import VoiceManager from '../voice/VoiceManager.js';
+import { hasApiKey } from '../config/apiKeyManager.js';
 
 export class MenuScene extends Phaser.Scene {
   constructor() {
@@ -104,6 +105,20 @@ export class MenuScene extends Phaser.Scene {
       color: '#ff4444'
     }).setOrigin(0, 0.5);
     this._drawMicDot(false);
+
+    // ---- SETTINGS button ----
+    this._createButton(
+      width / 2, 530,
+      'SETTINGS', 0xffcc00, 0x332200,
+      () => this.scene.start('settings')
+    );
+
+    // ---- API key status indicator ----
+    this.keyStatusText = this.add.text(width / 2, 575, '', {
+      fontFamily: '"Courier New", monospace',
+      fontSize: '11px',
+    }).setOrigin(0.5);
+    this._updateKeyStatus();
 
     // ---- Blinking cursor at bottom ----
     this.cursor = this.add.text(width / 2, height - 80, '> READY TO CONNECT_', {
@@ -296,9 +311,43 @@ export class MenuScene extends Phaser.Scene {
   }
 
   /**
+   * Update the API key status indicator.
+   */
+  _updateKeyStatus() {
+    if (hasApiKey()) {
+      this.keyStatusText.setText('API KEY: CONFIGURED');
+      this.keyStatusText.setColor('#00ff88');
+    } else {
+      this.keyStatusText.setText('API KEY: NOT SET (go to Settings)');
+      this.keyStatusText.setColor('#ff4444');
+    }
+  }
+
+  /**
    * Start the game - reset state and go to briefing.
    */
   _startGame() {
+    if (!hasApiKey()) {
+      const { width } = this.scale;
+      const warning = this.add.text(width / 2, 310, 'Set your OpenAI API key in Settings first!', {
+        fontFamily: '"Courier New", monospace',
+        fontSize: '14px',
+        fontStyle: 'bold',
+        color: '#ff4444',
+        stroke: '#000000',
+        strokeThickness: 2,
+      }).setOrigin(0.5);
+
+      this.tweens.add({
+        targets: warning,
+        alpha: 0,
+        duration: 3000,
+        delay: 2000,
+        onComplete: () => warning.destroy(),
+      });
+      return;
+    }
+
     gameState.reset();
     this.registry.set('currentLevel', 1);
     this.scene.start('briefing', { level: 1 });

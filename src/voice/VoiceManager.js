@@ -14,10 +14,12 @@
  *   await vm.startCall(levelNum);
  */
 
+import { getApiKey } from '../config/apiKeyManager.js';
+import { getPromptConfig } from '../config/prompts/index.js';
+import { getRandomVictim } from '../config/levels.js';
+
 const REALTIME_API_URL =
   'https://api.openai.com/v1/realtime?model=gpt-realtime';
-
-const SESSION_ENDPOINT = '/api/session';
 
 class VoiceManager {
   constructor() {
@@ -132,34 +134,26 @@ class VoiceManager {
 
   /**
    * Full flow to start a WebRTC voice call against the OpenAI Realtime API.
+   * Uses the player's API key directly (no backend needed).
    *
-   * @param {number} level - The current game level (1-5), sent to the backend
-   *                         so the server configures the correct victim prompt.
+   * @param {number} level - The current game level (1-5).
    * @returns {Promise<boolean>} true if the connection was established.
    */
   async startCall(level) {
     try {
       // -----------------------------------------------------------
-      // 1. Fetch an ephemeral key from our backend
+      // 1. Get API key and build session config client-side
       // -----------------------------------------------------------
-      const sessionRes = await fetch(SESSION_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ level }),
-      });
-
-      if (!sessionRes.ok) {
-        const errText = await sessionRes.text();
-        throw new Error(`Session endpoint returned ${sessionRes.status}: ${errText}`);
+      const apiKey = getApiKey();
+      if (!apiKey) {
+        throw new Error('No OpenAI API key configured. Go to Settings to enter your key.');
       }
 
-      const sessionData = await sessionRes.json();
-      this.serverVictim = sessionData.victim || null;
-      const ephemeralKey = sessionData.client_secret?.value ?? sessionData.key;
+      const victim = getRandomVictim(level);
+      if (!victim) throw new Error(`No victim data for level ${level}`);
 
-      if (!ephemeralKey) {
-        throw new Error('No ephemeral key returned from /api/session');
-      }
+      const config = getPromptConfig(level, victim.name, victim.age, victim.location);
+      this.currentVictim = { ...victim, level };
 
       // -----------------------------------------------------------
       // 2. Create the RTCPeerConnection
@@ -202,6 +196,10 @@ class VoiceManager {
       this.dc.onopen = () => {
         console.log('[VoiceManager] Data channel open');
         this.connected = true;
+
+        // Configure the session over the data channel
+        this._sendSessionUpdate(config);
+
         if (this.onConnected) this.onConnected();
       };
 
@@ -227,12 +225,12 @@ class VoiceManager {
       await this.pc.setLocalDescription(offer);
 
       // -----------------------------------------------------------
-      // 9. Send the offer SDP to OpenAI and get the answer
+      // 9. Send the offer SDP to OpenAI with the API key directly
       // -----------------------------------------------------------
       const sdpRes = await fetch(REALTIME_API_URL, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${ephemeralKey}`,
+          Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/sdp',
         },
         body: offer.sdp,
@@ -240,6 +238,9 @@ class VoiceManager {
 
       if (!sdpRes.ok) {
         const errText = await sdpRes.text();
+        if (sdpRes.status === 401) {
+          throw new Error('Invalid API key. Please check your key in Settings.');
+        }
         throw new Error(`OpenAI Realtime SDP exchange failed (${sdpRes.status}): ${errText}`);
       }
 
@@ -271,6 +272,39 @@ class VoiceManager {
       if (this.onError) this.onError(err);
       return false;
     }
+  }
+
+  /**
+   * Send session.update over the data channel to configure the AI's behavior.
+   * This replaces the server-side session creation that previously pre-configured
+   * voice, instructions, and tools.
+   *
+   * @param {{ instructions: string, tools: object[], voice: string }} config
+   * @private
+   */
+  _sendSessionUpdate(config) {
+    if (!this.dc || this.dc.readyState !== 'open') {
+      console.warn('[VoiceManager] Cannot send session.update -- data channel not open');
+      return;
+    }
+
+    this.dc.send(JSON.stringify({
+      type: 'session.update',
+      session: {
+        instructions: config.instructions,
+        tools: config.tools,
+        voice: config.voice,
+        input_audio_transcription: {
+          model: 'whisper-1',
+        },
+        turn_detection: {
+          type: 'server_vad',
+          threshold: 0.5,
+          prefix_padding_ms: 300,
+          silence_duration_ms: 500,
+        },
+      },
+    }));
   }
 
   /* ==================================================================

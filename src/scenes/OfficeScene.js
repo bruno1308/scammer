@@ -10,45 +10,7 @@ import Phaser from 'phaser';
 import gameState, { LEVEL_CONFIG } from '../state/GameState.js';
 import VoiceManager from '../voice/VoiceManager.js';
 import { Meter } from '../ui/Meter.js';
-
-/** Victim name pools per level. */
-const VICTIM_NAMES = {
-  1: [
-    { name: 'Margaret Thompson', age: 72, location: 'Ohio' },
-    { name: 'Earl Henderson', age: 68, location: 'Florida' },
-    { name: 'Dorothy Chen', age: 75, location: 'Texas' },
-    { name: 'Walter Briggs', age: 70, location: 'Arizona' },
-    { name: 'Betty Kowalski', age: 78, location: 'Michigan' },
-  ],
-  2: [
-    { name: 'James Patterson', age: 55, location: 'California' },
-    { name: 'Linda Gutierrez', age: 62, location: 'New York' },
-    { name: 'Robert Kim', age: 48, location: 'Washington' },
-    { name: 'Susan O\'Brien', age: 59, location: 'Illinois' },
-    { name: 'Thomas Patel', age: 52, location: 'Georgia' },
-  ],
-  3: [
-    { name: 'Carol Williams', age: 65, location: 'Pennsylvania' },
-    { name: 'David Martinez', age: 58, location: 'Nevada' },
-    { name: 'Janet Lee', age: 71, location: 'Oregon' },
-    { name: 'Richard Brown', age: 63, location: 'Virginia' },
-    { name: 'Karen Singh', age: 67, location: 'Colorado' },
-  ],
-  4: [
-    { name: 'Michael Torres', age: 45, location: 'New Jersey' },
-    { name: 'Patricia Anderson', age: 52, location: 'Minnesota' },
-    { name: 'William Chang', age: 40, location: 'Massachusetts' },
-    { name: 'Nancy Fischer', age: 48, location: 'North Carolina' },
-  ],
-  5: [
-    { name: 'Jennifer Lawson (CFO)', age: 42, location: 'Manhattan, NY' },
-    { name: 'Brian Novak (Controller)', age: 38, location: 'Chicago, IL' },
-    { name: 'Amanda Rivera (VP Finance)', age: 45, location: 'San Francisco, CA' },
-    { name: 'Steven Park (Treasurer)', age: 50, location: 'Dallas, TX' },
-    { name: 'Michelle Hayes (Accountant)', age: 35, location: 'Boston, MA' },
-    { name: 'Daniel Okafor (AP Manager)', age: 41, location: 'Atlanta, GA' },
-  ],
-};
+import { getRandomVictim } from '../config/levels.js';
 
 export class OfficeScene extends Phaser.Scene {
   constructor() {
@@ -690,26 +652,16 @@ export class OfficeScene extends Phaser.Scene {
     this._stopPhoneRinging();
     this.callInProgress = true;
 
-    // Start VoiceManager call first to get server-assigned victim
+    // Start VoiceManager call (victim is generated client-side)
     const vm = VoiceManager.getInstance();
-    let serverVictim = null;
     try {
-      const success = await vm.startCall(this.levelNum);
-      if (success && vm.serverVictim) {
-        serverVictim = vm.serverVictim;
-      }
+      await vm.startCall(this.levelNum);
     } catch (e) {
       console.warn('[OfficeScene] VoiceManager not available:', e.message);
     }
 
-    // Use server victim if available, otherwise pick locally
-    let victim;
-    if (serverVictim) {
-      victim = serverVictim;
-    } else {
-      const victims = VICTIM_NAMES[this.levelNum] || VICTIM_NAMES[1];
-      victim = Phaser.Utils.Array.GetRandom(victims);
-    }
+    // Use victim from VoiceManager (generated during startCall), or pick locally as fallback
+    const victim = vm.currentVictim || getRandomVictim(this.levelNum);
 
     // Assign a portrait texture key based on level
     const portraitCounts = { 1: 5, 2: 4, 3: 4, 4: 4, 5: 3 };
