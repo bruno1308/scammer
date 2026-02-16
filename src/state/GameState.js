@@ -104,6 +104,9 @@ const TERMINAL_EVENTS = [
  *   'heat_change'        { previous, current, delta }
  *   'money_change'       { previous, current, delta }
  *   'combo_change'       { previous, current }
+ *   'intel_reset'        intelKeys[]
+ *   'intel_seen'         key
+ *   'intel_used'         key
  */
 class GameState extends Phaser.Events.EventEmitter {
   constructor() {
@@ -128,6 +131,11 @@ class GameState extends Phaser.Events.EventEmitter {
     this.callActive = false;
     this.callStartTime = null;
     this.callEndedClean = true;  // tracks whether victim threatened police / hung up
+
+    // ---- Intel tracking for FriendBook ----
+    this.intelKeys = [];        // Array of { key, boost, description } for current victim
+    this.intelSeen = new Set();  // Keys the player has seen on FriendBook
+    this.intelUsed = new Set();  // Keys the AI confirmed were used in conversation
 
     // ---- results ----
     this.shiftResults = [];      // array of per-call result objects
@@ -165,6 +173,9 @@ class GameState extends Phaser.Events.EventEmitter {
     this.currentVictim = null;
     this.callStartTime = null;
     this.callEndedClean = true;
+    this.intelKeys = [];
+    this.intelSeen = new Set();
+    this.intelUsed = new Set();
   }
 
   /* ------------------------------------------------------------------
@@ -185,6 +196,43 @@ class GameState extends Phaser.Events.EventEmitter {
     this.callActive = true;
     this.callStartTime = Date.now();
     this.callEndedClean = true;
+  }
+
+  /* ------------------------------------------------------------------
+   * Intel tracking (FriendBook)
+   * ----------------------------------------------------------------*/
+
+  /**
+   * Initialize intel keys for the current victim.
+   * @param {Array<{ key: string, boost: number, description: string }>} intelKeys
+   */
+  initIntel(intelKeys) {
+    this.intelKeys = intelKeys || [];
+    this.intelSeen = new Set();
+    this.intelUsed = new Set();
+    this.emit('intel_reset', this.intelKeys);
+  }
+
+  /**
+   * Mark an intel key as seen by the player on FriendBook.
+   * @param {string} key
+   */
+  markIntelSeen(key) {
+    if (!this.intelSeen.has(key)) {
+      this.intelSeen.add(key);
+      this.emit('intel_seen', key);
+    }
+  }
+
+  /**
+   * Mark an intel key as used in conversation (confirmed by the AI).
+   * @param {string} key
+   */
+  markIntelUsed(key) {
+    if (!this.intelUsed.has(key)) {
+      this.intelUsed.add(key);
+      this.emit('intel_used', key);
+    }
   }
 
   /**
@@ -279,6 +327,11 @@ class GameState extends Phaser.Events.EventEmitter {
       if (TERMINAL_EVENTS.includes(data.event)) {
         this.endCall(data.event);
       }
+    }
+
+    // --- Intel triggered ---
+    if (data.intel_triggered) {
+      this.markIntelUsed(data.intel_triggered);
     }
 
     // --- Threshold-based auto-end ---
@@ -474,6 +527,9 @@ class GameState extends Phaser.Events.EventEmitter {
     this.callActive = false;
     this.callStartTime = null;
     this.callEndedClean = true;
+    this.intelKeys = [];
+    this.intelSeen = new Set();
+    this.intelUsed = new Set();
     this.shiftResults = [];
   }
 
