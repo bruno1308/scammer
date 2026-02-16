@@ -206,6 +206,11 @@ class GameState extends Phaser.Events.EventEmitter {
       return;
     }
 
+    if (!data || typeof data !== 'object') {
+      console.warn('[GameState] updateFromAI received invalid data:', data);
+      return;
+    }
+
     // --- Suspicion ---
     if (typeof data.suspicion_delta === 'number') {
       const prev = this.suspicion;

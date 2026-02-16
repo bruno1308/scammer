@@ -664,17 +664,18 @@ export class CallScene extends Phaser.Scene {
   }
 
   _bindTutorialEvents() {
-    gameState.on('suspicion_change', ({ current }) => {
+    this._onSuspicionTutorial = ({ current }) => {
       if (current >= 40 && this.levelNum === 1) {
         this._showTutorial('suspicion');
       }
-    }, this);
-
-    gameState.on('compliance_change', ({ current }) => {
+    };
+    this._onComplianceTutorial = ({ current }) => {
       if (current >= 50 && this.levelNum === 1) {
         this._showTutorial('compliance');
       }
-    }, this);
+    };
+    gameState.on('suspicion_change', this._onSuspicionTutorial, this);
+    gameState.on('compliance_change', this._onComplianceTutorial, this);
   }
 
   // =========================================================================
@@ -686,6 +687,12 @@ export class CallScene extends Phaser.Scene {
     gameState.off('call_end', this._onCallEnd, this);
     gameState.off('emotion_change', this._onEmotionChange, this);
     gameState.off('suspicion_change', this._onSuspicionWarning, this);
+    if (this._onSuspicionTutorial) {
+      gameState.off('suspicion_change', this._onSuspicionTutorial, this);
+    }
+    if (this._onComplianceTutorial) {
+      gameState.off('compliance_change', this._onComplianceTutorial, this);
+    }
 
     // Fade out
     this.cameras.main.fadeOut(300, 0, 0, 0);
@@ -698,5 +705,11 @@ export class CallScene extends Phaser.Scene {
     gameState.off('call_end', this._onCallEnd, this);
     gameState.off('emotion_change', this._onEmotionChange, this);
     gameState.off('suspicion_change', this._onSuspicionWarning, this);
+    if (this._onSuspicionTutorial) {
+      gameState.off('suspicion_change', this._onSuspicionTutorial, this);
+    }
+    if (this._onComplianceTutorial) {
+      gameState.off('compliance_change', this._onComplianceTutorial, this);
+    }
   }
 }

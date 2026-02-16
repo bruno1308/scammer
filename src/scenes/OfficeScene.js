@@ -103,6 +103,12 @@ export class OfficeScene extends Phaser.Scene {
     vm.onCallEnd = (reason) => {
       gameState.endCall(reason);
     };
+    vm.onError = (err) => {
+      console.error('[OfficeScene] VoiceManager error:', err);
+      if (this.callInProgress) {
+        gameState.endCall('voice_error');
+      }
+    };
 
     // ---- Build the office environment ----
     this._drawBackground(width, height);
@@ -619,13 +625,30 @@ export class OfficeScene extends Phaser.Scene {
     this.phoneLED.clear();
   }
 
-  _answerPhone() {
+  async _answerPhone() {
     this._stopPhoneRinging();
     this.callInProgress = true;
 
-    // Pick a random victim for this level
-    const victims = VICTIM_NAMES[this.levelNum] || VICTIM_NAMES[1];
-    const victim = Phaser.Utils.Array.GetRandom(victims);
+    // Start VoiceManager call first to get server-assigned victim
+    const vm = VoiceManager.getInstance();
+    let serverVictim = null;
+    try {
+      const success = await vm.startCall(this.levelNum);
+      if (success && vm.serverVictim) {
+        serverVictim = vm.serverVictim;
+      }
+    } catch (e) {
+      console.warn('[OfficeScene] VoiceManager not available:', e.message);
+    }
+
+    // Use server victim if available, otherwise pick locally
+    let victim;
+    if (serverVictim) {
+      victim = serverVictim;
+    } else {
+      const victims = VICTIM_NAMES[this.levelNum] || VICTIM_NAMES[1];
+      victim = Phaser.Utils.Array.GetRandom(victims);
+    }
 
     // Start the call in GameState
     gameState.startCall(victim);
@@ -651,20 +674,9 @@ export class OfficeScene extends Phaser.Scene {
       this.scene.launch('tech-desktop');
     }
 
-    // Start VoiceManager call (try, don't crash if not available)
-    this._tryStartVoice();
-
     // Flash "CONNECTED" on phone
     this.phoneLabel.setText('ON CALL');
     this.phoneLabel.setColor('#ff2244');
-  }
-
-  _tryStartVoice() {
-    try {
-      VoiceManager.getInstance().startCall(this.levelNum);
-    } catch (e) {
-      console.warn('[OfficeScene] VoiceManager not available:', e.message);
-    }
   }
 
   _tryEndVoice() {

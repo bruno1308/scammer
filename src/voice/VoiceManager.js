@@ -154,6 +154,7 @@ class VoiceManager {
       }
 
       const sessionData = await sessionRes.json();
+      this.serverVictim = sessionData.victim || null;
       const ephemeralKey = sessionData.client_secret?.value ?? sessionData.key;
 
       if (!ephemeralKey) {
@@ -315,6 +316,8 @@ class VoiceManager {
             `[VoiceManager] Failed to parse arguments for ${fnName}:`,
             msg.arguments,
           );
+          this._sendFunctionCallOutput(callId, { success: false, error: 'Invalid arguments' });
+          this._triggerResponse();
           break;
         }
 
