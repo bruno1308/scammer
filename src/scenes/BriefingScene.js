@@ -143,8 +143,8 @@ export class BriefingScene extends Phaser.Scene {
     lineGfx.lineStyle(1, 0x00ff88, 0.3);
     lineGfx.lineBetween(100, 50, width - 100, 50);
 
-    // ---- Draw boss character ----
-    this._drawBoss(200, 340);
+    // ---- Boss portrait ----
+    this._showBossPortrait(200, 310);
 
     // ---- Dialogue box ----
     this.dialogueBox = this.add.graphics();
@@ -301,100 +301,31 @@ export class BriefingScene extends Phaser.Scene {
   }
 
   /**
-   * Draw a simple boss figure using Graphics.
+   * Show the boss portrait image with a styled frame.
    */
-  _drawBoss(x, y) {
-    const g = this.add.graphics();
+  _showBossPortrait(x, y) {
+    const size = 240;
 
-    // Shadow
-    g.fillStyle(0x000000, 0.3);
-    g.fillEllipse(x, y + 115, 100, 20);
+    // Dark frame background
+    const frame = this.add.graphics();
+    frame.fillStyle(0x111122, 0.9);
+    frame.fillRoundedRect(x - size / 2 - 6, y - size / 2 - 6, size + 12, size + 12, 10);
+    frame.lineStyle(2, 0xff4444, 0.6);
+    frame.strokeRoundedRect(x - size / 2 - 6, y - size / 2 - 6, size + 12, size + 12, 10);
 
-    // Body (suit)
-    g.fillStyle(0x222244);
-    g.fillRoundedRect(x - 35, y - 10, 70, 100, 8);
+    // Boss image
+    const boss = this.add.image(x, y, 'boss_idle');
+    const scale = size / Math.max(boss.width, boss.height);
+    boss.setScale(scale);
 
-    // Suit lapels
-    g.lineStyle(2, 0x333366, 0.8);
-    g.lineBetween(x - 10, y - 10, x, y + 30);
-    g.lineBetween(x + 10, y - 10, x, y + 30);
-
-    // Tie
-    g.fillStyle(0xff2244);
-    g.fillTriangle(x - 6, y - 5, x + 6, y - 5, x, y + 40);
-
-    // Neck
-    g.fillStyle(0xddaa88);
-    g.fillRect(x - 8, y - 30, 16, 25);
-
-    // Head
-    g.fillStyle(0xddaa88);
-    g.fillCircle(x, y - 48, 28);
-
-    // Hair (slicked back)
-    g.fillStyle(0x222222);
-    g.fillEllipse(x, y - 65, 32, 16);
-    g.fillRect(x - 28, y - 65, 56, 12);
-
-    // Eyes
-    g.fillStyle(0x111111);
-    g.fillCircle(x - 10, y - 52, 3);
-    g.fillCircle(x + 10, y - 52, 3);
-
-    // Eyebrows (angry)
-    g.lineStyle(2, 0x222222);
-    g.lineBetween(x - 16, y - 62, x - 6, y - 58);
-    g.lineBetween(x + 16, y - 62, x + 6, y - 58);
-
-    // Mouth (smirk)
-    g.lineStyle(2, 0x884444);
-    g.beginPath();
-    g.arc(x, y - 38, 8, 0.1, Math.PI - 0.1, false);
-    g.strokePath();
-
-    // Cigar
-    g.fillStyle(0xbb8844);
-    g.fillRect(x + 8, y - 42, 22, 5);
-    g.fillStyle(0xff6600, 0.8);
-    g.fillCircle(x + 30, y - 40, 3);
-
-    // Smoke puff
-    const smoke = this.add.text(x + 35, y - 55, '~', {
-      fontFamily: '"Courier New", monospace',
-      fontSize: '18px',
-      color: '#666677'
-    });
-    this.tweens.add({
-      targets: smoke,
-      y: y - 90,
-      alpha: 0,
-      duration: 3000,
-      repeat: -1,
-      delay: 500
-    });
-
-    // Arms
-    g.lineStyle(6, 0x222244);
-    g.lineBetween(x - 35, y + 5, x - 55, y + 60);
-    g.lineBetween(x + 35, y + 5, x + 55, y + 60);
-
-    // Hands
-    g.fillStyle(0xddaa88);
-    g.fillCircle(x - 55, y + 62, 8);
-    g.fillCircle(x + 55, y + 62, 8);
-
-    // Legs
-    g.fillStyle(0x1a1a33);
-    g.fillRect(x - 25, y + 85, 20, 30);
-    g.fillRect(x + 5, y + 85, 20, 30);
-
-    // Shoes
-    g.fillStyle(0x111111);
-    g.fillRoundedRect(x - 28, y + 110, 26, 10, 4);
-    g.fillRoundedRect(x + 2, y + 110, 26, 10, 4);
+    // Rounded mask
+    const maskShape = this.make.graphics({ add: false });
+    maskShape.fillStyle(0xffffff);
+    maskShape.fillRoundedRect(x - size / 2, y - size / 2, size, size, 8);
+    boss.setMask(maskShape.createGeometryMask());
 
     // Name tag
-    this.add.text(x, y + 135, '"THE BOSS"', {
+    this.add.text(x, y + size / 2 + 20, '"THE BOSS"', {
       fontFamily: '"Courier New", monospace',
       fontSize: '11px',
       fontStyle: 'bold',
