@@ -18,10 +18,11 @@ const levelConfigs = {
  * @param {string} name - Victim name
  * @param {number} age - Victim age
  * @param {string} location - Victim location
+ * @param {string} [gender] - Victim gender ('male' or 'female')
  * @returns {{ instructions: string, tools: object[], voice: string }}
  */
-export function getPromptConfig(level, name, age, location) {
+export function getPromptConfig(level, name, age, location, gender) {
   const configFn = levelConfigs[level];
   if (!configFn) throw new Error(`Unknown level: ${level}`);
-  return configFn(name, age, location);
+  return configFn(name, age, location, gender);
 }

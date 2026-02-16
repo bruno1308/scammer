@@ -152,7 +152,7 @@ class VoiceManager {
       const victim = getRandomVictim(level);
       if (!victim) throw new Error(`No victim data for level ${level}`);
 
-      const config = getPromptConfig(level, victim.name, victim.age, victim.location);
+      const config = getPromptConfig(level, victim.name, victim.age, victim.location, victim.gender);
       this.currentVictim = { ...victim, level };
 
       // -----------------------------------------------------------
@@ -163,14 +163,18 @@ class VoiceManager {
       });
 
       // -----------------------------------------------------------
-      // 3. Set up remote audio playback
+      // 3. Set up remote audio playback with telephone filter
       // -----------------------------------------------------------
       this.audioEl = document.createElement('audio');
       this.audioEl.autoplay = true;
 
       this.pc.ontrack = (event) => {
         if (event.streams && event.streams[0]) {
+          // Attach to audio element (muted) so Chrome keeps the track alive
           this.audioEl.srcObject = event.streams[0];
+          this.audioEl.muted = true;
+          // Route actual playback through telephone filter
+          this._applyTelephoneFilter(event.streams[0]);
         }
       };
 
@@ -272,6 +276,54 @@ class VoiceManager {
       if (this.onError) this.onError(err);
       return false;
     }
+  }
+
+  /**
+   * Route remote audio through Web Audio API bandpass filters to simulate
+   * a telephone line (300Hz-3400Hz passband with mild compression).
+   *
+   * @param {MediaStream} stream - The remote audio stream from WebRTC
+   * @private
+   */
+  _applyTelephoneFilter(stream) {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    this._phoneFilterCtx = ctx;
+
+    const source = ctx.createMediaStreamSource(stream);
+
+    // High-pass at 300Hz — cuts rumble/bass
+    const highpass = ctx.createBiquadFilter();
+    highpass.type = 'highpass';
+    highpass.frequency.value = 300;
+    highpass.Q.value = 0.7;
+
+    // Low-pass at 3400Hz — cuts high-end clarity
+    const lowpass = ctx.createBiquadFilter();
+    lowpass.type = 'lowpass';
+    lowpass.frequency.value = 3400;
+    lowpass.Q.value = 0.7;
+
+    // Subtle mid-frequency boost for that nasal phone quality
+    const midBoost = ctx.createBiquadFilter();
+    midBoost.type = 'peaking';
+    midBoost.frequency.value = 1200;
+    midBoost.gain.value = 4;
+    midBoost.Q.value = 1.0;
+
+    // Light compression to flatten dynamics like a phone codec
+    const compressor = ctx.createDynamicsCompressor();
+    compressor.threshold.value = -30;
+    compressor.ratio.value = 6;
+    compressor.knee.value = 10;
+    compressor.attack.value = 0.003;
+    compressor.release.value = 0.1;
+
+    // Chain: source -> highpass -> lowpass -> midBoost -> compressor -> speakers
+    source.connect(highpass);
+    highpass.connect(lowpass);
+    lowpass.connect(midBoost);
+    midBoost.connect(compressor);
+    compressor.connect(ctx.destination);
   }
 
   /**
@@ -491,6 +543,11 @@ class VoiceManager {
         this.pc.close();
       } catch { /* ignore */ }
       this.pc = null;
+    }
+
+    if (this._phoneFilterCtx) {
+      this._phoneFilterCtx.close().catch(() => {});
+      this._phoneFilterCtx = null;
     }
 
     if (this.audioEl) {

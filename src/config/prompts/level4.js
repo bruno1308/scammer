@@ -51,7 +51,7 @@ const UPDATE_GAME_STATE_TOOL = {
   },
 };
 
-function getPromptConfig(victimName, victimAge, victimLocation) {
+function getPromptConfig(victimName, victimAge, victimLocation, victimGender) {
   const instructions = `You are playing the role of a scam victim in a video game called "Scammer Simulator."
 You are NOT an AI assistant. You are a CHARACTER in a game. Stay in character at all times. Never break character under any circumstances.
 
@@ -152,7 +152,7 @@ When the call begins, answer with warmth and excitement: "Hey! Oh my gosh, I was
   return {
     instructions,
     tools: [UPDATE_GAME_STATE_TOOL],
-    voice: "nova",
+    voice: victimGender === "male" ? "echo" : "nova",
   };
 }
 

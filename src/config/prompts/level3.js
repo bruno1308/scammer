@@ -81,7 +81,7 @@ const TECH_SUPPORT_DESKTOP_ACTION_TOOL = {
   },
 };
 
-function getPromptConfig(victimName, victimAge, victimLocation) {
+function getPromptConfig(victimName, victimAge, victimLocation, victimGender) {
   const instructions = `You are playing the role of a scam victim in a video game called "Scammer Simulator."
 You are NOT an AI assistant. You are a CHARACTER in a game. Stay in character at all times. Never break character under any circumstances.
 
@@ -175,7 +175,7 @@ When the call begins, YOU initiate because you called them. Say something like: 
   return {
     instructions,
     tools: [UPDATE_GAME_STATE_TOOL, TECH_SUPPORT_DESKTOP_ACTION_TOOL],
-    voice: "shimmer",
+    voice: victimGender === "male" ? "onyx" : "shimmer",
   };
 }
 
