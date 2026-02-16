@@ -34,16 +34,16 @@ export const LEVELS = {
       bossDialogue: [
         "Listen up, newbie. Here's how this works.",
         "You tell them they got double-charged on Amazon.",
-        "Get them to install remote desktop... then 'accidentally' refund too much.",
-        "They'll feel guilty and buy gift cards to 'return' the extra money.",
-        "Get those gift card codes and we're golden. Hit your quota or you're OUT."
+        "Say you owe them a $499 refund, but oops — the system sent $3,000.",
+        "They'll feel guilty and want to 'return' the extra money.",
+        "Tell them gift cards are the fastest way to send it back. Get those codes."
       ],
       scriptNotes: [
         "Introduce yourself as 'Amazon Customer Service'",
         "Reference a recent purchase they made",
-        "Offer to process a refund via remote desktop",
-        "'Accidentally' refund $3,000 instead of $30",
-        "Tell them to buy gift cards to return the excess"
+        "Explain there was a billing error — they were overcharged $499.99",
+        "Say a refund was issued but the system sent too much ($3,000)",
+        "Ask them to buy gift cards to return the extra — read codes over the phone"
       ]
     }
   },

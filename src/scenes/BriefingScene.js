@@ -58,10 +58,10 @@ const SCAM_SCRIPTS = {
   1: {
     title: 'GIFT CARD REFUND',
     lines: [
-      'You are: Customer Service Rep at "National Billing Center"',
-      'Claim: Billing error resulted in overcharge of $499.99',
-      'Method: Victim must purchase gift cards to "process refund"',
-      'Target: 1x $200 gift card, read code over phone',
+      'You are: Customer Service Rep at "Amazon Billing"',
+      'Claim: Billing error overcharged them $499.99',
+      'Hook: A refund was issued but "the system sent $3,000 by mistake"',
+      'Method: They need to return the extra via gift card codes',
       'If questioned: "This is standard procedure, ma\'am/sir"',
     ],
   },
