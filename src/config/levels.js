@@ -172,39 +172,44 @@ export const LEVELS = {
  * A random victim is selected from the pool for each call in that level.
  */
 export const VICTIM_NAMES = {
+  // Portraits: 1=F(glasses) 2=M(bald) 3=F(Asian) 4=M(cardigan) 5=F(hat)
   1: [
-    { name: 'Dorothy Miller', age: 72, location: 'Des Moines, Iowa' },
-    { name: 'Harold Patterson', age: 78, location: 'Tucson, Arizona' },
-    { name: 'Betty Nakamura', age: 69, location: 'Portland, Oregon' },
-    { name: 'Earl Washington', age: 74, location: 'Atlanta, Georgia' },
-    { name: "Margaret O'Brien", age: 81, location: 'Boston, Massachusetts' }
+    { name: 'Dorothy Miller', age: 72, location: 'Des Moines, Iowa', portraitIdx: 1 },
+    { name: 'Harold Patterson', age: 78, location: 'Tucson, Arizona', portraitIdx: 2 },
+    { name: 'Betty Nakamura', age: 69, location: 'Portland, Oregon', portraitIdx: 3 },
+    { name: 'Earl Washington', age: 74, location: 'Atlanta, Georgia', portraitIdx: 4 },
+    { name: "Margaret O'Brien", age: 81, location: 'Boston, Massachusetts', portraitIdx: 5 }
   ],
 
+  // Portraits: 1=M(office) 2=F(curly) 3=M(desk) 4=F(kitchen)
   2: [
-    { name: 'David Chen', age: 42, location: 'Sacramento, California' },
-    { name: 'Maria Gonzalez', age: 38, location: 'Houston, Texas' },
-    { name: 'James Wilson', age: 45, location: 'Chicago, Illinois' },
-    { name: 'Priya Patel', age: 41, location: 'Edison, New Jersey' }
+    { name: 'David Chen', age: 42, location: 'Sacramento, California', portraitIdx: 1 },
+    { name: 'Maria Gonzalez', age: 38, location: 'Houston, Texas', portraitIdx: 2 },
+    { name: 'James Wilson', age: 45, location: 'Chicago, Illinois', portraitIdx: 3 },
+    { name: 'Priya Patel', age: 41, location: 'Edison, New Jersey', portraitIdx: 4 }
   ],
 
+  // Portraits: 1=M(computer) 2=F(red hair) 3=M(glasses) 4=F(dark hair)
   3: [
-    { name: 'Karen Thompson', age: 35, location: 'Denver, Colorado' },
-    { name: 'Mike Rodriguez', age: 48, location: 'Phoenix, Arizona' },
-    { name: 'Susan Lee', age: 52, location: 'Seattle, Washington' },
-    { name: 'Tom Anderson', age: 44, location: 'Minneapolis, Minnesota' }
+    { name: 'Karen Thompson', age: 35, location: 'Denver, Colorado', portraitIdx: 2 },
+    { name: 'Mike Rodriguez', age: 48, location: 'Phoenix, Arizona', portraitIdx: 1 },
+    { name: 'Susan Lee', age: 52, location: 'Seattle, Washington', portraitIdx: 4 },
+    { name: 'Tom Anderson', age: 44, location: 'Minneapolis, Minnesota', portraitIdx: 3 }
   ],
 
+  // Portraits: 1=F(rose) 2=M(book) 3=F(wine) 4=F(pearls)
   4: [
-    { name: 'Linda Foster', age: 56, location: 'Nashville, Tennessee' },
-    { name: 'Robert Kim', age: 48, location: 'San Diego, California' },
-    { name: 'Patricia Martinez', age: 62, location: 'Albuquerque, New Mexico' },
-    { name: 'William Brooks', age: 53, location: 'Charlotte, North Carolina' }
+    { name: 'Linda Foster', age: 56, location: 'Nashville, Tennessee', portraitIdx: 1 },
+    { name: 'Robert Kim', age: 48, location: 'San Diego, California', portraitIdx: 2 },
+    { name: 'Patricia Martinez', age: 62, location: 'Albuquerque, New Mexico', portraitIdx: 3 },
+    { name: 'William Brooks', age: 53, location: 'Charlotte, North Carolina', portraitIdx: 2 }
   ],
 
+  // Portraits: 1=M(suit) 2=F(stern) 3=M(document)
   5: [
-    { name: 'Sarah Mitchell, CFO', age: 39, location: 'New York, New York' },
-    { name: 'Jennifer Walsh, CFO', age: 44, location: 'San Francisco, California' },
-    { name: 'Amanda Price, CFO', age: 41, location: 'Boston, Massachusetts' }
+    { name: 'Sarah Mitchell, CFO', age: 39, location: 'New York, New York', portraitIdx: 2 },
+    { name: 'Jennifer Walsh, CFO', age: 44, location: 'San Francisco, California', portraitIdx: 2 },
+    { name: 'Amanda Price, CFO', age: 41, location: 'Boston, Massachusetts', portraitIdx: 2 }
   ]
 };
 

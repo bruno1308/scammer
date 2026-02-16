@@ -6,44 +6,45 @@ A dark comedy PhaserJS game where you play as a scam call center employee. Uses 
 
 ```bash
 npm install
-npm start          # Runs both Vite dev server (5173) and Express backend (3001) concurrently
+npm start          # Runs Vite dev server (port 5173)
 ```
 
-Requires `.env` at project root with:
-- `OPENAI_API_KEY` — for Realtime Voice API sessions
-- `MESHY_API_KEY` — for regenerating art assets via Meshy text-to-image API
+Players must enter their own OpenAI API key in the in-game Settings screen. The key is stored in `localStorage` and used directly from the browser — no backend server needed.
 
 ## Architecture
 
 ```
-src/                    # Phaser 3 frontend (ES modules, Vite bundled)
-  main.js               # Phaser.Game bootstrap (1280x720, FIT scaling)
-  scenes/               # 8 Phaser scenes (see Scene Flow below)
-  state/GameState.js    # Singleton game state — suspicion, compliance, money, level progress
-  voice/VoiceManager.js # Singleton WebRTC manager for OpenAI Realtime API
-  config/levels.js      # Level definitions, victim pools, briefing text
-  config/scoring.js     # Post-call score calculation with multipliers
-  ui/                   # Reusable UI components (Meter, MoneyCounter, CallTimer, VictimCard, TutorialPopup)
+src/                           # Phaser 3 frontend (ES modules, Vite bundled)
+  main.js                      # Phaser.Game bootstrap (1280x720, FIT scaling)
+  scenes/                      # 9 Phaser scenes (see Scene Flow below)
+  state/GameState.js           # Singleton game state — suspicion, compliance, money, level progress
+  voice/VoiceManager.js        # Singleton WebRTC manager for OpenAI Realtime API
+  config/levels.js             # Level definitions, victim pools (with portraitIdx), briefing text
+  config/apiKeyManager.js      # localStorage wrapper for OpenAI API key
+  config/prompts/              # AI victim prompt configs per level (moved from server/)
+    index.js                   # Barrel: getPromptConfig(level, name, age, location)
+    level[1-5].js              # Per-level prompt with compliance-gated behavior
+  config/scoring.js            # Post-call score calculation with multipliers
+  ui/                          # Reusable UI components (Meter, MoneyCounter, CallTimer, VictimCard, TutorialPopup)
 
-server/                 # Express backend (port 3001)
-  index.js              # POST /api/session — creates ephemeral OpenAI Realtime session
-  prompts/level[1-5].js # AI victim prompt configs per level with compliance-gated behavior
-
-public/assets/          # Static assets served by Vite
-  portraits/level[1-5]/ # Victim portrait PNGs (editorial caricature style)
-  characters/           # Boss character PNGs (boss_idle.png, boss_angry.png)
+public/assets/                 # Static assets served by Vite
+  portraits/level[1-5]/        # Victim portrait PNGs (editorial caricature style)
+  characters/                  # Boss character PNGs (boss_idle.png, boss_angry.png)
 ```
 
 ## Scene Flow
 
 ```
-BootScene → MenuScene → BriefingScene → OfficeScene ↔ CallScene → ResultsScene → BriefingScene (next level)
-                                                  ↕                                    ↓
-                                          TechDesktopScene                       GameOverScene
+BootScene → MenuScene → SettingsScene (API key entry)
+                ↓
+          BriefingScene → OfficeScene ↔ CallScene → ResultsScene → BriefingScene (next level)
+                                ↕                                        ↓
+                        TechDesktopScene                           GameOverScene
 ```
 
 - **BootScene**: Preloads all portrait/character textures
-- **MenuScene**: Title screen with mic test (VoiceManager.getMicLevel())
+- **MenuScene**: Title screen with mic test, SETTINGS button, API key status indicator. START GAME gated behind `hasApiKey()`
+- **SettingsScene**: API key entry via `window.prompt()`, masked display, clear button, privacy note
 - **BriefingScene**: Boss dialogue + scam script before each level
 - **OfficeScene**: Phone rings (Web Audio API dual-tone), player answers to start call
 - **CallScene**: Overlay scene during active call — shows victim portrait, suspicion/compliance meters, call timer, money counter, script drawer tab
@@ -61,19 +62,21 @@ BootScene → MenuScene → BriefingScene → OfficeScene ↔ CallScene → Resu
 
 ### VoiceManager (`src/voice/VoiceManager.js`)
 - Manages WebRTC connection to OpenAI Realtime API (`gpt-realtime` model)
-- Flow: `requestMicPermission()` → `startCall(level)` → fetches ephemeral key from `/api/session` → SDP exchange → data channel for function calls
+- **No backend needed** — uses the player's API key directly for the SDP exchange, then sends `session.update` over the data channel to configure voice, instructions, and tools
+- Flow: `requestMicPermission()` → `startCall(level)` → gets API key from `apiKeyManager` → picks random victim from `levels.js` → builds prompt config from `config/prompts/` → SDP exchange with API key → data channel opens → sends `session.update` with full config
 - Callbacks: `onGameStateUpdate`, `onDesktopAction`, `onCallEnd`, `onError`, `onConnected`
-- `serverVictim` property stores victim data from server response for identity sync
+- `currentVictim` property stores the client-generated victim data for identity sync
 
 ## Voice API Integration
 
-The backend (`server/index.js`) creates ephemeral sessions with level-specific prompts. Each prompt in `server/prompts/level[N].js` defines:
-- AI persona and voice
-- Victim personality and backstory
-- **Compliance stages** — the AI's behavior is gated to compliance levels (e.g., won't agree to pay until compliance > 90)
-- Two function tools the AI can call:
-  - `update_game_state` — adjusts suspicion/compliance/money values
-  - `tech_support_desktop_action` — triggers desktop events in Level 3
+VoiceManager connects directly to OpenAI's Realtime API from the browser. Each call:
+1. Gets the player's API key from `localStorage` via `apiKeyManager`
+2. Picks a random victim and builds a level-specific prompt from `src/config/prompts/level[N].js`
+3. Establishes WebRTC connection using the API key in the SDP exchange
+4. Sends `session.update` over the data channel with voice, instructions, tools, and VAD config
+5. The AI can call two function tools via the data channel:
+   - `update_game_state` — adjusts suspicion/compliance/emotion values
+   - `tech_support_desktop_action` — triggers desktop events in Level 3
 
 ## Compliance-Gated Prompts
 
@@ -87,18 +90,20 @@ Every level prompt includes a COMPLIANCE STAGES section that prevents AI behavio
 
 ## Art Assets
 
-Portraits use editorial caricature style (MAD Magazine-inspired: exaggerated features, ink lines, flat watercolor washes, satirical/ugly-funny). Generated via Meshy API (`/openapi/v1/text-to-image`, `ai_model: "nano-banana"`).
+Portraits use editorial caricature style (MAD Magazine-inspired: exaggerated features, ink lines, flat watercolor washes, satirical/ugly-funny). Generated via Meshy API.
 
 Portrait counts per level: L1=5, L2=4, L3=4, L4=4, L5=3, Boss=2. Total: 22 images.
 
-BootScene preloads all portraits with keys like `l1_victim_1`, `l2_victim_3`, etc.
+Each victim in `VICTIM_NAMES` (levels.js) has a `portraitIdx` field that maps to a specific portrait file, ensuring gender-correct portrait assignment. BootScene preloads all portraits with keys like `l1_victim_1`, `l2_victim_3`, etc.
 
-## Development
+## Deployment
+
+The game is a fully static site deployable to GitHub Pages. No backend server needed.
 
 - **Build**: `npm run build` (Vite outputs to `dist/`)
-- **Dev server**: `npm run dev` (port 5173, proxies `/api` to 3001)
-- **Backend only**: `npm run server` (port 3001)
-- Vite proxy config in `vite.config.js` routes `/api/*` to Express backend
+- **Dev server**: `npm start` or `npm run dev` (port 5173)
+- **GitHub Pages**: Auto-deployed via `.github/workflows/deploy.yml` on push to `main`
+- `base` path in `vite.config.js` must match the GitHub Pages URL path (e.g., `/scammer/`)
 - No test framework currently set up
 - No TypeScript — plain ES modules with JSDoc annotations
 
@@ -107,6 +112,7 @@ BootScene preloads all portraits with keys like `l1_victim_1`, `l2_victim_3`, et
 - Scenes communicate via `this.scene.launch()` / `this.scene.stop()` and Phaser's scene data passing
 - CallScene runs as an overlay on top of OfficeScene
 - Phone ring sound is procedural (Web Audio API, 440Hz + 480Hz dual-tone, 2s on / 4s off)
-- Victim `portraitKey` is assigned in OfficeScene before launching CallScene
+- Victim `portraitKey` is assigned in OfficeScene from `victim.portraitIdx` before launching CallScene
 - Script panel in CallScene is a toggleable slide-out drawer on the right edge
-- Portrait display uses circular Phaser geometry masks with fallback to programmatic shapes if texture missing
+- Portrait display uses circular Phaser geometry masks (`this.make.graphics({ add: false })`) with fallback to programmatic shapes if texture missing
+- API key stored in `localStorage` under key `scammer_sim_openai_api_key`

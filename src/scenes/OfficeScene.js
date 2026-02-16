@@ -663,10 +663,8 @@ export class OfficeScene extends Phaser.Scene {
     // Use victim from VoiceManager (generated during startCall), or pick locally as fallback
     const victim = vm.currentVictim || getRandomVictim(this.levelNum);
 
-    // Assign a portrait texture key based on level
-    const portraitCounts = { 1: 5, 2: 4, 3: 4, 4: 4, 5: 3 };
-    const maxPortraits = portraitCounts[this.levelNum] || 3;
-    const portraitIdx = Phaser.Math.Between(1, maxPortraits);
+    // Assign a portrait texture key based on victim's mapped portrait
+    const portraitIdx = victim.portraitIdx || 1;
     victim.portraitKey = `l${this.levelNum}_victim_${portraitIdx}`;
 
     // Start the call in GameState
