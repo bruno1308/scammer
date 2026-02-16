@@ -284,13 +284,13 @@ export class CallScene extends Phaser.Scene {
       color: '#ffcc00'
     }).setOrigin(0.5);
 
-    // Portrait area (drawn as abstract face)
-    const portraitX = x + 60;
-    const portraitY = y + 110;
+    // Portrait area
+    const portraitX = x + 70;
+    const portraitY = y + 115;
     this._showVictimPortrait(portraitX, portraitY);
 
     // Victim details
-    const detX = x + 130;
+    const detX = x + 160;
     const detY = y + 50;
 
     this.add.text(detX, detY, this.victim.name, {
@@ -345,24 +345,24 @@ export class CallScene extends Phaser.Scene {
     const key = this.victim.portraitKey;
     if (key && this.textures.exists(key)) {
       const portrait = this.add.image(x, y, key);
-      // Scale to fit ~64px circle area
-      const maxSize = 64;
+      // Scale to fit ~96px circle area (50% larger than original 64px)
+      const maxSize = 96;
       const scale = maxSize / Math.max(portrait.width, portrait.height);
       portrait.setScale(scale);
 
-      // Circular mask
-      const mask = this.add.graphics();
-      mask.fillStyle(0xffffff);
-      mask.fillCircle(x, y, 32);
-      portrait.setMask(mask.createGeometryMask());
+      // Circular mask (not added to display list — used only as mask shape)
+      const maskShape = this.make.graphics({ add: false });
+      maskShape.fillStyle(0xffffff);
+      maskShape.fillCircle(x, y, 48);
+      portrait.setMask(maskShape.createGeometryMask());
     } else {
       // Fallback: simple silhouette if image not loaded
       const g = this.add.graphics();
       g.fillStyle(0x334455, 0.8);
-      g.fillCircle(x, y, 32);
+      g.fillCircle(x, y, 48);
       g.fillStyle(0x556677, 0.6);
-      g.fillCircle(x, y - 8, 14);
-      g.fillEllipse(x, y + 20, 36, 20);
+      g.fillCircle(x, y - 12, 21);
+      g.fillEllipse(x, y + 30, 54, 30);
     }
   }
 
