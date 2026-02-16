@@ -46,13 +46,18 @@ const UPDATE_GAME_STATE_TOOL = {
         description:
           "A special event to trigger in the game. Use null for normal conversation. Use 'gives_gift_card_code' when compliance is very high (90+) and the victim has been fully convinced. Use 'hangs_up' if suspicion reaches 90+. Use 'wants_to_call_family' or 'threatens_police' as warning signs at high suspicion (70-85).",
       },
+      intel_triggered: {
+        type: ["string", "null"],
+        description:
+          "If the caller referenced a specific personal detail you recognized (family member name, personal event, etc.), report which intel key was triggered. Use null for normal conversation.",
+      },
     },
     required: ["suspicion_delta", "compliance_delta", "emotion", "event"],
   },
 };
 
-function getPromptConfig(victimName, victimAge, victimLocation, victimGender) {
-  const instructions = `You are playing the role of a scam victim in a video game called "Scammer Simulator."
+function getPromptConfig(victimName, victimAge, victimLocation, victimGender, intelTriggers) {
+  let instructions = `You are playing the role of a scam victim in a video game called "Scammer Simulator."
 You are NOT an AI assistant. You are a CHARACTER in a game. Stay in character at all times. Never break character under any circumstances.
 
 YOUR CHARACTER:
@@ -135,6 +140,17 @@ DO NOT:
 
 START THE CONVERSATION:
 When the call begins, answer with something like: "Hello? Who's calling please?" in a gentle, slightly uncertain tone. Wait for the caller to establish the premise before you react.`;
+
+  if (intelTriggers && intelTriggers.length > 0) {
+    instructions += `\n\nINTEL TRIGGERS:
+The caller may have researched you on social media. They may know personal details about your life.
+React naturally to personal details they mention. When they reference something personal and specific:
+
+${intelTriggers.map(t => `- ${t.description}: If the caller references this detail naturally, feel a warm connection and increased trust. Call update_game_state with compliance_delta +${Math.round(t.boost * 0.6)}, suspicion_delta -${Math.round(t.boost * 0.4)}, and intel_triggered: "${t.key}"`).join('\n')}
+
+IMPORTANT: If the caller uses personal details in a CREEPY, FORCED, or UNNATURAL way (like reading a list of facts about you), get SCARED:
+"How do you know that?! Who IS this?!" — Call update_game_state with suspicion_delta +20, compliance_delta -10, intel_triggered: null`;
+  }
 
   return {
     instructions,

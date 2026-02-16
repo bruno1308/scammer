@@ -17,6 +17,7 @@
 import { getApiKey } from '../config/apiKeyManager.js';
 import { getPromptConfig } from '../config/prompts/index.js';
 import { getRandomVictim } from '../config/levels.js';
+import { getFriendBookData } from '../config/friendbook/index.js';
 
 const REALTIME_API_URL =
   'https://api.openai.com/v1/realtime?model=gpt-realtime';
@@ -137,9 +138,10 @@ class VoiceManager {
    * Uses the player's API key directly (no backend needed).
    *
    * @param {number} level - The current game level (1-5).
+   * @param {object} [preSelectedVictim] - Optional pre-selected victim (from FriendBook browsing).
    * @returns {Promise<boolean>} true if the connection was established.
    */
-  async startCall(level) {
+  async startCall(level, preSelectedVictim) {
     try {
       // -----------------------------------------------------------
       // 1. Get API key and build session config client-side
@@ -149,10 +151,12 @@ class VoiceManager {
         throw new Error('No OpenAI API key configured. Go to Settings to enter your key.');
       }
 
-      const victim = getRandomVictim(level);
+      const victim = preSelectedVictim || getRandomVictim(level);
       if (!victim) throw new Error(`No victim data for level ${level}`);
 
-      const config = getPromptConfig(level, victim.name, victim.age, victim.location, victim.gender);
+      const friendbookData = getFriendBookData(level, victim.name);
+      const intelTriggers = friendbookData ? friendbookData.intelKeys : [];
+      const config = getPromptConfig(level, victim.name, victim.age, victim.location, victim.gender, intelTriggers);
       this.currentVictim = { ...victim, level };
 
       // -----------------------------------------------------------

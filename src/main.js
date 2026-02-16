@@ -6,6 +6,7 @@ import { BriefingScene } from './scenes/BriefingScene.js';
 import { OfficeScene } from './scenes/OfficeScene.js';
 import { CallScene } from './scenes/CallScene.js';
 import { TechDesktopScene } from './scenes/TechDesktopScene.js';
+import SocialNetworkScene from './scenes/SocialNetworkScene.js';
 import { ResultsScene } from './scenes/ResultsScene.js';
 import { GameOverScene } from './scenes/GameOverScene.js';
 
@@ -23,6 +24,7 @@ const config = {
     OfficeScene,
     CallScene,
     TechDesktopScene,
+    SocialNetworkScene,
     ResultsScene,
     GameOverScene
   ],

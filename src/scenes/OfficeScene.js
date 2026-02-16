@@ -11,6 +11,7 @@ import gameState, { LEVEL_CONFIG } from '../state/GameState.js';
 import VoiceManager from '../voice/VoiceManager.js';
 import { Meter } from '../ui/Meter.js';
 import { getRandomVictim } from '../config/levels.js';
+import { getFriendBookData } from '../config/friendbook/index.js';
 
 export class OfficeScene extends Phaser.Scene {
   constructor() {
@@ -23,6 +24,7 @@ export class OfficeScene extends Phaser.Scene {
     this.shiftEnded = false;
     this.callQueue = [];
     this.bossWalkTimer = null;
+    this._preSelectedVictim = null;
   }
 
   create() {
@@ -266,6 +268,17 @@ export class OfficeScene extends Phaser.Scene {
       color: '#00cc66',
       alpha: 0.6
     });
+
+    // Make monitor interactive for FriendBook
+    this.add.rectangle(mx, my, 200, 130, 0xffffff, 0)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => this._openFriendBook());
+
+    this.monitorHint = this.add.text(mx, my + 70, 'Click to open FriendBook', {
+      fontFamily: '"Courier New", monospace',
+      fontSize: '10px',
+      color: '#00ff88'
+    }).setOrigin(0.5).setAlpha(0.5);
   }
 
   _drawNotebook(width, height) {
@@ -530,6 +543,47 @@ export class OfficeScene extends Phaser.Scene {
   }
 
   // =========================================================================
+  //  FRIENDBOOK
+  // =========================================================================
+
+  _openFriendBook() {
+    if (this.scene.isActive('social-network')) return;
+
+    const data = this._getFriendBookLaunchData();
+    if (!data) return;
+
+    this.scene.launch('social-network', {
+      friendbookData: data.friendbookData,
+      targetProfileId: data.targetProfileId,
+      level: this.levelNum
+    });
+  }
+
+  _getFriendBookLaunchData() {
+    // During a call, use the current victim
+    const victim = this.callInProgress && gameState.currentVictim
+      ? gameState.currentVictim
+      : this._getOrPreSelectVictim();
+
+    if (!victim) return null;
+
+    const friendbookData = getFriendBookData(this.levelNum, victim.name);
+    if (!friendbookData) return null;
+
+    const targetProfileId = Object.keys(friendbookData.profiles)
+      .find(id => friendbookData.profiles[id].isTarget);
+
+    return { friendbookData, targetProfileId };
+  }
+
+  _getOrPreSelectVictim() {
+    if (!this._preSelectedVictim) {
+      this._preSelectedVictim = getRandomVictim(this.levelNum);
+    }
+    return this._preSelectedVictim;
+  }
+
+  // =========================================================================
   //  PHONE INTERACTIONS
   // =========================================================================
 
@@ -652,16 +706,17 @@ export class OfficeScene extends Phaser.Scene {
     this._stopPhoneRinging();
     this.callInProgress = true;
 
-    // Start VoiceManager call (victim is generated client-side)
+    // Use pre-selected victim (player may have browsed FriendBook) or pick new
+    const victim = this._preSelectedVictim || getRandomVictim(this.levelNum);
+    this._preSelectedVictim = null; // Clear for next call
+
+    // Start VoiceManager call, passing the victim so the AI prompt matches
     const vm = VoiceManager.getInstance();
     try {
-      await vm.startCall(this.levelNum);
+      await vm.startCall(this.levelNum, victim);
     } catch (e) {
       console.warn('[OfficeScene] VoiceManager not available:', e.message);
     }
-
-    // Use victim from VoiceManager (generated during startCall), or pick locally as fallback
-    const victim = vm.currentVictim || getRandomVictim(this.levelNum);
 
     // Assign a portrait texture key based on victim's mapped portrait
     const portraitIdx = victim.portraitIdx || 1;
@@ -669,6 +724,12 @@ export class OfficeScene extends Phaser.Scene {
 
     // Start the call in GameState
     gameState.startCall(victim);
+
+    // Initialize intel from FriendBook data
+    const friendbookData = getFriendBookData(this.levelNum, victim.name);
+    if (friendbookData) {
+      gameState.initIntel(friendbookData.intelKeys);
+    }
 
     // Show meters
     this.suspicionMeter.setAlpha(1);
@@ -786,12 +847,15 @@ export class OfficeScene extends Phaser.Scene {
     this._stopCallTimer();
     this._tryEndVoice();
 
-    // Stop CallScene overlay
+    // Stop overlay scenes
     if (this.scene.isActive('call')) {
       this.scene.stop('call');
     }
     if (this.scene.isActive('tech-desktop')) {
       this.scene.stop('tech-desktop');
+    }
+    if (this.scene.isActive('social-network')) {
+      this.scene.stop('social-network');
     }
 
     // Hide call timer

@@ -48,6 +48,9 @@ export class CallScene extends Phaser.Scene {
     // ---- Scam script toggle tab (bottom-left, doesn't cover meters) ----
     this._createScriptPanel(width, height);
 
+    // ---- Intel tracker mini-panel ----
+    this._createIntelPanel();
+
     // ---- Tutorial popups (Level 1 only) ----
     if (this.levelNum === 1) {
       this._showTutorial('start');
@@ -765,6 +768,74 @@ export class CallScene extends Phaser.Scene {
   }
 
   // =========================================================================
+  //  INTEL TRACKER
+  // =========================================================================
+
+  _createIntelPanel() {
+    if (!gameState.intelKeys || gameState.intelKeys.length === 0) return;
+
+    const panelX = 16;
+    const panelY = this.scale.height - 160;
+    this.intelPanel = this.add.container(panelX, panelY);
+
+    const panelH = 28 + gameState.intelKeys.length * 20;
+    const bg = this.add.graphics();
+    bg.fillStyle(0x000000, 0.7);
+    bg.fillRoundedRect(0, 0, 180, panelH, 6);
+    this.intelPanel.add(bg);
+
+    const header = this.add.text(8, 5, 'Intel', {
+      fontFamily: '"Courier New", monospace',
+      fontSize: '11px',
+      color: '#ffd54f',
+      fontStyle: 'bold'
+    });
+    this.intelPanel.add(header);
+
+    this.callIntelTexts = {};
+    gameState.intelKeys.forEach((intel, i) => {
+      const y = 24 + i * 20;
+      const state = gameState.intelUsed.has(intel.key) ? '[OK]' :
+                    gameState.intelSeen.has(intel.key) ? '[>>]' : '[??]';
+      const label = gameState.intelSeen.has(intel.key) ? intel.description : '???';
+      const text = this.add.text(8, y, `${state} ${label}`, {
+        fontFamily: '"Courier New", monospace',
+        fontSize: '10px',
+        color: gameState.intelUsed.has(intel.key) ? '#66bb6a' : '#cccccc'
+      });
+      this.intelPanel.add(text);
+      this.callIntelTexts[intel.key] = text;
+    });
+
+    gameState.on('intel_seen', this._onCallIntelSeen, this);
+    gameState.on('intel_used', this._onCallIntelUsed, this);
+  }
+
+  _onCallIntelSeen(key) {
+    const intel = gameState.intelKeys.find(i => i.key === key);
+    const text = this.callIntelTexts?.[key];
+    if (intel && text) {
+      text.setText(`[>>] ${intel.description}`);
+    }
+  }
+
+  _onCallIntelUsed(key) {
+    const intel = gameState.intelKeys.find(i => i.key === key);
+    const text = this.callIntelTexts?.[key];
+    if (intel && text) {
+      text.setText(`[OK] ${intel.description}`);
+      text.setColor('#66bb6a');
+      this.tweens.add({
+        targets: text,
+        scaleX: 1.2, scaleY: 1.2,
+        duration: 150,
+        yoyo: true,
+        ease: 'Quad.easeOut'
+      });
+    }
+  }
+
+  // =========================================================================
   //  CALL END
   // =========================================================================
 
@@ -773,6 +844,8 @@ export class CallScene extends Phaser.Scene {
     gameState.off('call_end', this._onCallEnd, this);
     gameState.off('emotion_change', this._onEmotionChange, this);
     gameState.off('suspicion_change', this._onSuspicionWarning, this);
+    gameState.off('intel_seen', this._onCallIntelSeen, this);
+    gameState.off('intel_used', this._onCallIntelUsed, this);
     if (this._onSuspicionTutorial) {
       gameState.off('suspicion_change', this._onSuspicionTutorial, this);
     }
@@ -791,6 +864,8 @@ export class CallScene extends Phaser.Scene {
     gameState.off('call_end', this._onCallEnd, this);
     gameState.off('emotion_change', this._onEmotionChange, this);
     gameState.off('suspicion_change', this._onSuspicionWarning, this);
+    gameState.off('intel_seen', this._onCallIntelSeen, this);
+    gameState.off('intel_used', this._onCallIntelUsed, this);
     if (this._onSuspicionTutorial) {
       gameState.off('suspicion_change', this._onSuspicionTutorial, this);
     }
