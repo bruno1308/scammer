@@ -211,11 +211,20 @@ class GameState extends Phaser.Events.EventEmitter {
       return;
     }
 
+    console.log(
+      `[GameState] 📊 AI update_game_state:\n` +
+      `  suspicion: ${data.suspicion_delta >= 0 ? '+' : ''}${data.suspicion_delta} (${this.suspicion} → ${Phaser.Math.Clamp(this.suspicion + (data.suspicion_delta || 0), 0, 100)})\n` +
+      `  compliance: ${data.compliance_delta >= 0 ? '+' : ''}${data.compliance_delta} (${this.compliance} → ${Phaser.Math.Clamp(this.compliance + (data.compliance_delta || 0), 0, 100)})\n` +
+      `  emotion: ${data.emotion || 'unchanged'}\n` +
+      `  event: ${data.event || 'none'}`
+    );
+
     // --- Suspicion ---
     if (typeof data.suspicion_delta === 'number') {
       const prev = this.suspicion;
       this.suspicion = Phaser.Math.Clamp(this.suspicion + data.suspicion_delta, 0, 100);
       if (this.suspicion !== prev) {
+        console.log(`[GameState] 🔴 Suspicion changed: ${prev} → ${this.suspicion} (delta: ${data.suspicion_delta})`);
         this.emit('suspicion_change', {
           previous: prev,
           current: this.suspicion,
@@ -229,6 +238,7 @@ class GameState extends Phaser.Events.EventEmitter {
       const prev = this.compliance;
       this.compliance = Phaser.Math.Clamp(this.compliance + data.compliance_delta, 0, 100);
       if (this.compliance !== prev) {
+        console.log(`[GameState] 🟢 Compliance changed: ${prev} → ${this.compliance} (delta: ${data.compliance_delta})`);
         this.emit('compliance_change', {
           previous: prev,
           current: this.compliance,
@@ -242,6 +252,7 @@ class GameState extends Phaser.Events.EventEmitter {
       const prev = this.emotion;
       if (data.emotion !== prev) {
         this.emotion = data.emotion;
+        console.log(`[GameState] 😐 Emotion changed: ${prev} → ${this.emotion}`);
         this.emit('emotion_change', {
           previous: prev,
           current: this.emotion,
@@ -251,6 +262,7 @@ class GameState extends Phaser.Events.EventEmitter {
 
     // --- Special events ---
     if (data.event) {
+      console.log(`[GameState] ⚡ Event triggered: ${data.event}`);
       this.emit('game_event', { event: data.event });
 
       // Track dirty exit conditions
