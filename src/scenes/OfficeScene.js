@@ -571,12 +571,71 @@ export class OfficeScene extends Phaser.Scene {
   //  PHONE INTERACTIONS
   // =========================================================================
 
+  _startRingSound() {
+    try {
+      this._ringCtx = new (window.AudioContext || window.webkitAudioContext)();
+      this._ringGain = this._ringCtx.createGain();
+      this._ringGain.gain.value = 0.15;
+      this._ringGain.connect(this._ringCtx.destination);
+
+      // Classic phone ring: two tones (440Hz + 480Hz), 2s on / 4s off
+      const playRingBurst = () => {
+        if (!this.phoneRinging || !this._ringCtx) return;
+        const ctx = this._ringCtx;
+        const now = ctx.currentTime;
+
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        osc1.type = 'sine';
+        osc2.type = 'sine';
+        osc1.frequency.value = 440;
+        osc2.frequency.value = 480;
+
+        const burstGain = ctx.createGain();
+        burstGain.gain.setValueAtTime(1, now);
+        burstGain.gain.setValueAtTime(1, now + 0.8);
+        burstGain.gain.setValueAtTime(0, now + 0.8);
+        burstGain.gain.setValueAtTime(1, now + 1.2);
+        burstGain.gain.setValueAtTime(1, now + 2.0);
+        burstGain.gain.setValueAtTime(0, now + 2.0);
+
+        osc1.connect(burstGain);
+        osc2.connect(burstGain);
+        burstGain.connect(this._ringGain);
+
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + 2.0);
+        osc2.stop(now + 2.0);
+
+        this._ringTimeout = setTimeout(() => playRingBurst(), 4000);
+      };
+      playRingBurst();
+    } catch (e) {
+      console.warn('[OfficeScene] Could not create ring sound:', e.message);
+    }
+  }
+
+  _stopRingSound() {
+    if (this._ringTimeout) {
+      clearTimeout(this._ringTimeout);
+      this._ringTimeout = null;
+    }
+    if (this._ringCtx) {
+      this._ringCtx.close().catch(() => {});
+      this._ringCtx = null;
+    }
+  }
+
   _startPhoneRinging() {
     if (this.shiftEnded || this.callInProgress) return;
 
     this.phoneRinging = true;
     this.phoneLabel.setText('RINGING...');
     this.phoneLabel.setColor('#00ff88');
+
+    // Start ring sound
+    this._startRingSound();
 
     // Pulsing glow animation
     this.ringTween = this.tweens.add({
@@ -620,6 +679,8 @@ export class OfficeScene extends Phaser.Scene {
     if (this.ringTween) this.ringTween.stop();
     if (this.ledTween) this.ledTween.stop();
     if (this.vibrateTween) this.vibrateTween.stop();
+
+    this._stopRingSound();
 
     this.phoneGlow.setAlpha(0);
     this.phoneLED.clear();
@@ -1012,6 +1073,7 @@ export class OfficeScene extends Phaser.Scene {
 
   shutdown() {
     this._stopCallTimer();
+    this._stopRingSound();
     if (this.bossWalkTimer) this.bossWalkTimer.remove();
 
     // Remove GameState listeners

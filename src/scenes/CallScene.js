@@ -9,6 +9,7 @@
 import Phaser from 'phaser';
 import gameState from '../state/GameState.js';
 import VoiceManager from '../voice/VoiceManager.js';
+import { LEVELS } from '../config/levels.js';
 
 export class CallScene extends Phaser.Scene {
   constructor() {
@@ -43,6 +44,9 @@ export class CallScene extends Phaser.Scene {
 
     // ---- Hang-up button ----
     this._createHangUpButton(width / 2, height - 80);
+
+    // ---- Scam script reference panel (right side) ----
+    this._createScriptPanel(900, 80, 360, 540);
 
     // ---- Tutorial popups (Level 1 only) ----
     if (this.levelNum === 1) {
@@ -146,6 +150,90 @@ export class CallScene extends Phaser.Scene {
           this.panelTimerText.setText(`${mins}:${secs}`);
         }
       }
+    });
+  }
+
+  // =========================================================================
+  //  SCAM SCRIPT PANEL
+  // =========================================================================
+
+  _createScriptPanel(x, y, w, h) {
+    const level = LEVELS[this.levelNum];
+    if (!level || !level.briefing || !level.briefing.scriptNotes) return;
+
+    const g = this.add.graphics();
+
+    // Panel background
+    g.fillStyle(0x0a0e14, 0.92);
+    g.fillRoundedRect(x, y, w, h, 8);
+    g.lineStyle(1, 0xffcc00, 0.3);
+    g.strokeRoundedRect(x, y, w, h, 8);
+
+    // Header
+    g.fillStyle(0xffcc00, 0.08);
+    g.fillRoundedRect(x, y, w, 35, { tl: 8, tr: 8, bl: 0, br: 0 });
+
+    this.add.text(x + w / 2, y + 17, 'SCAM SCRIPT', {
+      fontFamily: '"Courier New", monospace',
+      fontSize: '13px',
+      fontStyle: 'bold',
+      color: '#ffcc00'
+    }).setOrigin(0.5);
+
+    // Scam type subtitle
+    this.add.text(x + 15, y + 48, level.name.toUpperCase(), {
+      fontFamily: '"Courier New", monospace',
+      fontSize: '11px',
+      fontStyle: 'bold',
+      color: '#ff8844'
+    });
+
+    // Divider
+    g.lineStyle(1, 0xffcc00, 0.15);
+    g.lineBetween(x + 10, y + 65, x + w - 10, y + 65);
+
+    // Script steps
+    const notes = level.briefing.scriptNotes;
+    let stepY = y + 78;
+
+    notes.forEach((note, i) => {
+      // Step number
+      this.add.text(x + 12, stepY, `${i + 1}.`, {
+        fontFamily: '"Courier New", monospace',
+        fontSize: '11px',
+        fontStyle: 'bold',
+        color: '#ffcc00',
+        alpha: 0.7
+      });
+
+      // Step text
+      const stepText = this.add.text(x + 32, stepY, note, {
+        fontFamily: '"Courier New", monospace',
+        fontSize: '11px',
+        color: '#ccddee',
+        wordWrap: { width: w - 50 },
+        lineSpacing: 3
+      });
+
+      stepY += stepText.height + 12;
+    });
+
+    // "CLASSIFIED" watermark
+    const watermark = this.add.text(x + w / 2, y + h - 30, '[ CLASSIFIED ]', {
+      fontFamily: '"Courier New", monospace',
+      fontSize: '10px',
+      color: '#ffcc00',
+      alpha: 0.2
+    }).setOrigin(0.5);
+
+    // Subtle pulse on the watermark
+    this.tweens.add({
+      targets: watermark,
+      alpha: { from: 0.1, to: 0.3 },
+      duration: 2000,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut'
     });
   }
 
