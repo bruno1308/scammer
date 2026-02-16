@@ -8,6 +8,7 @@
 
 import Phaser from 'phaser';
 import gameState from '../state/GameState.js';
+import VoiceManager from '../voice/VoiceManager.js';
 
 export class CallScene extends Phaser.Scene {
   constructor() {
@@ -540,12 +541,9 @@ export class CallScene extends Phaser.Scene {
     gameState.endCall('player_hangup');
   }
 
-  async _tryEndVoice() {
+  _tryEndVoice() {
     try {
-      const { default: VoiceManager } = await import('../voice/VoiceManager.js').catch(() => ({ default: null }));
-      if (VoiceManager && typeof VoiceManager.endCall === 'function') {
-        VoiceManager.endCall();
-      }
+      VoiceManager.getInstance().endCall();
     } catch (e) {
       // Silent fail
     }

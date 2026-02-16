@@ -8,6 +8,7 @@
 
 import Phaser from 'phaser';
 import gameState, { LEVEL_CONFIG } from '../state/GameState.js';
+import VoiceManager from '../voice/VoiceManager.js';
 import { Meter } from '../ui/Meter.js';
 
 /** Victim name pools per level. */
@@ -65,6 +66,43 @@ export class OfficeScene extends Phaser.Scene {
   create() {
     const { width, height } = this.scale;
     this.cameras.main.setBackgroundColor(0x0d0d1a);
+
+    // ---- Wire up VoiceManager callbacks ----
+    const vm = VoiceManager.getInstance();
+    vm.onGameStateUpdate = (data) => {
+      gameState.updateFromAI(data);
+    };
+    vm.onDesktopAction = (data) => {
+      if (this.scene.isActive('tech-desktop')) {
+        const desktopScene = this.scene.get('tech-desktop');
+        const action = data.action;
+        // Map action names to method calls
+        const actionMap = {
+          'open_event_viewer': 'showEventViewer',
+          'show_event_viewer': 'showEventViewer',
+          'show_errors': 'showErrors',
+          'open_command_prompt': 'showCommandPrompt',
+          'show_command_prompt': 'showCommandPrompt',
+          'run_tree_command': 'runTreeCommand',
+          'run_netstat': 'runNetstat',
+          'open_fake_antivirus': 'showFakeAntivirus',
+          'show_fake_antivirus': 'showFakeAntivirus',
+          'show_virus_scan': 'runVirusScan',
+          'run_virus_scan': 'runVirusScan',
+          'show_payment_page': 'showPaymentPage',
+          'open_browser': 'showBrowser',
+          'show_browser': 'showBrowser',
+          'show_bank_page': 'showBankPage',
+        };
+        const method = actionMap[action];
+        if (method && typeof desktopScene[method] === 'function') {
+          desktopScene[method]();
+        }
+      }
+    };
+    vm.onCallEnd = (reason) => {
+      gameState.endCall(reason);
+    };
 
     // ---- Build the office environment ----
     this._drawBackground(width, height);
@@ -621,23 +659,17 @@ export class OfficeScene extends Phaser.Scene {
     this.phoneLabel.setColor('#ff2244');
   }
 
-  async _tryStartVoice() {
+  _tryStartVoice() {
     try {
-      const { default: VoiceManager } = await import('../voice/VoiceManager.js').catch(() => ({ default: null }));
-      if (VoiceManager && typeof VoiceManager.startCall === 'function') {
-        VoiceManager.startCall(this.levelNum);
-      }
+      VoiceManager.getInstance().startCall(this.levelNum);
     } catch (e) {
       console.warn('[OfficeScene] VoiceManager not available:', e.message);
     }
   }
 
-  async _tryEndVoice() {
+  _tryEndVoice() {
     try {
-      const { default: VoiceManager } = await import('../voice/VoiceManager.js').catch(() => ({ default: null }));
-      if (VoiceManager && typeof VoiceManager.endCall === 'function') {
-        VoiceManager.endCall();
-      }
+      VoiceManager.getInstance().endCall();
     } catch (e) {
       // Silent fail
     }

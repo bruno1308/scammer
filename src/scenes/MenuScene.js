@@ -8,6 +8,7 @@
 
 import Phaser from 'phaser';
 import gameState from '../state/GameState.js';
+import VoiceManager from '../voice/VoiceManager.js';
 
 export class MenuScene extends Phaser.Scene {
   constructor() {
@@ -284,18 +285,8 @@ export class MenuScene extends Phaser.Scene {
    */
   async _testMic() {
     try {
-      // Dynamic import in case VoiceManager is not yet available
-      const { default: VoiceManager } = await import('../voice/VoiceManager.js').catch(() => ({ default: null }));
-
-      if (VoiceManager && typeof VoiceManager.requestMicPermission === 'function') {
-        const granted = await VoiceManager.requestMicPermission();
-        this.micReady = !!granted;
-      } else {
-        // Fallback: try native browser API directly
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        stream.getTracks().forEach(t => t.stop());
-        this.micReady = true;
-      }
+      const granted = await VoiceManager.getInstance().requestMicPermission();
+      this.micReady = !!granted;
     } catch (err) {
       console.warn('[MenuScene] Mic permission denied or unavailable:', err);
       this.micReady = false;

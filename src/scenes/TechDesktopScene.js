@@ -933,14 +933,19 @@ export class TechDesktopScene extends Phaser.Scene {
   _onGameEvent({ event }) {
     // Map game events to desktop actions
     const actionMap = {
+      'open_event_viewer': () => this.showEventViewer(),
       'show_event_viewer': () => this.showEventViewer(),
       'show_errors': () => this.showErrors(),
+      'open_command_prompt': () => this.showCommandPrompt(),
       'show_command_prompt': () => this.showCommandPrompt(),
       'run_tree_command': () => this.runTreeCommand(),
       'run_netstat': () => this.runNetstat(),
+      'open_fake_antivirus': () => this.showFakeAntivirus(),
       'show_fake_antivirus': () => this.showFakeAntivirus(),
+      'show_virus_scan': () => this.runVirusScan(),
       'run_virus_scan': () => this.runVirusScan(),
       'show_payment_page': () => this.showPaymentPage(),
+      'open_browser': () => this.showBrowser(),
       'show_browser': () => this.showBrowser(),
       'show_bank_page': () => this.showBankPage(),
     };
