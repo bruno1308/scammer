@@ -22,7 +22,7 @@ const FRIENDBOOK_DATA = {
       },
       mei_chen: {
         name: 'Mei Chen',
-        portraitKey: null,
+        portraitKey: 'fb_l2_mei_chen',
         isTarget: false,
         bio: 'CPA by day, wine mom by night. Numbers are my love language.',
         location: 'Sacramento, California',
@@ -36,7 +36,7 @@ const FRIENDBOOK_DATA = {
       },
       brandon_chen: {
         name: 'Brandon Chen',
-        portraitKey: null,
+        portraitKey: 'fb_l2_brandon_chen',
         isTarget: false,
         bio: 'Soccer is life. #12. Sacramento United FC U-13',
         location: 'Sacramento, California',
@@ -50,7 +50,7 @@ const FRIENDBOOK_DATA = {
       },
       lily_chen: {
         name: 'Lily Chen',
-        portraitKey: null,
+        portraitKey: 'fb_l2_lily_chen',
         isTarget: false,
         bio: 'Grateful grandmother. New chapter in Sacramento with my family.',
         location: 'Sacramento, California',
@@ -69,6 +69,7 @@ const FRIENDBOOK_DATA = {
           text: 'Kings win!! What a game. Brandon and I lost our voices screaming in the third quarter. Father-son nights at Golden 1 never disappoint 🏀🔥',
           time: '1 day ago',
           likes: 24,
+          imageKey: 'fb_l2_post_kings_game',
           comments: [
             { author: 'mei_chen', text: 'You two are STILL hoarse this morning 😂' },
             { author: 'brandon_chen', text: 'BEST NIGHT EVER DAD' }
@@ -89,6 +90,7 @@ const FRIENDBOOK_DATA = {
           text: 'Brandon scored the game winner in overtime today. 2-1!! This kid is going places. Proudest dad in Sacramento right now 😭⚽',
           time: '1 week ago',
           likes: 47,
+          imageKey: 'fb_l2_post_soccer_goal',
           comments: [
             { author: 'mei_chen', text: 'I cried. Full on tears in the stands. No shame.' },
             { author: 'lily_chen', text: 'My grandson is a champion!! 🏆' }
@@ -249,7 +251,7 @@ const FRIENDBOOK_DATA = {
       },
       carlos_gonzalez: {
         name: 'Carlos Gonzalez',
-        portraitKey: null,
+        portraitKey: 'fb_l2_carlos_gonzalez',
         isTarget: false,
         bio: 'Shift supervisor at Valero. Proud Texan. Astros forever.',
         location: 'Houston, Texas',
@@ -263,7 +265,7 @@ const FRIENDBOOK_DATA = {
       },
       sofia_gonzalez: {
         name: 'Sofia Gonzalez',
-        portraitKey: null,
+        portraitKey: 'fb_l2_sofia_gonzalez',
         isTarget: false,
         bio: 'Girl Scout Brownie! 🍪 I love my cat Luna and soccer!',
         location: 'Houston, Texas',
@@ -277,7 +279,7 @@ const FRIENDBOOK_DATA = {
       },
       diego_morales: {
         name: 'Diego Morales',
-        portraitKey: null,
+        portraitKey: 'fb_l2_diego_morales',
         isTarget: false,
         bio: 'Immigration attorney. Fighting the good fight. Maria\'s little brother (she reminds me daily).',
         location: 'Houston, Texas',
@@ -325,6 +327,7 @@ const FRIENDBOOK_DATA = {
           text: "Beautiful Sunday at Hermann Park with the family. Sofia fed the ducks, Carlos fell asleep on the blanket within 5 minutes. Classic. 🦆☀️",
           time: '2 weeks ago',
           likes: 29,
+          imageKey: 'fb_l2_post_hermann_park',
           comments: [
             { author: 'sofia_gonzalez', text: 'the ducks liked the bread i gave them!!' }
           ],
@@ -384,6 +387,7 @@ const FRIENDBOOK_DATA = {
           text: 'luna is wearing the sweater i made her!! she looks so pretty 🐱💕',
           time: '4 days ago',
           likes: 23,
+          imageKey: 'fb_l2_post_cat_sweater',
           comments: [
             { author: 'maria_gonzalez', text: 'Luna looks adorable mija! You are so creative!' },
             { author: 'carlos_gonzalez', text: 'That cat lives better than me tbh' }
@@ -466,7 +470,7 @@ const FRIENDBOOK_DATA = {
       },
       angela_wilson: {
         name: 'Angela Wilson',
-        portraitKey: null,
+        portraitKey: 'fb_l2_angela_wilson',
         isTarget: false,
         bio: 'Realtor. Mom. Hustler. Helping families find their dream home in Chicagoland.',
         location: 'Chicago, Illinois',
@@ -480,7 +484,7 @@ const FRIENDBOOK_DATA = {
       },
       jason_wilson: {
         name: 'Jason Wilson',
-        portraitKey: null,
+        portraitKey: 'fb_l2_jason_wilson',
         isTarget: false,
         bio: 'Senior at Lincoln Park High. Northwestern bound (hopefully) 🤞 Track & field 🏃‍♂️',
         location: 'Chicago, Illinois',
@@ -494,7 +498,7 @@ const FRIENDBOOK_DATA = {
       },
       tamara_wilson: {
         name: 'Tamara Wilson',
-        portraitKey: null,
+        portraitKey: 'fb_l2_tamara_wilson',
         isTarget: false,
         bio: 'RN at Rush University Medical Center. James\'s little sister. Auntie T to Jason.',
         location: 'Chicago, Illinois',
@@ -524,6 +528,7 @@ const FRIENDBOOK_DATA = {
           text: 'Built Jason a new desk for his room this weekend. Nothing fancy but it\'s solid oak and the kid needs a real workspace for all these college applications. Woodworking therapy at its finest. 🪵',
           time: '5 days ago',
           likes: 28,
+          imageKey: 'fb_l2_post_oak_desk',
           comments: [
             { author: 'angela_wilson', text: 'Looks amazing honey! The sawdust all over the garage... less amazing. 😂' },
             { author: 'jason_wilson', text: 'dad this desk is fire thank you 🙏' }
@@ -595,6 +600,7 @@ const FRIENDBOOK_DATA = {
           text: 'Open house today in Lincoln Park! 3bd/2ba, updated kitchen, rooftop deck. Come say hi if you are in the neighborhood! 🏡✨',
           time: '3 weeks ago',
           likes: 15,
+          imageKey: 'fb_l2_post_open_house',
           comments: [],
           intel: null
         }
@@ -697,7 +703,7 @@ const FRIENDBOOK_DATA = {
       },
       raj_patel: {
         name: 'Raj Patel',
-        portraitKey: null,
+        portraitKey: 'fb_l2_raj_patel',
         isTarget: false,
         bio: 'Software engineer. Building the future one line of code at a time. Proud dad.',
         location: 'Edison, New Jersey',
@@ -711,7 +717,7 @@ const FRIENDBOOK_DATA = {
       },
       dev_patel: {
         name: 'Dev Patel',
-        portraitKey: null,
+        portraitKey: 'fb_l2_dev_patel',
         isTarget: false,
         bio: 'chess knight 🐴 Edison Chess Club ranked #2!! Math is cool (dont tell my friends)',
         location: 'Edison, New Jersey',
@@ -725,7 +731,7 @@ const FRIENDBOOK_DATA = {
       },
       sunita_patel: {
         name: 'Sunita Patel',
-        portraitKey: null,
+        portraitKey: 'fb_l2_sunita_patel',
         isTarget: false,
         bio: 'Blessed grandmother. Temple volunteer. My grandchild Dev is my whole world. Jai Shree Krishna 🙏',
         location: 'Edison, New Jersey',
@@ -909,6 +915,7 @@ const FRIENDBOOK_DATA = {
           text: "Learning to post photos on FriendBook! My bahu Priya taught me. Here is a photo of the beautiful rangoli Dev and I made for Diwali. It took us 3 hours! 🪔",
           time: '3 weeks ago',
           likes: 48,
+          imageKey: 'fb_l2_post_rangoli',
           comments: [
             { author: 'priya_patel', text: 'It was beautiful Mummyji! Best rangoli on the block ❤️' },
             { author: 'raj_patel', text: 'Mom you are becoming a FriendBook pro! Next step: reels 😂' },

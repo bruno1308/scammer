@@ -22,7 +22,7 @@ const FRIENDBOOK_DATA = {
       },
       karen_mitchell: {
         name: 'Karen Mitchell',
-        portraitKey: null,
+        portraitKey: 'fb_l1_karen_mitchell',
         isTarget: false,
         bio: 'Mom. Wife. Exhausted. \u{1f4cd} Minneapolis',
         location: 'Minneapolis, Minnesota',
@@ -36,7 +36,7 @@ const FRIENDBOOK_DATA = {
       },
       mike_mitchell: {
         name: 'Mike Mitchell',
-        portraitKey: null,
+        portraitKey: 'fb_l1_mike_mitchell',
         isTarget: false,
         bio: 'Dad jokes are my love language',
         location: 'Minneapolis, Minnesota',
@@ -50,7 +50,7 @@ const FRIENDBOOK_DATA = {
       },
       emma_mitchell: {
         name: 'Emma Mitchell',
-        portraitKey: null,
+        portraitKey: 'fb_l1_emma_mitchell',
         isTarget: false,
         bio: '\u{1f984} unicorns are real \u{1f984} almost 8!!',
         location: 'Minneapolis, Minnesota',
@@ -78,6 +78,7 @@ const FRIENDBOOK_DATA = {
           text: "Beautiful morning at First Baptist. Pastor Dave's sermon really spoke to me today. Feeling blessed. \u{1f64f}",
           time: '1 day ago',
           likes: 14,
+          imageKey: 'fb_l1_post_church_sermon',
           comments: [
             { author: 'karen_mitchell', text: 'Love you Mom \u2764\ufe0f' }
           ],
@@ -87,6 +88,7 @@ const FRIENDBOOK_DATA = {
           text: "My tomatoes are finally coming in! Harold would have been so proud of this year's garden. Miss you every day, sweetheart. \u{1f331}",
           time: '3 days ago',
           likes: 22,
+          imageKey: 'fb_l1_post_tomatoes',
           comments: [
             { author: 'mike_mitchell', text: "Those look amazing Dorothy! Save some for us when we visit?" },
             { author: 'karen_mitchell', text: "Dad loved your garden. He'd say 'best tomatoes in Iowa' \u2764\ufe0f" }
@@ -179,7 +181,7 @@ const FRIENDBOOK_DATA = {
       },
       richard_patterson: {
         name: 'Richard Patterson',
-        portraitKey: null,
+        portraitKey: 'fb_l1_richard_patterson',
         isTarget: false,
         bio: 'If it has an engine, I can fix it. \u{1f527}',
         location: 'Phoenix, Arizona',
@@ -193,7 +195,7 @@ const FRIENDBOOK_DATA = {
       },
       lisa_patterson: {
         name: 'Lisa Patterson',
-        portraitKey: null,
+        portraitKey: 'fb_l1_lisa_patterson',
         isTarget: false,
         bio: 'School nurse by day, book club queen by night. \u{1f4da}',
         location: 'Phoenix, Arizona',
@@ -207,7 +209,7 @@ const FRIENDBOOK_DATA = {
       },
       tyler_patterson: {
         name: 'Tyler Patterson',
-        portraitKey: null,
+        portraitKey: 'fb_l1_tyler_patterson',
         isTarget: false,
         bio: 'Hoops \u{1f3c0} | Class of 2028 | just got my license \u{1f697}\u{1f4a8}',
         location: 'Phoenix, Arizona',
@@ -226,6 +228,7 @@ const FRIENDBOOK_DATA = {
           text: "Took my grandson Tyler out to Patagonia Lake this weekend. Taught him to tie a proper clinch knot \u2014 took him about 20 tries but he got it! Kid's a natural once he puts the phone down. \u{1f3a3}",
           time: '1 day ago',
           likes: 19,
+          imageKey: 'fb_l1_post_fishing_lake',
           comments: [
             { author: 'richard_patterson', text: 'Ha! Took ME about 50 tries when you taught me, Dad.' },
             { author: 'tyler_patterson', text: 'grandpa i caught a bigger one than you and you know it \u{1f60e}' }
@@ -265,6 +268,7 @@ const FRIENDBOOK_DATA = {
           text: "Beautiful sunset over the Catalinas tonight. God's country right here. \u{1f305}",
           time: '1 week ago',
           likes: 16,
+          imageKey: 'fb_l1_post_sunset_catalinas',
           comments: [],
           intel: null
         }
@@ -369,7 +373,7 @@ const FRIENDBOOK_DATA = {
       },
       ken_nakamura: {
         name: 'Ken Nakamura',
-        portraitKey: null,
+        portraitKey: 'fb_l1_ken_nakamura',
         isTarget: false,
         bio: 'Retired engineer. Still tinkering. Betty says I have too many projects.',
         location: 'Portland, Oregon',
@@ -383,7 +387,7 @@ const FRIENDBOOK_DATA = {
       },
       yuki_nakamura_davis: {
         name: 'Yuki Nakamura-Davis',
-        portraitKey: null,
+        portraitKey: 'fb_l1_yuki_nakamura_davis',
         isTarget: false,
         bio: 'Engineer at Intel. Mom to the world\'s cutest kindergartener. Coffee addict. \u2615',
         location: 'Hillsboro, Oregon',
@@ -397,7 +401,7 @@ const FRIENDBOOK_DATA = {
       },
       marcus_davis: {
         name: 'Marcus Davis',
-        portraitKey: null,
+        portraitKey: 'fb_l1_marcus_davis',
         isTarget: false,
         bio: 'Freelance photographer. Stay-at-home dad. Living the dream (the tired version).',
         location: 'Hillsboro, Oregon',
@@ -427,6 +431,7 @@ const FRIENDBOOK_DATA = {
           text: "Made a little watercolor card for my granddaughter Hana's art show at school. She insisted on adding \"sparkles\" so we glued on some glitter together. My kitchen is now 40% glitter. Worth it. \u2728\u{1f3a8}",
           time: '3 days ago',
           likes: 28,
+          imageKey: 'fb_l1_post_watercolor_card',
           comments: [
             { author: 'marcus_davis', text: 'She has been talking about the card all week. You made her day, Betty!' },
             { author: 'yuki_nakamura_davis', text: 'Mom the glitter is also in my car now somehow \u{1f602}' }
@@ -457,6 +462,7 @@ const FRIENDBOOK_DATA = {
           text: "Spotted a Varied Thrush in the backyard this morning! First one this season. Ken said \"it's just a bird\" but I got a beautiful photo. He doesn't understand. \u{1f426}",
           time: '1 week ago',
           likes: 15,
+          imageKey: 'fb_l1_post_bird_photo',
           comments: [
             { author: 'marcus_davis', text: 'Great shot Betty! The lighting is perfect.' }
           ],
@@ -468,6 +474,7 @@ const FRIENDBOOK_DATA = {
           text: "Finally finished the N-scale mountain tunnel for the train layout. Only took 6 months, 3 trips to Home Depot, and one very patient wife. \u{1f682}",
           time: '2 days ago',
           likes: 16,
+          imageKey: 'fb_l1_post_model_train',
           comments: [
             { author: 'betty_nakamura', text: 'It looks wonderful, honey. Now please clean up the garage. \u{1f60a}' },
             { author: 'yuki_nakamura_davis', text: 'Dad your train room is getting out of hand and I love it \u{1f602}' }
@@ -489,6 +496,7 @@ const FRIENDBOOK_DATA = {
           text: "Hana's first art show at school today! She painted a family portrait \u2014 we're all purple apparently. So proud of this creative kiddo. \u{1f3a8}\u{1f49c}",
           time: '2 days ago',
           likes: 33,
+          imageKey: 'fb_l1_post_hana_art_show',
           comments: [
             { author: 'betty_nakamura', text: "She gets her artistic talent from her grandmother, obviously! \u{1f60a}" },
             { author: 'marcus_davis', text: 'I am NOT purple. I am a very distinguished shade of violet.' }
@@ -511,6 +519,7 @@ const FRIENDBOOK_DATA = {
           text: "Kindergarten field trip to the Japanese Garden. 15 kids, 2 parents, 1 photographer dad trying not to let anyone fall in the koi pond. Success (barely). \u{1f4f8}",
           time: '3 days ago',
           likes: 19,
+          imageKey: 'fb_l1_post_japanese_garden',
           comments: [
             { author: 'yuki_nakamura_davis', text: 'You are a hero. A tired hero.' },
             { author: 'betty_nakamura', text: 'I hope Hana loved it! The garden is so beautiful this time of year.' }
@@ -521,6 +530,7 @@ const FRIENDBOOK_DATA = {
           text: "Hana asked me to photograph her stuffed animals \"for their portfolio.\" I now have 47 professional headshots of teddy bears. This is my life.",
           time: '6 days ago',
           likes: 42,
+          imageKey: 'fb_l1_post_teddy_bears',
           comments: [
             { author: 'betty_nakamura', text: "That is the most adorable thing I've ever heard! \u{1f60d}" },
             { author: 'ken_nakamura', text: 'Frame them all.' }
@@ -555,7 +565,7 @@ const FRIENDBOOK_DATA = {
       },
       denise_washington_taylor: {
         name: 'Denise Washington-Taylor',
-        portraitKey: null,
+        portraitKey: 'fb_l1_denise_washington_taylor',
         isTarget: false,
         bio: 'Attorney. Mother. Daughter. Trying to do it all. \u2696\ufe0f',
         location: 'Atlanta, Georgia',
@@ -569,7 +579,7 @@ const FRIENDBOOK_DATA = {
       },
       jerome_taylor: {
         name: 'Jerome Taylor',
-        portraitKey: null,
+        portraitKey: 'fb_l1_jerome_taylor',
         isTarget: false,
         bio: 'Principal at Westlake High. Shaping the future one student at a time.',
         location: 'Atlanta, Georgia',
@@ -583,7 +593,7 @@ const FRIENDBOOK_DATA = {
       },
       marcus_taylor: {
         name: 'Marcus Taylor',
-        portraitKey: null,
+        portraitKey: 'fb_l1_marcus_taylor',
         isTarget: false,
         bio: 'future engineer \u{1f916} | robotics team captain | coding is life | 14',
         location: 'Atlanta, Georgia',
@@ -707,6 +717,7 @@ const FRIENDBOOK_DATA = {
           text: "my robot can now sort objects AND stack them!!! 2 months of coding and it finally works!! going to states!! \u{1f916}\u{1f916}\u{1f916}",
           time: '2 days ago',
           likes: 27,
+          imageKey: 'fb_l1_post_robot_project',
           comments: [
             { author: 'earl_washington', text: "That's my grandson! \u{1f4aa}\u{1f4aa}" },
             { author: 'jerome_taylor', text: 'Proud of you, son.' }
@@ -717,6 +728,7 @@ const FRIENDBOOK_DATA = {
           text: "grandpa tried to video call me but accidentally posted a selfie to his timeline instead \u{1f602}\u{1f602}\u{1f602} i love him",
           time: '5 days ago',
           likes: 33,
+          imageKey: 'fb_l1_post_earl_selfie',
           comments: [
             { author: 'denise_washington_taylor', text: 'I just saw that. Daddy does NOT know how to delete it either \u{1f602}' },
             { author: 'earl_washington', text: 'How do I remove this?? Marcus HELP' }
@@ -751,7 +763,7 @@ const FRIENDBOOK_DATA = {
       },
       patrick_obrien: {
         name: "Patrick O'Brien",
-        portraitKey: null,
+        portraitKey: 'fb_l1_patrick_obrien',
         isTarget: false,
         bio: 'BFD Ladder 17. 25 years on the job. Proudest day: when Fiona was born.',
         location: 'Boston, Massachusetts',
@@ -765,7 +777,7 @@ const FRIENDBOOK_DATA = {
       },
       colleen_obrien: {
         name: "Colleen O'Brien",
-        portraitKey: null,
+        portraitKey: 'fb_l1_colleen_obrien',
         isTarget: false,
         bio: 'Dental hygienist. New grandma. Sleep-deprived but loving it. \u{1f476}',
         location: 'Boston, Massachusetts',
@@ -779,7 +791,7 @@ const FRIENDBOOK_DATA = {
       },
       baby_fiona_obrien: {
         name: "Fiona O'Brien",
-        portraitKey: null,
+        portraitKey: 'fb_l1_baby_fiona_obrien',
         isTarget: false,
         bio: "\u{1f476} 8 months old \u{1f476} already has more personality than most adults",
         location: 'Boston, Massachusetts',
@@ -798,6 +810,7 @@ const FRIENDBOOK_DATA = {
           text: "Happy St. Patrick's Day from Southie! My Patrick was born on this very day 55 years ago and I've been blessed ever since. The whole family went to the parade \u2014 even little Fiona wore a tiny green hat! Frank would have loved that. \u2618\ufe0f\u{1f49a}",
           time: '2 days ago',
           likes: 41,
+          imageKey: 'fb_l1_post_parade_family',
           comments: [
             { author: 'patrick_obrien', text: 'Thanks Ma! Best birthday present is spending it with you and the family. \u2764\ufe0f' },
             { author: 'colleen_obrien', text: 'Fiona stole the show in that hat!! Everyone was stopping us on the street \u{1f49a}' }

@@ -197,19 +197,20 @@ export default class SocialNetworkScene extends Phaser.Scene {
     this.searchDropdown.setVisible(true);
     this.searchDropdown.setDepth(100);
 
-    // Close dropdown when clicking elsewhere (next frame to avoid immediate close)
+    // Close dropdown when clicking outside it (next frame to avoid immediate close)
     this.time.delayedCall(50, () => {
-      const closeHandler = (pointer, objects) => {
-        // Close if clicking outside dropdown items
-        if (this.searchDropdown && this.searchDropdown.visible) {
-          const localX = pointer.x - this.searchDropdown.x;
-          const localY = pointer.y - this.searchDropdown.y;
-          const dropH = keys.length * 36 + 8;
-          if (localX < 0 || localX > 250 || localY < 0 || localY > dropH) {
-            this.searchDropdown.setVisible(false);
-          }
+      const closeHandler = (pointer) => {
+        if (!this.searchDropdown || !this.searchDropdown.visible) {
+          this.input.off('pointerdown', closeHandler);
+          return;
         }
-        this.input.off('pointerdown', closeHandler);
+        const localX = pointer.x - this.searchDropdown.x;
+        const localY = pointer.y - this.searchDropdown.y;
+        const dropH = keys.length * 36 + 8;
+        if (localX < 0 || localX > 250 || localY < 0 || localY > dropH) {
+          this.searchDropdown.setVisible(false);
+          this.input.off('pointerdown', closeHandler);
+        }
       };
       this.input.on('pointerdown', closeHandler);
     });
@@ -402,19 +403,25 @@ export default class SocialNetworkScene extends Phaser.Scene {
       cardBg.strokeRoundedRect(0, yOffset, contentW, cardH, 8);
       this.tabContentContainer.add(cardBg);
 
-      // Author avatar (small colored circle + initials)
+      // Author avatar (portrait image or colored circle fallback)
       const profile = this.friendbookData.profiles[this.currentProfileId];
       const authorColors = [0x1877f2, 0x42b72a, 0xf02849, 0xf7b928, 0x8b5cf6];
       const authorColor = authorColors[this.currentProfileId.length % authorColors.length];
-      const avatarCircle = this.add.circle(20, yOffset + 20, 16, authorColor);
-      const avatarInitials = this.add.text(20, yOffset + 20,
-        profile.name.split(' ').map(w => w[0]).join('').substring(0, 2), {
-          fontSize: '11px',
-          color: '#ffffff',
-          fontFamily: 'Arial',
-          fontStyle: 'bold'
-        }).setOrigin(0.5);
-      this.tabContentContainer.add([avatarCircle, avatarInitials]);
+      if (profile.portraitKey && this.textures.exists(profile.portraitKey)) {
+        const avatarImg = this.add.image(20, yOffset + 20, profile.portraitKey)
+          .setDisplaySize(32, 32);
+        this.tabContentContainer.add(avatarImg);
+      } else {
+        const avatarCircle = this.add.circle(20, yOffset + 20, 16, authorColor);
+        const avatarInitials = this.add.text(20, yOffset + 20,
+          profile.name.split(' ').map(w => w[0]).join('').substring(0, 2), {
+            fontSize: '11px',
+            color: '#ffffff',
+            fontFamily: 'Arial',
+            fontStyle: 'bold'
+          }).setOrigin(0.5);
+        this.tabContentContainer.add([avatarCircle, avatarInitials]);
+      }
 
       // Author name
       const authorText = this.add.text(44, yOffset + 8, profile.name, {
@@ -443,8 +450,22 @@ export default class SocialNetworkScene extends Phaser.Scene {
       });
       this.tabContentContainer.add(postText);
 
+      // Post image (if this post has an associated image)
+      let postImageHeight = 0;
+      if (post.imageKey && this.textures.exists(post.imageKey)) {
+        const maxImgW = contentW - 24;
+        const maxImgH = 180;
+        const postImg = this.add.image(contentW / 2, 0, post.imageKey);
+        const scale = Math.min(maxImgW / postImg.width, maxImgH / postImg.height);
+        postImg.setScale(scale);
+        const imgY = yOffset + 48 + postText.height + 8 + postImg.displayHeight / 2;
+        postImg.setY(imgY);
+        this.tabContentContainer.add(postImg);
+        postImageHeight = postImg.displayHeight + 8;
+      }
+
       // Like count
-      const likeY = yOffset + 48 + postText.height + 8;
+      const likeY = yOffset + 48 + postText.height + 8 + postImageHeight;
       const likeText = this.add.text(12, likeY, `\uD83D\uDC4D ${post.likes}`, {
         fontSize: '12px',
         color: '#65676b',
@@ -504,11 +525,12 @@ export default class SocialNetworkScene extends Phaser.Scene {
   }
 
   _estimatePostHeight(post, width) {
-    // Rough estimation: header(44) + text lines(~20 per line) + likes(28) + comments(28 each) + padding(16)
+    // Rough estimation: header(44) + text lines(~20 per line) + image(188 if present) + likes(28) + comments(28 each) + padding(16)
     const charsPerLine = Math.floor((width - 24) / 7);
     const textLines = Math.max(1, Math.ceil(post.text.length / charsPerLine));
     const commentLines = (post.comments || []).length;
-    return 44 + textLines * 20 + 28 + commentLines * 28 + 16;
+    const imageHeight = (post.imageKey && this.textures.exists(post.imageKey)) ? 188 : 0;
+    return 44 + textLines * 20 + imageHeight + 28 + commentLines * 28 + 16;
   }
 
   // =========================================================================
@@ -573,17 +595,24 @@ export default class SocialNetworkScene extends Phaser.Scene {
       const friend = this.friendbookData.profiles[friendId];
       if (!friend) return;
 
-      // Mini avatar (colored circle + initials)
-      const colors = [0x1877f2, 0x42b72a, 0xf02849, 0xf7b928, 0x8b5cf6];
-      const color = colors[friendId.length % colors.length];
-      const avatar = this.add.circle(24, yOffset + 18, 16, color);
-      const initials = this.add.text(24, yOffset + 18,
-        friend.name.split(' ').map(w => w[0]).join('').substring(0, 2), {
-          fontSize: '10px',
-          color: '#ffffff',
-          fontFamily: 'Arial',
-          fontStyle: 'bold'
-        }).setOrigin(0.5);
+      // Mini avatar (portrait image or colored circle fallback)
+      if (friend.portraitKey && this.textures.exists(friend.portraitKey)) {
+        const avatar = this.add.image(24, yOffset + 18, friend.portraitKey)
+          .setDisplaySize(32, 32);
+        this.tabContentContainer.add(avatar);
+      } else {
+        const colors = [0x1877f2, 0x42b72a, 0xf02849, 0xf7b928, 0x8b5cf6];
+        const color = colors[friendId.length % colors.length];
+        const avatar = this.add.circle(24, yOffset + 18, 16, color);
+        const initials = this.add.text(24, yOffset + 18,
+          friend.name.split(' ').map(w => w[0]).join('').substring(0, 2), {
+            fontSize: '10px',
+            color: '#ffffff',
+            fontFamily: 'Arial',
+            fontStyle: 'bold'
+          }).setOrigin(0.5);
+        this.tabContentContainer.add([avatar, initials]);
+      }
 
       // Clickable name (navigates to that profile)
       const nameText = this.add.text(48, yOffset + 6, friend.name, {
@@ -603,7 +632,7 @@ export default class SocialNetworkScene extends Phaser.Scene {
         wordWrap: { width: contentW - 80 }
       });
 
-      this.tabContentContainer.add([avatar, initials, nameText, bioText]);
+      this.tabContentContainer.add([nameText, bioText]);
       yOffset += Math.max(44, bioText.height + 30);
     });
 

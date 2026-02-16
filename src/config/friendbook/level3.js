@@ -31,7 +31,7 @@ const FRIENDBOOK_DATA = {
       },
       brian_thompson: {
         name: 'Brian Thompson',
-        portraitKey: null,
+        portraitKey: 'fb_l3_brian_thompson',
         isTarget: false,
         bio: 'Software dev. Husband. Dad. Board game nerd. He/Him.',
         location: 'Denver, Colorado',
@@ -45,7 +45,7 @@ const FRIENDBOOK_DATA = {
       },
       lily_thompson: {
         name: 'Lily Thompson',
-        portraitKey: null,
+        portraitKey: 'fb_l3_lily_thompson',
         isTarget: false,
         bio: 'I am 7 and I like horses and rainbows! (managed by Mom)',
         location: 'Denver, Colorado',
@@ -59,7 +59,7 @@ const FRIENDBOOK_DATA = {
       },
       diane_morrison: {
         name: 'Diane Morrison',
-        portraitKey: null,
+        portraitKey: 'fb_l3_diane_morrison',
         isTarget: false,
         bio: 'Retired librarian. Grandma to the best little girl in the world. Books are life.',
         location: 'Boulder, Colorado',
@@ -225,6 +225,7 @@ const FRIENDBOOK_DATA = {
           text: 'I drew a picture of my family!! Daddy is the tall one and mommy has big hair and grandma has a book (posted by Mom)',
           time: '3 days ago',
           likes: 38,
+          imageKey: 'fb_l3_post_family_drawing',
           comments: [
             { author: 'diane_morrison', text: 'I LOVE IT!! Going right on my fridge!!' },
             { author: 'brian_thompson', text: 'I don\'t think I\'m that tall but I\'ll take it' },
@@ -264,7 +265,7 @@ const FRIENDBOOK_DATA = {
       },
       carmen_rodriguez: {
         name: 'Carmen Rodriguez',
-        portraitKey: null,
+        portraitKey: 'fb_l3_carmen_rodriguez',
         isTarget: false,
         bio: 'Dental hygienist by day, soccer mom by... also day. Blessed life.',
         location: 'Phoenix, Arizona',
@@ -278,7 +279,7 @@ const FRIENDBOOK_DATA = {
       },
       diego_rodriguez: {
         name: 'Diego Rodriguez',
-        portraitKey: null,
+        portraitKey: 'fb_l3_diego_rodriguez',
         isTarget: false,
         bio: 'GCC student. Comp Sci major. Future game dev. Currently just gaming.',
         location: 'Phoenix, Arizona',
@@ -292,7 +293,7 @@ const FRIENDBOOK_DATA = {
       },
       tony_rodriguez: {
         name: 'Tony Rodriguez',
-        portraitKey: null,
+        portraitKey: 'fb_l3_tony_rodriguez',
         isTarget: false,
         bio: 'Building things since \'98. Foreman at Copper State Construction. Mike\'s little brother.',
         location: 'Tempe, Arizona',
@@ -346,6 +347,7 @@ const FRIENDBOOK_DATA = {
           text: 'New brake pads, rotors, and a full fluid flush on a \'67 Mustang today. This is why I love my job',
           time: '5 days ago',
           likes: 27,
+          imageKey: 'fb_l3_post_mustang_brakes',
           comments: [
             { author: 'tony_rodriguez', text: 'That thing is gorgeous. Owner wants to sell?' },
             { author: 'mike_rodriguez', text: 'Not a chance, he\'s had it since high school' }
@@ -466,6 +468,7 @@ const FRIENDBOOK_DATA = {
           text: 'New truck day!! 2024 F-150 in Velocity Blue. She\'s beautiful. Named her Azul',
           time: '1 week ago',
           likes: 35,
+          imageKey: 'fb_l3_post_new_truck',
           comments: [
             { author: 'mike_rodriguez', text: 'Sharp!! Bring it by the shop I\'ll give her a once-over' },
             { author: 'carmen_rodriguez', text: 'Men and naming their trucks... congratulations Tony lol' },
@@ -505,7 +508,7 @@ const FRIENDBOOK_DATA = {
       },
       david_lee: {
         name: 'David Lee',
-        portraitKey: null,
+        portraitKey: 'fb_l3_david_lee',
         isTarget: false,
         bio: 'Aerospace engineer at Boeing. Weekend golfer. Terrible singer, great dad.',
         location: 'Seattle, Washington',
@@ -519,7 +522,7 @@ const FRIENDBOOK_DATA = {
       },
       kevin_lee: {
         name: 'Kevin Lee',
-        portraitKey: null,
+        portraitKey: 'fb_l3_kevin_lee',
         isTarget: false,
         bio: 'New grad at Amazon. SDE1. Surviving on coffee and stock vesting schedules. Go Huskies!',
         location: 'Seattle, Washington',
@@ -533,7 +536,7 @@ const FRIENDBOOK_DATA = {
       },
       janet_park: {
         name: 'Janet Park',
-        portraitKey: null,
+        portraitKey: 'fb_l3_janet_park',
         isTarget: false,
         bio: 'Nail salon owner. Susan\'s little sister. Dog mom to Boba. Living my best life.',
         location: 'Bellevue, Washington',
@@ -578,6 +581,7 @@ const FRIENDBOOK_DATA = {
           text: 'New watercolor piece finished! Painted the view from Kerry Park at sunset. Thinking about submitting it to the Bellevue Arts Fair. Thoughts?',
           time: '3 days ago',
           likes: 47,
+          imageKey: 'fb_l3_post_watercolor_kerry',
           comments: [
             { author: 'david_lee', text: 'It\'s beautiful honey. You should absolutely submit it' },
             { author: 'janet_park', text: 'GORGEOUS unnie!! I want a print for the salon!!' },
@@ -623,6 +627,7 @@ const FRIENDBOOK_DATA = {
           text: 'Finished the bookshelf for Susan\'s art studio. Red oak, hand-joined, Danish oil finish. Probably my best piece yet',
           time: '4 days ago',
           likes: 28,
+          imageKey: 'fb_l3_post_bookshelf',
           comments: [
             { author: 'susan_lee', text: 'It\'s PERFECT. I love it so much. You\'re so talented' },
             { author: 'janet_park', text: 'David can you make me some shelves for the salon??' },
@@ -679,6 +684,7 @@ const FRIENDBOOK_DATA = {
           text: 'Sneaker drop this Saturday. The new Jordan 4s in Military Blue. Setting 3 alarms',
           time: '5 days ago',
           likes: 14,
+          imageKey: 'fb_l3_post_sneaker_jordans',
           comments: [
             { author: 'david_lee', text: 'You spend more on shoes than I spend on golf. Impressive' }
           ],
@@ -690,6 +696,7 @@ const FRIENDBOOK_DATA = {
           text: 'Grand opening week at Luxe Nails 2.0! New location, bigger space, and Boba has his own corner with a dog bed. Come visit us in Bellevue!',
           time: '2 days ago',
           likes: 39,
+          imageKey: 'fb_l3_post_salon_grand_opening',
           comments: [
             { author: 'susan_lee', text: 'So proud of you Janet!! I\'ll be there Saturday with David. Booked us both appointments' },
             { author: 'kevin_lee', text: 'Congrats Auntie!! The new place looks amazing' },
@@ -701,6 +708,7 @@ const FRIENDBOOK_DATA = {
           text: 'Boba learned a new trick today. He can shake! My genius baby boy. Who says Shih Tzus aren\'t smart?',
           time: '4 days ago',
           likes: 25,
+          imageKey: 'fb_l3_post_dog_shake',
           comments: [
             { author: 'susan_lee', text: 'He is the CUTEST. We need another puppy playdate with him' },
             { author: 'kevin_lee', text: 'Boba is literally my favorite member of this family' }
@@ -749,7 +757,7 @@ const FRIENDBOOK_DATA = {
       },
       rachel_anderson: {
         name: 'Rachel Anderson',
-        portraitKey: null,
+        portraitKey: 'fb_l3_rachel_anderson',
         isTarget: false,
         bio: 'Marketing consultant. Wine enthusiast. Perpetually cold. Zoe\'s #1 fan.',
         location: 'Minneapolis, Minnesota',
@@ -763,7 +771,7 @@ const FRIENDBOOK_DATA = {
       },
       zoe_anderson: {
         name: 'Zoe Anderson',
-        portraitKey: null,
+        portraitKey: 'fb_l3_zoe_anderson',
         isTarget: false,
         bio: 'Artist. 15. MCAD summer program. She/they. Art is life, everything else is homework.',
         location: 'Minneapolis, Minnesota',
@@ -777,7 +785,7 @@ const FRIENDBOOK_DATA = {
       },
       walt_anderson: {
         name: 'Walt Anderson',
-        portraitKey: null,
+        portraitKey: 'fb_l3_walt_anderson',
         isTarget: false,
         bio: 'Retired mechanic. 50 years turning wrenches. Now I just fix things around the house and drive Tom crazy.',
         location: 'St. Paul, Minnesota',
@@ -900,6 +908,7 @@ const FRIENDBOOK_DATA = {
           text: 'New digital painting!! Inspired by Spirited Away. Took 12 hours but really happy with how the water turned out. Swipe for process video',
           time: '2 days ago',
           likes: 41,
+          imageKey: 'fb_l3_post_digital_painting',
           comments: [
             { author: 'rachel_anderson', text: 'Zoe this is STUNNING. You are so talented baby' },
             { author: 'tom_anderson', text: 'Wow Zo. This is incredible. You get the art gene from your mom' },

@@ -25,7 +25,7 @@ const FRIENDBOOK_DATA = {
       },
       tammy_crawford: {
         name: 'Tammy Crawford',
-        portraitKey: null,
+        portraitKey: 'fb_l4_tammy_crawford',
         isTarget: false,
         bio: 'Wife. Mom. Sister. Memphis girl with a big mouth and a bigger heart.',
         location: 'Memphis, Tennessee',
@@ -39,7 +39,7 @@ const FRIENDBOOK_DATA = {
       },
       dave_crawford: {
         name: 'Dave Crawford',
-        portraitKey: null,
+        portraitKey: 'fb_l4_dave_crawford',
         isTarget: false,
         bio: 'Long haul trucker. On the road more than I\'m home. Go Titans.',
         location: 'Memphis, Tennessee',
@@ -53,7 +53,7 @@ const FRIENDBOOK_DATA = {
       },
       ashley_crawford: {
         name: 'Ashley Crawford',
-        portraitKey: null,
+        portraitKey: 'fb_l4_ashley_crawford',
         isTarget: false,
         bio: '22 | UTK c/o 2026 | future nurse | coffee addict',
         location: 'Knoxville, Tennessee',
@@ -72,6 +72,7 @@ const FRIENDBOOK_DATA = {
           text: 'Pretty sunset tonight from the back porch. Biscuit and I just sat and watched it.',
           time: '3 days ago',
           likes: 4,
+          imageKey: 'fb_l4_post_sunset_porch',
           comments: [
             { author: 'tammy_crawford', text: 'Beautiful sis. Call me later? Miss you.' }
           ],
@@ -81,6 +82,7 @@ const FRIENDBOOK_DATA = {
           text: 'Happy 1 year gotcha day to my sweet Biscuit! Best decision I ever made going to that shelter.',
           time: '2 weeks ago',
           likes: 11,
+          imageKey: 'fb_l4_post_biscuit_gotcha',
           comments: [
             { author: 'ashley_crawford', text: 'BISCUIT!! I love that little orange face!' },
             { author: 'tammy_crawford', text: 'Biscuit is the luckiest cat in Nashville. Love you Linda.' }
@@ -168,6 +170,7 @@ const FRIENDBOOK_DATA = {
           text: 'Throwback to girls\' weekend in Gatlinburg with Mom and Aunt Linda. Miss those days so much. She\'s been so alone since the divorce. Need to visit more. I\'m sorry Aunt Linda, nursing school is kicking my butt but I\'m coming soon I promise.',
           time: '5 days ago',
           likes: 16,
+          imageKey: 'fb_l4_post_gatlinburg_weekend',
           comments: [
             { author: 'linda_foster', text: 'Oh honey don\'t you worry about me! Focus on school. I\'m so proud of you.' },
             { author: 'tammy_crawford', text: 'We need to plan another trip. All three of us.' }
@@ -228,7 +231,7 @@ const FRIENDBOOK_DATA = {
       },
       daniel_kim: {
         name: 'Daniel Kim',
-        portraitKey: null,
+        portraitKey: 'fb_l4_daniel_kim',
         isTarget: false,
         bio: 'Tech entrepreneur. CEO @ BridgePoint Labs. Proud dad. Trying to be there for the people who matter.',
         location: 'Los Angeles, California',
@@ -242,7 +245,7 @@ const FRIENDBOOK_DATA = {
       },
       grace_kim: {
         name: 'Grace Kim',
-        portraitKey: null,
+        portraitKey: 'fb_l4_grace_kim',
         isTarget: false,
         bio: 'Pediatrician at Children\'s Hospital LA. Mom to Justin. Coffee is a food group.',
         location: 'Los Angeles, California',
@@ -256,7 +259,7 @@ const FRIENDBOOK_DATA = {
       },
       justin_kim: {
         name: 'Justin Kim',
-        portraitKey: null,
+        portraitKey: 'fb_l4_justin_kim',
         isTarget: false,
         bio: '16 | junior year grind | surf + skate | lakers fan',
         location: 'Los Angeles, California',
@@ -382,6 +385,7 @@ const FRIENDBOOK_DATA = {
           text: 'Uncle Rob took me surfing at La Jolla today! First time he\'s actually smiled in months. He even laughed when I wiped out. That felt really good to see.',
           time: '5 days ago',
           likes: 34,
+          imageKey: 'fb_l4_post_surfing_lajolla',
           comments: [
             { author: 'grace_kim', text: 'This makes my heart so happy.' },
             { author: 'daniel_kim', text: 'Get him out there more, bud. It\'s good for him.' }
@@ -392,6 +396,7 @@ const FRIENDBOOK_DATA = {
           text: 'New board!! Dad got me the Firewire for my birthday. Can\'t wait to take it out this weekend.',
           time: '2 weeks ago',
           likes: 29,
+          imageKey: 'fb_l4_post_new_surfboard',
           comments: [
             { author: 'daniel_kim', text: 'Happy birthday champ!' }
           ],
@@ -401,6 +406,7 @@ const FRIENDBOOK_DATA = {
           text: 'Shot some film photos at Venice today. Uncle Rob taught me about manual exposure last month and now I can\'t stop shooting everything.',
           time: '3 weeks ago',
           likes: 22,
+          imageKey: 'fb_l4_post_film_photos_venice',
           comments: [
             { author: 'robert_kim', text: 'Your compositions are getting really good, Justin. Keep shooting.' }
           ],
@@ -441,7 +447,7 @@ const FRIENDBOOK_DATA = {
       },
       rosa_martinez_herrera: {
         name: 'Rosa Martinez-Herrera',
-        portraitKey: null,
+        portraitKey: 'fb_l4_rosa_martinez_herrera',
         isTarget: false,
         bio: 'Marketing director by day, mom to baby Elena by night. Denver transplant from ABQ. Miss home.',
         location: 'Denver, Colorado',
@@ -455,7 +461,7 @@ const FRIENDBOOK_DATA = {
       },
       chris_herrera: {
         name: 'Chris Herrera',
-        portraitKey: null,
+        portraitKey: 'fb_l4_chris_herrera',
         isTarget: false,
         bio: 'Restaurant guy. Dad to Elena. Trying to keep up with Rosa.',
         location: 'Denver, Colorado',
@@ -502,6 +508,7 @@ const FRIENDBOOK_DATA = {
           text: 'Elena took her first steps today!! Of course it was toward the dog and not toward me or Chris. Priorities I guess.',
           time: '1 week ago',
           likes: 87,
+          imageKey: 'fb_l4_post_baby_first_steps',
           comments: [
             { author: 'patricia_martinez', text: 'Oh my baby!! I wish I was there to see it! Send me the video!' },
             { author: 'chris_herrera', text: 'The dog was equally surprised' }
@@ -561,6 +568,7 @@ const FRIENDBOOK_DATA = {
           text: 'Elena discovered avocados today. She is OBSESSED. Future New Mexican confirmed.',
           time: '1 week ago',
           likes: 29,
+          imageKey: 'fb_l4_post_baby_avocado',
           comments: [
             { author: 'patricia_martinez', text: 'Just like her mama! Rosa ate avocados at that age too.' }
           ],
@@ -611,7 +619,7 @@ const FRIENDBOOK_DATA = {
       },
       megan_brooks: {
         name: 'Megan Brooks',
-        portraitKey: null,
+        portraitKey: 'fb_l4_megan_brooks',
         isTarget: false,
         bio: '23 | just moved to Raleigh | marketing coordinator | dog mom to Pretzel',
         location: 'Raleigh, North Carolina',
@@ -625,7 +633,7 @@ const FRIENDBOOK_DATA = {
       },
       tyler_brooks: {
         name: 'Tyler Brooks',
-        portraitKey: null,
+        portraitKey: 'fb_l4_tyler_brooks',
         isTarget: false,
         bio: '20 | NC State engineering | wolfpack | building stuff',
         location: 'Raleigh, North Carolina',
@@ -639,7 +647,7 @@ const FRIENDBOOK_DATA = {
       },
       steve_hendricks: {
         name: 'Steve Hendricks',
-        portraitKey: null,
+        portraitKey: 'fb_l4_steve_hendricks',
         isTarget: false,
         bio: 'Sales director. Golf addict. Will\'s college buddy since \'92. Still trying to get this man to live a little.',
         location: 'Charlotte, North Carolina',
@@ -750,6 +758,7 @@ const FRIENDBOOK_DATA = {
           text: 'Built my first working robot arm in mechatronics lab today. It only crushed one soda can by accident. Calling that a win.',
           time: '1 month ago',
           likes: 27,
+          imageKey: 'fb_l4_post_robot_arm',
           comments: [
             { author: 'william_brooks', text: 'That\'s my boy. Send me a video?' }
           ],

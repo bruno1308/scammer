@@ -30,6 +30,58 @@ export class BootScene extends Phaser.Scene {
     // Boss
     this.load.image('boss_idle', 'assets/characters/boss_idle.png');
     this.load.image('boss_angry', 'assets/characters/boss_angry.png');
+
+    // FriendBook avatars (family/friend profiles)
+    const fbAvatars = {
+      1: ['karen_mitchell', 'mike_mitchell', 'emma_mitchell',
+          'richard_patterson', 'lisa_patterson', 'tyler_patterson',
+          'ken_nakamura', 'yuki_nakamura_davis', 'marcus_davis',
+          'denise_washington_taylor', 'jerome_taylor', 'marcus_taylor',
+          'patrick_obrien', 'colleen_obrien', 'baby_fiona_obrien'],
+      2: ['mei_chen', 'brandon_chen', 'lily_chen',
+          'carlos_gonzalez', 'sofia_gonzalez', 'diego_morales',
+          'angela_wilson', 'jason_wilson', 'tamara_wilson',
+          'raj_patel', 'dev_patel', 'sunita_patel'],
+      3: ['carmen_rodriguez', 'diego_rodriguez', 'tony_rodriguez',
+          'brian_thompson', 'lily_thompson', 'diane_morrison',
+          'rachel_anderson', 'zoe_anderson', 'walt_anderson',
+          'david_lee', 'kevin_lee', 'janet_park'],
+      4: ['tammy_crawford', 'dave_crawford', 'ashley_crawford',
+          'daniel_kim', 'grace_kim', 'justin_kim',
+          'rosa_martinez_herrera', 'chris_herrera',
+          'megan_brooks', 'tyler_brooks', 'steve_hendricks'],
+      5: ['robert_chen', 'diana_chen', 'mark_torres',
+          'lisa_chen', 'amy_nakamura',
+          'karen_chen', 'david_price'],
+    };
+    Object.entries(fbAvatars).forEach(([level, ids]) => {
+      ids.forEach(id => {
+        this.load.image(`fb_l${level}_${id}`, `assets/friendbook/avatars/level${level}/${id}.png`);
+      });
+    });
+
+    // FriendBook post images
+    const fbPosts = {
+      1: ['tomatoes', 'church_sermon', 'fishing_lake', 'sunset_catalinas',
+          'watercolor_card', 'bird_photo', 'hana_art_show', 'model_train',
+          'japanese_garden', 'teddy_bears', 'earl_selfie', 'robot_project',
+          'parade_family'],
+      2: ['kings_game', 'soccer_goal', 'rangoli', 'cat_sweater',
+          'hermann_park', 'oak_desk', 'open_house'],
+      3: ['mustang_brakes', 'new_truck', 'family_drawing', 'watercolor_kerry',
+          'digital_painting', 'bookshelf', 'sneaker_jordans',
+          'salon_grand_opening', 'dog_shake'],
+      4: ['sunset_porch', 'biscuit_gotcha', 'surfing_lajolla', 'new_surfboard',
+          'film_photos_venice', 'baby_first_steps', 'baby_avocado', 'robot_arm',
+          'gatlinburg_weekend'],
+      5: ['dogs_dolores', 'dim_sum', 'kitchen_renovation', 'fenway_kids',
+          'running_charles', 'cookies_office'],
+    };
+    Object.entries(fbPosts).forEach(([level, keys]) => {
+      keys.forEach(key => {
+        this.load.image(`fb_l${level}_post_${key}`, `assets/friendbook/posts/level${level}/${key}.png`);
+      });
+    });
   }
 
   create() {

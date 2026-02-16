@@ -30,7 +30,7 @@ const FRIENDBOOK_DATA = {
       },
       robert_chen: {
         name: 'Robert Chen',
-        portraitKey: null,
+        portraitKey: 'fb_l5_robert_chen',
         isTarget: false,
         bio: 'CEO @ Nexus Dynamics | Building the future of enterprise logistics | Stanford GSB',
         location: 'New York, New York',
@@ -44,7 +44,7 @@ const FRIENDBOOK_DATA = {
       },
       diana_chen: {
         name: 'Diana Chen',
-        portraitKey: null,
+        portraitKey: 'fb_l5_diana_chen',
         isTarget: false,
         bio: 'Yoga instructor | Plant mom | Trying to get my husband to take a real vacation for once',
         location: 'New York, New York',
@@ -58,7 +58,7 @@ const FRIENDBOOK_DATA = {
       },
       mark_torres: {
         name: 'Mark Torres',
-        portraitKey: null,
+        portraitKey: 'fb_l5_mark_torres',
         isTarget: false,
         bio: 'VP of Sales @ Nexus Dynamics | Closing deals and missing my kids\' soccer games',
         location: 'New York, New York',
@@ -271,7 +271,7 @@ const FRIENDBOOK_DATA = {
       },
       robert_chen_sf: {
         name: 'Robert Chen',
-        portraitKey: null,
+        portraitKey: 'fb_l5_robert_chen',
         isTarget: false,
         bio: 'CEO @ Nexus Dynamics | Building the future of enterprise logistics | Stanford GSB',
         location: 'New York, New York',
@@ -285,7 +285,7 @@ const FRIENDBOOK_DATA = {
       },
       lisa_chen: {
         name: 'Lisa Chen',
-        portraitKey: null,
+        portraitKey: 'fb_l5_lisa_chen',
         isTarget: false,
         bio: 'Tech recruiter | Bobby\'s little sister | Foodie | SF is the best city, fight me',
         location: 'San Francisco, California',
@@ -299,7 +299,7 @@ const FRIENDBOOK_DATA = {
       },
       amy_nakamura: {
         name: 'Amy Nakamura',
-        portraitKey: null,
+        portraitKey: 'fb_l5_amy_nakamura',
         isTarget: false,
         bio: 'VP Operations @ Pacific Coast Bank | Wharton \'03 with Jen | Trivia night champion',
         location: 'San Francisco, California',
@@ -318,6 +318,7 @@ const FRIENDBOOK_DATA = {
           text: 'Monday morning fog roll at Dolores Park with Biscuit and Waffles before heading to the office. Sometimes I think my dogs have a better work-life balance than I do.',
           time: '1 day ago',
           likes: 53,
+          imageKey: 'fb_l5_post_dogs_dolores',
           comments: [
             { author: 'amy_nakamura', text: 'Biscuit and Waffles are living their best lives. Meanwhile I\'m staring at a pivot table.' },
             { author: 'jennifer_walsh', text: 'Don\'t even talk to me about pivot tables right now Amy' }
@@ -420,6 +421,7 @@ const FRIENDBOOK_DATA = {
           text: 'Sunday dim sum at Yank Sing. The har gow was transcendent. Bobby is missing out and I will be texting him photos at whatever ungodly hour it is in London.',
           time: '2 days ago',
           likes: 44,
+          imageKey: 'fb_l5_post_dim_sum',
           comments: [
             { author: 'amy_nakamura', text: 'That siu mai was unreal. We need to make this a weekly thing.' },
             { author: 'robert_chen_sf', text: 'I\'m eating a sad airport sandwich. Thanks for this.' }
@@ -516,7 +518,7 @@ const FRIENDBOOK_DATA = {
       },
       robert_chen_bos: {
         name: 'Robert Chen',
-        portraitKey: null,
+        portraitKey: 'fb_l5_robert_chen',
         isTarget: false,
         bio: 'CEO @ Nexus Dynamics | Building the future of enterprise logistics | Stanford GSB',
         location: 'New York, New York',
@@ -530,7 +532,7 @@ const FRIENDBOOK_DATA = {
       },
       karen_chen: {
         name: 'Karen Chen',
-        portraitKey: null,
+        portraitKey: 'fb_l5_karen_chen',
         isTarget: false,
         bio: 'Retired teacher | Proud mom & grandma | Wellesley, MA | My son runs a company and still can\'t make Sunday dinner',
         location: 'Wellesley, Massachusetts',
@@ -544,7 +546,7 @@ const FRIENDBOOK_DATA = {
       },
       david_price: {
         name: 'David Price',
-        portraitKey: null,
+        portraitKey: 'fb_l5_david_price',
         isTarget: false,
         bio: 'Architect @ Finch & Associates | Building stuff since \'05 | Amanda\'s biggest fan and chief kid-wrangler',
         location: 'Boston, Massachusetts',
@@ -575,6 +577,7 @@ const FRIENDBOOK_DATA = {
           text: 'Finished my long run along the Charles this morning. 18 miles. Training for Boston in April. My legs hate me but my spreadsheets are waiting so no rest for the wicked.',
           time: '4 days ago',
           likes: 67,
+          imageKey: 'fb_l5_post_running_charles',
           comments: [
             { author: 'robert_chen_bos', text: 'You\'re a machine, Amanda. I get winded walking to the coffee machine.' },
             { author: 'amanda_price', text: 'Classic Bob, sending inspirational quotes at 6am from the airport lounge and then complaining about walking' },
@@ -586,6 +589,7 @@ const FRIENDBOOK_DATA = {
           text: 'Baked 3 dozen cookies for the office because apparently that\'s what "team building" means when you\'re the CFO. The analysts ate them all in 20 minutes. Finance people and free food. Name a better combo.',
           time: '1 week ago',
           likes: 52,
+          imageKey: 'fb_l5_post_cookies_office',
           comments: [
             { author: 'david_price', text: 'You didn\'t save any for ME?' },
             { author: 'amanda_price', text: 'There are chocolate chip ones on the counter, drama queen' },
@@ -701,6 +705,7 @@ const FRIENDBOOK_DATA = {
           text: 'Finished the Hendersons\' kitchen renovation. 6 months of work, but that island turned out beautiful. Architecture is just adult Legos with more paperwork.',
           time: '2 days ago',
           likes: 35,
+          imageKey: 'fb_l5_post_kitchen_renovation',
           comments: [
             { author: 'amanda_price', text: 'When are you going to renovate OUR kitchen? It\'s been 3 years of "I\'ll get to it."' },
             { author: 'david_price', text: 'The shoemaker\'s children go barefoot, honey.' }
@@ -731,6 +736,7 @@ const FRIENDBOOK_DATA = {
           text: 'Took the kids to Fenway for the first time. Lily was more interested in the cotton candy and Jake fell asleep by the 4th inning. Nailed it.',
           time: '1 week ago',
           likes: 72,
+          imageKey: 'fb_l5_post_fenway_kids',
           comments: [
             { author: 'amanda_price', text: 'The photo of Jake sleeping with a hot dog in his hand is my new lock screen' },
             { author: 'robert_chen_bos', text: 'Parenting goals. Hope they had fun, David.' }

@@ -16,14 +16,17 @@ Players must enter their own OpenAI API key in the in-game Settings screen. The 
 ```
 src/                           # Phaser 3 frontend (ES modules, Vite bundled)
   main.js                      # Phaser.Game bootstrap (1280x720, FIT scaling)
-  scenes/                      # 9 Phaser scenes (see Scene Flow below)
-  state/GameState.js           # Singleton game state — suspicion, compliance, money, level progress
+  scenes/                      # 10 Phaser scenes (see Scene Flow below)
+  state/GameState.js           # Singleton game state — suspicion, compliance, money, intel, level progress
   voice/VoiceManager.js        # Singleton WebRTC manager for OpenAI Realtime API
   config/levels.js             # Level definitions, victim pools (with portraitIdx), briefing text
   config/apiKeyManager.js      # localStorage wrapper for OpenAI API key
   config/prompts/              # AI victim prompt configs per level (moved from server/)
-    index.js                   # Barrel: getPromptConfig(level, name, age, location)
-    level[1-5].js              # Per-level prompt with compliance-gated behavior
+    index.js                   # Barrel: getPromptConfig(level, name, age, location, intel)
+    level[1-5].js              # Per-level prompt with compliance-gated behavior + intel integration
+  config/friendbook/           # FriendBook social network data per level
+    index.js                   # Barrel: getFriendBookData(level, victimName)
+    level[1-5].js              # Victim profiles, posts, friends, intel keys
   config/scoring.js            # Post-call score calculation with multipliers
   ui/                          # Reusable UI components (Meter, MoneyCounter, CallTimer, VictimCard, TutorialPopup)
 
@@ -38,16 +41,17 @@ public/assets/                 # Static assets served by Vite
 BootScene → MenuScene → SettingsScene (API key entry)
                 ↓
           BriefingScene → OfficeScene ↔ CallScene → ResultsScene → BriefingScene (next level)
-                                ↕                                        ↓
-                        TechDesktopScene                           GameOverScene
+                              ↕   ↕                                      ↓
+                SocialNetworkScene TechDesktopScene                 GameOverScene
 ```
 
 - **BootScene**: Preloads all portrait/character textures
 - **MenuScene**: Title screen with mic test, SETTINGS button, API key status indicator. START GAME gated behind `hasApiKey()`
 - **SettingsScene**: API key entry via `window.prompt()`, masked display, clear button, privacy note
 - **BriefingScene**: Boss dialogue + scam script before each level
-- **OfficeScene**: Phone rings (Web Audio API dual-tone), player answers to start call
-- **CallScene**: Overlay scene during active call — shows victim portrait, suspicion/compliance meters, call timer, money counter, script drawer tab
+- **OfficeScene**: Phone rings (Web Audio API dual-tone), player answers to start call. Click computer to open FriendBook
+- **CallScene**: Overlay scene during active call — shows victim portrait, suspicion/compliance meters, call timer, money counter, script drawer tab, intel panel
+- **SocialNetworkScene**: FriendBook overlay — fake social network for researching victims before calls. Shows profiles, posts, friends. Accessible from OfficeScene (computer click) and CallScene (intel button)
 - **TechDesktopScene**: Level 3 mini-game with fake desktop interaction
 - **ResultsScene**: Post-level score breakdown with multipliers and letter grade
 - **GameOverScene**: Fired screen if quota not met
@@ -57,8 +61,10 @@ BootScene → MenuScene → SettingsScene (API key entry)
 ### GameState (`src/state/GameState.js`)
 - Extends `Phaser.Events.EventEmitter`
 - Tracks: `suspicion`, `compliance`, `moneyEarned`, `callsRemaining`, `currentLevel`
-- `updateFromAI(data)` — called by VoiceManager when AI triggers `update_game_state` function
-- Emits events: `suspicionChanged`, `complianceChanged`, `moneyChanged`, `callEnded`
+- Intel tracking: `intelKeys` (all available), `intelSeen` (discovered in FriendBook), `intelUsed` (referenced by AI in call)
+- `updateFromAI(data)` — called by VoiceManager when AI triggers `update_game_state` function. Handles `intel_triggered` field to mark intel as used
+- `initIntel(keys)` / `markIntelSeen(key)` / `markIntelUsed(key)` — intel lifecycle API
+- Emits events: `suspicionChanged`, `complianceChanged`, `moneyChanged`, `callEnded`, `intel_seen`, `intel_used`
 
 ### VoiceManager (`src/voice/VoiceManager.js`)
 - Manages WebRTC connection to OpenAI Realtime API (`gpt-realtime` model)
@@ -75,7 +81,7 @@ VoiceManager connects directly to OpenAI's Realtime API from the browser. Each c
 3. Establishes WebRTC connection using the API key in the SDP exchange
 4. Sends `session.update` over the data channel with voice, instructions, tools, and VAD config
 5. The AI can call two function tools via the data channel:
-   - `update_game_state` — adjusts suspicion/compliance/emotion values
+   - `update_game_state` — adjusts suspicion/compliance/emotion values. Includes `intel_triggered` field (string|null) to mark when the player successfully uses gathered intel in conversation
    - `tech_support_desktop_action` — triggers desktop events in Level 3
 
 ## Compliance-Gated Prompts
@@ -116,3 +122,5 @@ The game is a fully static site deployable to GitHub Pages. No backend server ne
 - Script panel in CallScene is a toggleable slide-out drawer on the right edge
 - Portrait display uses circular Phaser geometry masks (`this.make.graphics({ add: false })`) with fallback to programmatic shapes if texture missing
 - API key stored in `localStorage` under key `scammer_sim_openai_api_key`
+- FriendBook data lives in `src/config/friendbook/level[N].js` — each victim has profiles with posts, friends, and intel keys. Difficulty progression: L1 clues on victim's profile → L5 requires cross-referencing multiple profiles
+- Intel gathered in FriendBook is injected into the AI prompt via `getPromptConfig()`, allowing victims to reference their social media posts. Using intel correctly boosts compliance; using it clumsily raises suspicion
