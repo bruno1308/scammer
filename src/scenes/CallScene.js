@@ -287,7 +287,7 @@ export class CallScene extends Phaser.Scene {
     // Portrait area (drawn as abstract face)
     const portraitX = x + 60;
     const portraitY = y + 110;
-    this._drawVictimPortrait(portraitX, portraitY);
+    this._showVictimPortrait(portraitX, portraitY);
 
     // Victim details
     const detX = x + 130;
@@ -341,53 +341,28 @@ export class CallScene extends Phaser.Scene {
     gameState.on('suspicion_change', this._onSuspicionWarning, this);
   }
 
-  _drawVictimPortrait(x, y) {
-    const g = this.add.graphics();
+  _showVictimPortrait(x, y) {
+    const key = this.victim.portraitKey;
+    if (key && this.textures.exists(key)) {
+      const portrait = this.add.image(x, y, key);
+      // Scale to fit ~64px circle area
+      const maxSize = 64;
+      const scale = maxSize / Math.max(portrait.width, portrait.height);
+      portrait.setScale(scale);
 
-    // Face outline
-    g.fillStyle(0xddbb88, 0.8);
-    g.fillCircle(x, y, 32);
-
-    // Hair (vary by name hash for variety)
-    const nameHash = this.victim.name.length % 4;
-    g.fillStyle(nameHash < 2 ? 0x444444 : 0x887766);
-    if (nameHash === 0) {
-      // Short hair
-      g.fillEllipse(x, y - 22, 36, 18);
-    } else if (nameHash === 1) {
-      // Bald top
-      g.fillEllipse(x, y - 28, 28, 10);
+      // Circular mask
+      const mask = this.add.graphics();
+      mask.fillStyle(0xffffff);
+      mask.fillCircle(x, y, 32);
+      portrait.setMask(mask.createGeometryMask());
     } else {
-      // Longer hair
-      g.fillRoundedRect(x - 34, y - 35, 68, 30, 8);
-      g.fillRect(x - 34, y - 15, 8, 25);
-      g.fillRect(x + 26, y - 15, 8, 25);
-    }
-
-    // Eyes
-    g.fillStyle(0x222222);
-    g.fillCircle(x - 10, y - 5, 3);
-    g.fillCircle(x + 10, y - 5, 3);
-
-    // Glasses (for older victims)
-    if (this.victim.age > 60) {
-      g.lineStyle(1, 0x666688);
-      g.strokeCircle(x - 10, y - 5, 8);
-      g.strokeCircle(x + 10, y - 5, 8);
-      g.lineBetween(x - 2, y - 5, x + 2, y - 5);
-    }
-
-    // Mouth
-    g.lineStyle(1, 0x884444);
-    g.beginPath();
-    g.arc(x, y + 10, 6, 0.2, Math.PI - 0.2, false);
-    g.strokePath();
-
-    // Wrinkles for elderly
-    if (this.victim.age > 65) {
-      g.lineStyle(1, 0xcc9966, 0.3);
-      g.lineBetween(x - 18, y - 2, x - 14, y + 2);
-      g.lineBetween(x + 18, y - 2, x + 14, y + 2);
+      // Fallback: simple silhouette if image not loaded
+      const g = this.add.graphics();
+      g.fillStyle(0x334455, 0.8);
+      g.fillCircle(x, y, 32);
+      g.fillStyle(0x556677, 0.6);
+      g.fillCircle(x, y - 8, 14);
+      g.fillEllipse(x, y + 20, 36, 20);
     }
   }
 

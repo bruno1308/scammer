@@ -711,6 +711,12 @@ export class OfficeScene extends Phaser.Scene {
       victim = Phaser.Utils.Array.GetRandom(victims);
     }
 
+    // Assign a portrait texture key based on level
+    const portraitCounts = { 1: 5, 2: 4, 3: 4, 4: 4, 5: 3 };
+    const maxPortraits = portraitCounts[this.levelNum] || 3;
+    const portraitIdx = Phaser.Math.Between(1, maxPortraits);
+    victim.portraitKey = `l${this.levelNum}_victim_${portraitIdx}`;
+
     // Start the call in GameState
     gameState.startCall(victim);
 
