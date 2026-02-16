@@ -1,9 +1,9 @@
 /**
  * BootScene.js - Boot & Asset Generation Scene
  *
- * Generates all programmatic textures/sprites the game needs
- * (no external image files). Shows a neon-styled loading bar
- * and transitions to MenuScene when ready.
+ * Preloads all external image assets with a real progress bar,
+ * then generates programmatic textures/sprites. Shows a neon-styled
+ * loading bar and transitions to MenuScene when ready.
  */
 
 import Phaser from 'phaser';
@@ -14,7 +14,85 @@ export class BootScene extends Phaser.Scene {
   }
 
   preload() {
-    // Load portrait images for all levels
+    const { width, height } = this.scale;
+
+    // ---- Dark background ----
+    this.cameras.main.setBackgroundColor(0x0a0a1a);
+
+    // ---- "LOADING..." text ----
+    this.loadingText = this.add.text(width / 2, height / 2 - 60, 'LOADING ASSETS...', {
+      fontFamily: '"Courier New", monospace',
+      fontSize: '18px',
+      color: '#00ff88',
+      stroke: '#003322',
+      strokeThickness: 2
+    }).setOrigin(0.5);
+
+    // ---- Loading bar frame ----
+    const barWidth = 400;
+    const barHeight = 24;
+    const barX = (width - barWidth) / 2;
+    const barY = height / 2 - 12;
+
+    const barFrame = this.add.graphics();
+    // Outer glow
+    barFrame.lineStyle(2, 0x00ff88, 0.4);
+    barFrame.strokeRoundedRect(barX - 3, barY - 3, barWidth + 6, barHeight + 6, 4);
+    // Inner border
+    barFrame.lineStyle(1, 0x00ff88, 0.8);
+    barFrame.strokeRoundedRect(barX, barY, barWidth, barHeight, 2);
+    // Dark fill
+    barFrame.fillStyle(0x0a0a1a, 0.9);
+    barFrame.fillRoundedRect(barX + 1, barY + 1, barWidth - 2, barHeight - 2, 2);
+
+    // ---- Loading bar fill ----
+    this.barFill = this.add.graphics();
+
+    // ---- Progress percentage text ----
+    this.percentText = this.add.text(width / 2, barY + barHeight / 2, '0%', {
+      fontFamily: '"Courier New", monospace',
+      fontSize: '12px',
+      color: '#ffffff',
+      stroke: '#000000',
+      strokeThickness: 2
+    }).setOrigin(0.5);
+
+    // ---- Status text ----
+    this.statusText = this.add.text(width / 2, barY + barHeight + 20, '', {
+      fontFamily: '"Courier New", monospace',
+      fontSize: '11px',
+      color: '#338866',
+      stroke: '#000000',
+      strokeThickness: 1
+    }).setOrigin(0.5, 0);
+
+    // ---- Real progress bar driven by Phaser's loader ----
+    const progressFillW = barWidth - 4;
+
+    this.load.on('progress', (value) => {
+      this.barFill.clear();
+      // Main fill
+      this.barFill.fillStyle(0x00ff88, 0.9);
+      this.barFill.fillRoundedRect(barX + 2, barY + 2, progressFillW * value, barHeight - 4, 2);
+      // Highlight
+      this.barFill.fillStyle(0xaaffcc, 0.3);
+      this.barFill.fillRect(barX + 2, barY + 2, progressFillW * value, 3);
+
+      this.percentText.setText(`${Math.round(value * 100)}%`);
+    });
+
+    this.load.on('fileprogress', (file) => {
+      this.statusText.setText(`> Loading ${file.key}...`);
+    });
+
+    this.load.on('complete', () => {
+      this.statusText.setText('> All assets loaded.');
+      this.loadingText.setText('INITIALIZING SYSTEM...');
+    });
+
+    // ---- Queue all image assets ----
+
+    // Victim portrait images for all levels
     for (let v = 1; v <= 5; v++) {
       this.load.image(`l1_victim_${v}`, `assets/portraits/level1/victim_${v}.png`);
     }
@@ -86,49 +164,12 @@ export class BootScene extends Phaser.Scene {
 
   create() {
     const { width, height } = this.scale;
-
-    // ---- Dark background ----
-    this.cameras.main.setBackgroundColor(0x0a0a1a);
-
-    // ---- "LOADING..." text ----
-    this.loadingText = this.add.text(width / 2, height / 2 - 60, 'INITIALIZING SYSTEM...', {
-      fontFamily: '"Courier New", monospace',
-      fontSize: '18px',
-      color: '#00ff88',
-      stroke: '#003322',
-      strokeThickness: 2
-    }).setOrigin(0.5);
-
-    // ---- Loading bar frame ----
     const barWidth = 400;
     const barHeight = 24;
     const barX = (width - barWidth) / 2;
     const barY = height / 2 - 12;
 
-    this.barFrame = this.add.graphics();
-    // Outer glow
-    this.barFrame.lineStyle(2, 0x00ff88, 0.4);
-    this.barFrame.strokeRoundedRect(barX - 3, barY - 3, barWidth + 6, barHeight + 6, 4);
-    // Inner border
-    this.barFrame.lineStyle(1, 0x00ff88, 0.8);
-    this.barFrame.strokeRoundedRect(barX, barY, barWidth, barHeight, 2);
-    // Dark fill
-    this.barFrame.fillStyle(0x0a0a1a, 0.9);
-    this.barFrame.fillRoundedRect(barX + 1, barY + 1, barWidth - 2, barHeight - 2, 2);
-
-    // ---- Loading bar fill ----
-    this.barFill = this.add.graphics();
-
-    // ---- Status text ----
-    this.statusText = this.add.text(width / 2, barY + barHeight + 20, '', {
-      fontFamily: '"Courier New", monospace',
-      fontSize: '11px',
-      color: '#338866',
-      stroke: '#000000',
-      strokeThickness: 1
-    }).setOrigin(0.5, 0);
-
-    // ---- Simulate loading + generate textures ----
+    // ---- Generate programmatic textures (fast, no network) ----
     const tasks = [
       { label: '> Generating phone texture...', fn: () => this._generatePhoneTexture() },
       { label: '> Generating monitor texture...', fn: () => this._generateMonitorTexture() },
@@ -140,10 +181,9 @@ export class BootScene extends Phaser.Scene {
     ];
 
     let taskIndex = 0;
-    const progressPerTask = barWidth - 4;
 
     this.time.addEvent({
-      delay: 250,
+      delay: 150,
       repeat: tasks.length - 1,
       callback: () => {
         const task = tasks[taskIndex];
@@ -151,18 +191,10 @@ export class BootScene extends Phaser.Scene {
         task.fn();
         taskIndex++;
 
-        // Update bar fill
-        const progress = taskIndex / tasks.length;
-        this.barFill.clear();
-        this.barFill.fillStyle(0x00ff88, 0.9);
-        this.barFill.fillRoundedRect(barX + 2, barY + 2, progressPerTask * progress, barHeight - 4, 2);
-        // Highlight
-        this.barFill.fillStyle(0xaaffcc, 0.3);
-        this.barFill.fillRect(barX + 2, barY + 2, progressPerTask * progress, 3);
-
         if (taskIndex >= tasks.length) {
-          this.time.delayedCall(500, () => {
+          this.time.delayedCall(300, () => {
             this.loadingText.setText('SYSTEM ONLINE');
+            this.percentText.setVisible(false);
             this.time.delayedCall(400, () => {
               this.scene.start('menu');
             });
