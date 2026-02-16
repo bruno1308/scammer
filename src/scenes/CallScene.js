@@ -45,8 +45,8 @@ export class CallScene extends Phaser.Scene {
     // ---- Hang-up button ----
     this._createHangUpButton(width / 2, height - 80);
 
-    // ---- Scam script reference panel (right side) ----
-    this._createScriptPanel(900, 80, 360, 540);
+    // ---- Scam script toggle tab (bottom-left, doesn't cover meters) ----
+    this._createScriptPanel(width, height);
 
     // ---- Tutorial popups (Level 1 only) ----
     if (this.levelNum === 1) {
@@ -157,83 +157,106 @@ export class CallScene extends Phaser.Scene {
   //  SCAM SCRIPT PANEL
   // =========================================================================
 
-  _createScriptPanel(x, y, w, h) {
+  _createScriptPanel(sceneW, sceneH) {
     const level = LEVELS[this.levelNum];
     if (!level || !level.briefing || !level.briefing.scriptNotes) return;
 
-    const g = this.add.graphics();
+    const panelW = 280;
+    const panelH = 350;
+    const tabW = 30;
+    const panelX = 0;       // relative inside container
+    const panelY = 0;
 
-    // Panel background
-    g.fillStyle(0x0a0e14, 0.92);
-    g.fillRoundedRect(x, y, w, h, 8);
-    g.lineStyle(1, 0xffcc00, 0.3);
-    g.strokeRoundedRect(x, y, w, h, 8);
+    // Container positioned off-screen right (only tab visible)
+    this.scriptContainer = this.add.container(sceneW - tabW, sceneH - panelH - 60);
+    this.scriptOpen = false;
+
+    // ---- Toggle tab (always visible) ----
+    const tab = this.add.graphics();
+    tab.fillStyle(0x1a1a2e, 0.95);
+    tab.fillRoundedRect(-tabW, 0, tabW, 80, { tl: 6, tr: 0, bl: 6, br: 0 });
+    tab.lineStyle(1, 0xffcc00, 0.5);
+    tab.strokeRoundedRect(-tabW, 0, tabW, 80, { tl: 6, tr: 0, bl: 6, br: 0 });
+    this.scriptContainer.add(tab);
+
+    // Tab text (vertical)
+    const tabLabel = this.add.text(-tabW / 2, 40, 'S\nC\nR\nI\nP\nT', {
+      fontFamily: '"Courier New", monospace',
+      fontSize: '9px',
+      fontStyle: 'bold',
+      color: '#ffcc00',
+      align: 'center',
+      lineSpacing: -2
+    }).setOrigin(0.5);
+    this.scriptContainer.add(tabLabel);
+
+    // Tab hit zone
+    const tabZone = this.add.zone(-tabW / 2, 40, tabW, 80)
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true });
+    this.scriptContainer.add(tabZone);
+
+    // ---- Panel content ----
+    const panelGfx = this.add.graphics();
+    panelGfx.fillStyle(0x0a0e14, 0.95);
+    panelGfx.fillRoundedRect(panelX, panelY, panelW, panelH, 8);
+    panelGfx.lineStyle(1, 0xffcc00, 0.4);
+    panelGfx.strokeRoundedRect(panelX, panelY, panelW, panelH, 8);
 
     // Header
-    g.fillStyle(0xffcc00, 0.08);
-    g.fillRoundedRect(x, y, w, 35, { tl: 8, tr: 8, bl: 0, br: 0 });
+    panelGfx.fillStyle(0xffcc00, 0.08);
+    panelGfx.fillRoundedRect(panelX, panelY, panelW, 30, { tl: 8, tr: 8, bl: 0, br: 0 });
+    this.scriptContainer.add(panelGfx);
 
-    this.add.text(x + w / 2, y + 17, 'SCAM SCRIPT', {
+    this.scriptContainer.add(this.add.text(panelX + panelW / 2, panelY + 15, 'SCAM SCRIPT', {
       fontFamily: '"Courier New", monospace',
-      fontSize: '13px',
+      fontSize: '12px',
       fontStyle: 'bold',
       color: '#ffcc00'
-    }).setOrigin(0.5);
+    }).setOrigin(0.5));
 
-    // Scam type subtitle
-    this.add.text(x + 15, y + 48, level.name.toUpperCase(), {
+    // Scam type
+    this.scriptContainer.add(this.add.text(panelX + 10, panelY + 38, level.name.toUpperCase(), {
       fontFamily: '"Courier New", monospace',
-      fontSize: '11px',
+      fontSize: '10px',
       fontStyle: 'bold',
       color: '#ff8844'
-    });
-
-    // Divider
-    g.lineStyle(1, 0xffcc00, 0.15);
-    g.lineBetween(x + 10, y + 65, x + w - 10, y + 65);
+    }));
 
     // Script steps
     const notes = level.briefing.scriptNotes;
-    let stepY = y + 78;
+    let stepY = panelY + 58;
 
     notes.forEach((note, i) => {
-      // Step number
-      this.add.text(x + 12, stepY, `${i + 1}.`, {
+      this.scriptContainer.add(this.add.text(panelX + 8, stepY, `${i + 1}.`, {
         fontFamily: '"Courier New", monospace',
-        fontSize: '11px',
+        fontSize: '10px',
         fontStyle: 'bold',
         color: '#ffcc00',
         alpha: 0.7
-      });
+      }));
 
-      // Step text
-      const stepText = this.add.text(x + 32, stepY, note, {
+      const stepText = this.add.text(panelX + 24, stepY, note, {
         fontFamily: '"Courier New", monospace',
-        fontSize: '11px',
+        fontSize: '10px',
         color: '#ccddee',
-        wordWrap: { width: w - 50 },
-        lineSpacing: 3
+        wordWrap: { width: panelW - 40 },
+        lineSpacing: 2
       });
+      this.scriptContainer.add(stepText);
 
-      stepY += stepText.height + 12;
+      stepY += stepText.height + 10;
     });
 
-    // "CLASSIFIED" watermark
-    const watermark = this.add.text(x + w / 2, y + h - 30, '[ CLASSIFIED ]', {
-      fontFamily: '"Courier New", monospace',
-      fontSize: '10px',
-      color: '#ffcc00',
-      alpha: 0.2
-    }).setOrigin(0.5);
-
-    // Subtle pulse on the watermark
-    this.tweens.add({
-      targets: watermark,
-      alpha: { from: 0.1, to: 0.3 },
-      duration: 2000,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut'
+    // Toggle behavior
+    tabZone.on('pointerdown', () => {
+      this.scriptOpen = !this.scriptOpen;
+      this.tweens.add({
+        targets: this.scriptContainer,
+        x: this.scriptOpen ? sceneW - tabW - panelW : sceneW - tabW,
+        duration: 300,
+        ease: 'Back.easeOut'
+      });
     });
   }
 
