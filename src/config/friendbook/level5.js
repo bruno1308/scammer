@@ -762,3 +762,5 @@ const FRIENDBOOK_DATA = {
 export function getLevel5FriendBook(victimName) {
   return FRIENDBOOK_DATA[victimName] || null;
 }
+
+export { FRIENDBOOK_DATA as LEVEL5_DATA };

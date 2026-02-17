@@ -12,6 +12,7 @@
 
 import Phaser from 'phaser';
 import gameState from '../state/GameState.js';
+import { getAllProfiles } from '../config/friendbook/index.js';
 
 export default class SocialNetworkScene extends Phaser.Scene {
   constructor() {
@@ -41,11 +42,18 @@ export default class SocialNetworkScene extends Phaser.Scene {
     // Internal state
     this.tabScrollOffset = 0;
     this.tabContentTotalHeight = 0;
-    this._intelZones = [];
     this._scrollListener = null;
     this.intelItemTexts = {};
     this.tabButtons = [];
     this.activeTab = 'Timeline';
+
+    // Global profile directory for search
+    this.allData = getAllProfiles();
+    this.localProfileIds = new Set(Object.keys(this.friendbookData.profiles));
+
+    // Search state
+    this.searchQuery = '';
+    this._searchKeyHandler = null;
 
     this._drawBrowserChrome();
     this._drawFriendBookHeader();
@@ -80,7 +88,7 @@ export default class SocialNetworkScene extends Phaser.Scene {
     // macOS-style window dots: green, yellow, red (left to right from the left side)
     this.add.circle(this.browserX + 20, this.browserY + 16, 7, 0xff5f57)
       .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => this._close());
+      .on('pointerdown', () => { this.sound.play('sfx_mouse_click', { volume: 0.5 }); this._close(); });
     this.add.circle(this.browserX + 44, this.browserY + 16, 7, 0xffbd2e); // minimize (decorative)
     this.add.circle(this.browserX + 68, this.browserY + 16, 7, 0x28c840); // maximize (decorative)
 
@@ -108,8 +116,12 @@ export default class SocialNetworkScene extends Phaser.Scene {
     g.fillStyle(0x1877f2, 1);
     g.fillRect(this.browserX, y, this.browserW, 40);
 
-    // "FriendBook" text in Georgia bold
-    this.add.text(this.browserX + 16, y + 8, 'FriendBook', {
+    // FriendBook logo + text
+    if (this.textures.exists('ui_friendbook_logo')) {
+      this.add.image(this.browserX + 30, y + 20, 'ui_friendbook_logo')
+        .setDisplaySize(28, 28);
+    }
+    this.add.text(this.browserX + 50, y + 8, 'FriendBook', {
       fontSize: '22px',
       color: '#ffffff',
       fontFamily: 'Georgia',
@@ -123,7 +135,7 @@ export default class SocialNetworkScene extends Phaser.Scene {
 
   _drawSearchBar() {
     const headerY = this.browserY + 32;
-    const searchX = this.browserX + 180;
+    const searchX = this.browserX + 220;
     const searchY = headerY + 7;
     const searchW = 250;
 
@@ -142,7 +154,7 @@ export default class SocialNetworkScene extends Phaser.Scene {
     // Clickable area that opens the dropdown
     this.add.rectangle(searchX + searchW / 2, searchY + 13, searchW, 26, 0xffffff, 0)
       .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => this._openSearchDropdown());
+      .on('pointerdown', () => { this.sound.play('sfx_mouse_click', { volume: 0.4 }); this._openSearchDropdown(); });
 
     // Search dropdown container (hidden initially)
     this.searchDropdown = this.add.container(searchX, searchY + 30);
@@ -150,38 +162,80 @@ export default class SocialNetworkScene extends Phaser.Scene {
   }
 
   _openSearchDropdown() {
-    // Clear existing dropdown items
+    this.searchQuery = '';
+    this.searchText.setText('\uD83D\uDD0D Search FriendBook...');
+    this._renderSearchResults();
+
+    // Listen for keyboard input to filter
+    if (this._searchKeyHandler) {
+      this.input.keyboard.off('keydown', this._searchKeyHandler);
+    }
+    this._searchKeyHandler = (event) => {
+      if (!this.searchDropdown.visible) return;
+
+      if (event.key === 'Escape') {
+        this._closeSearchDropdown();
+        return;
+      }
+      if (event.key === 'Backspace') {
+        this.searchQuery = this.searchQuery.slice(0, -1);
+      } else if (event.key.length === 1) {
+        this.searchQuery += event.key;
+      } else {
+        return; // Ignore non-character keys
+      }
+
+      this.searchText.setText(
+        this.searchQuery.length > 0
+          ? `\uD83D\uDD0D ${this.searchQuery}`
+          : '\uD83D\uDD0D Search FriendBook...'
+      );
+      this._renderSearchResults();
+    };
+    this.input.keyboard.on('keydown', this._searchKeyHandler);
+  }
+
+  _renderSearchResults() {
     this.searchDropdown.removeAll(true);
 
-    const profiles = this.friendbookData.profiles;
-    const keys = Object.keys(profiles);
-    let yOffset = 0;
+    const allProfiles = this.allData.profiles;
+    const query = this.searchQuery.toLowerCase();
+    const maxVisible = 8;
+
+    const matchingKeys = Object.keys(allProfiles)
+      .filter((id) => {
+        if (!query) return true;
+        return allProfiles[id].name.toLowerCase().includes(query);
+      })
+      .sort((a, b) => allProfiles[a].name.localeCompare(allProfiles[b].name));
+
+    const visibleKeys = matchingKeys.slice(0, maxVisible);
+    const hasMore = matchingKeys.length > maxVisible;
+    const rowH = 36;
+    const panelH = visibleKeys.length * rowH + 8 + (hasMore ? 24 : 0);
 
     // Background panel
     const bg = this.add.graphics();
     bg.fillStyle(0xffffff, 1);
     bg.lineStyle(1, 0xdddddd, 1);
-    bg.fillRoundedRect(0, 0, 250, keys.length * 36 + 8, 6);
-    bg.strokeRoundedRect(0, 0, 250, keys.length * 36 + 8, 6);
+    bg.fillRoundedRect(0, 0, 250, panelH, 6);
+    bg.strokeRoundedRect(0, 0, 250, panelH, 6);
     this.searchDropdown.add(bg);
 
-    keys.forEach((id) => {
-      const profile = profiles[id];
-      const displayName = `${profile.isTarget ? '\u2B50 ' : ''}${profile.name}`;
+    let yOffset = 0;
+    visibleKeys.forEach((id) => {
+      const profile = allProfiles[id];
 
-      // Hover background zone
-      const hoverBg = this.add.graphics();
-      this.searchDropdown.add(hoverBg);
-
-      const item = this.add.text(12, 8 + yOffset, displayName, {
+      const item = this.add.text(12, 8 + yOffset, profile.name, {
         fontSize: '13px',
         color: '#1877f2',
         fontFamily: 'Arial'
       })
         .setInteractive({ useHandCursor: true })
         .on('pointerdown', () => {
+          this.sound.play('sfx_mouse_click', { volume: 0.4 });
           this._showProfile(id);
-          this.searchDropdown.setVisible(false);
+          this._closeSearchDropdown();
         })
         .on('pointerover', function () {
           this.setColor('#0a5dc2');
@@ -191,29 +245,64 @@ export default class SocialNetworkScene extends Phaser.Scene {
         });
 
       this.searchDropdown.add(item);
-      yOffset += 36;
+      yOffset += rowH;
     });
+
+    if (hasMore) {
+      const moreText = this.add.text(12, 8 + yOffset, `${matchingKeys.length - maxVisible} more \u2014 keep typing to filter...`, {
+        fontSize: '11px',
+        color: '#999999',
+        fontFamily: 'Arial',
+        fontStyle: 'italic'
+      });
+      this.searchDropdown.add(moreText);
+    }
+
+    if (visibleKeys.length === 0) {
+      const noResults = this.add.text(12, 8, 'No results found', {
+        fontSize: '13px',
+        color: '#999999',
+        fontFamily: 'Arial',
+        fontStyle: 'italic'
+      });
+      this.searchDropdown.add(noResults);
+    }
 
     this.searchDropdown.setVisible(true);
     this.searchDropdown.setDepth(100);
 
-    // Close dropdown when clicking outside it (next frame to avoid immediate close)
+    // Close dropdown when clicking outside
     this.time.delayedCall(50, () => {
-      const closeHandler = (pointer) => {
+      if (this._searchCloseHandler) {
+        this.input.off('pointerdown', this._searchCloseHandler);
+      }
+      this._searchCloseHandler = (pointer) => {
         if (!this.searchDropdown || !this.searchDropdown.visible) {
-          this.input.off('pointerdown', closeHandler);
+          this.input.off('pointerdown', this._searchCloseHandler);
           return;
         }
         const localX = pointer.x - this.searchDropdown.x;
         const localY = pointer.y - this.searchDropdown.y;
-        const dropH = keys.length * 36 + 8;
-        if (localX < 0 || localX > 250 || localY < 0 || localY > dropH) {
-          this.searchDropdown.setVisible(false);
-          this.input.off('pointerdown', closeHandler);
+        if (localX < 0 || localX > 250 || localY < 0 || localY > panelH) {
+          this._closeSearchDropdown();
         }
       };
-      this.input.on('pointerdown', closeHandler);
+      this.input.on('pointerdown', this._searchCloseHandler);
     });
+  }
+
+  _closeSearchDropdown() {
+    this.searchDropdown.setVisible(false);
+    this.searchText.setText('\uD83D\uDD0D Search FriendBook...');
+    this.searchQuery = '';
+    if (this._searchKeyHandler) {
+      this.input.keyboard.off('keydown', this._searchKeyHandler);
+      this._searchKeyHandler = null;
+    }
+    if (this._searchCloseHandler) {
+      this.input.off('pointerdown', this._searchCloseHandler);
+      this._searchCloseHandler = null;
+    }
   }
 
   // =========================================================================
@@ -225,30 +314,31 @@ export default class SocialNetworkScene extends Phaser.Scene {
     const contentX = this.browserX + 1;
     const contentW = this.browserW - 2;
 
-    // Cover photo area (blue gradient placeholder, 80px tall)
+    // Cover/profile area (blue gradient, contains avatar + name + bio)
+    const coverH = 90;
     const g = this.add.graphics();
     g.fillGradientStyle(0x1877f2, 0x42a5f5, 0x1565c0, 0x1877f2, 1, 1, 1, 1);
-    g.fillRect(contentX, contentY, contentW, 80);
+    g.fillRect(contentX, contentY, contentW, coverH);
 
-    // Profile pic container (left side, overlapping cover photo)
-    this.profilePicContainer = this.add.container(contentX + 60, contentY + 50);
+    // Profile pic container (inside cover, vertically centered)
+    this.profilePicContainer = this.add.container(contentX + 56, contentY + 45);
 
-    // Name & bio text (to the right of the profile pic)
-    this.profileNameText = this.add.text(contentX + 110, contentY + 82, '', {
+    // Name & bio text (white, to the right of the profile pic, inside cover)
+    this.profileNameText = this.add.text(contentX + 110, contentY + 24, '', {
       fontSize: '18px',
-      color: '#1c1e21',
+      color: '#ffffff',
       fontFamily: 'Arial',
       fontStyle: 'bold'
     });
-    this.profileBioText = this.add.text(contentX + 110, contentY + 104, '', {
+    this.profileBioText = this.add.text(contentX + 110, contentY + 48, '', {
       fontSize: '12px',
-      color: '#65676b',
+      color: '#e3f2fd',
       fontFamily: 'Arial',
-      wordWrap: { width: contentW - 300 }
+      wordWrap: { width: contentW - 200 }
     });
 
     // Tab content container (scrollable area below tabs)
-    this.tabContentY = contentY + 148;
+    this.tabContentY = contentY + coverH + 28;
     this.tabContentContainer = this.add.container(contentX + 16, this.tabContentY);
 
     // Geometry mask for scrollable area
@@ -268,7 +358,8 @@ export default class SocialNetworkScene extends Phaser.Scene {
   // =========================================================================
 
   _drawTabs() {
-    const tabY = this.browserY + 120;
+    const contentY = this.browserY + 72;
+    const tabY = contentY + 94; // Right below the blue cover area
     const tabX = this.browserX + 16;
     const tabs = ['Timeline', 'About', 'Friends & Family'];
     this.tabButtons = [];
@@ -283,7 +374,7 @@ export default class SocialNetworkScene extends Phaser.Scene {
         fontStyle: i === 0 ? 'bold' : 'normal'
       })
         .setInteractive({ useHandCursor: true })
-        .on('pointerdown', () => this._switchTab(label));
+        .on('pointerdown', () => { this.sound.play('sfx_mouse_click', { volume: 0.4 }); this._switchTab(label); });
       this.tabButtons.push(text);
     });
 
@@ -307,7 +398,7 @@ export default class SocialNetworkScene extends Phaser.Scene {
   _updateTabIndicator(idx) {
     this.tabIndicator.clear();
     this.tabIndicator.fillStyle(0x1877f2, 1);
-    this.tabIndicator.fillRect(this.browserX + 16 + idx * 140, this.browserY + 138, 80, 3);
+    this.tabIndicator.fillRect(this.browserX + 16 + idx * 140, this.browserY + 72 + 112, 80, 3);
   }
 
   // =========================================================================
@@ -315,7 +406,8 @@ export default class SocialNetworkScene extends Phaser.Scene {
   // =========================================================================
 
   _showProfile(profileId) {
-    const profile = this.friendbookData.profiles[profileId];
+    const profile = this.friendbookData.profiles[profileId]
+      || this.allData.profiles[profileId];
     if (!profile) return;
 
     this.currentProfileId = profileId;
@@ -365,7 +457,6 @@ export default class SocialNetworkScene extends Phaser.Scene {
     this.tabContentContainer.removeAll(true);
     this.tabContentContainer.setY(this.tabContentY);
     this.tabScrollOffset = 0;
-    this._intelZones = [];
 
     switch (this.activeTab) {
       case 'Timeline':
@@ -388,7 +479,9 @@ export default class SocialNetworkScene extends Phaser.Scene {
   // =========================================================================
 
   _renderTimeline() {
-    const posts = this.friendbookData.posts[this.currentProfileId] || [];
+    const posts = this.friendbookData.posts[this.currentProfileId]
+      || this.allData.posts[this.currentProfileId]
+      || [];
     const contentW = this.browserW - 50;
     let yOffset = 0;
 
@@ -404,7 +497,8 @@ export default class SocialNetworkScene extends Phaser.Scene {
       this.tabContentContainer.add(cardBg);
 
       // Author avatar (portrait image or colored circle fallback)
-      const profile = this.friendbookData.profiles[this.currentProfileId];
+      const profile = this.friendbookData.profiles[this.currentProfileId]
+        || this.allData.profiles[this.currentProfileId];
       const authorColors = [0x1877f2, 0x42b72a, 0xf02849, 0xf7b928, 0x8b5cf6];
       const authorColor = authorColors[this.currentProfileId.length % authorColors.length];
       if (profile.portraitKey && this.textures.exists(profile.portraitKey)) {
@@ -483,7 +577,8 @@ export default class SocialNetworkScene extends Phaser.Scene {
         this.tabContentContainer.add(divider);
 
         post.comments.forEach((comment) => {
-          const authorProfile = this.friendbookData.profiles[comment.author];
+          const authorProfile = this.friendbookData.profiles[comment.author]
+            || this.allData.profiles[comment.author];
           const commenterName = authorProfile ? authorProfile.name : comment.author;
 
           // Clickable author name (navigates to that profile)
@@ -494,7 +589,7 @@ export default class SocialNetworkScene extends Phaser.Scene {
             fontStyle: 'bold'
           })
             .setInteractive({ useHandCursor: true })
-            .on('pointerdown', () => this._showProfile(comment.author));
+            .on('pointerdown', () => { this.sound.play('sfx_mouse_click', { volume: 0.4 }); this._showProfile(comment.author); });
           this.tabContentContainer.add(commentAuthor);
 
           // Comment text
@@ -510,18 +605,10 @@ export default class SocialNetworkScene extends Phaser.Scene {
         });
       }
 
-      // Track this post for intel visibility detection
-      if (post.intel) {
-        this._trackIntelVisibility(post.intel.key, yOffset, yOffset + cardH);
-      }
-
       yOffset += cardH + 12;
     });
 
     this.tabContentTotalHeight = yOffset;
-
-    // Check initial visibility (posts that are already visible without scrolling)
-    this._checkIntelVisibility();
   }
 
   _estimatePostHeight(post, width) {
@@ -538,7 +625,8 @@ export default class SocialNetworkScene extends Phaser.Scene {
   // =========================================================================
 
   _renderAbout() {
-    const profile = this.friendbookData.profiles[this.currentProfileId];
+    const profile = this.friendbookData.profiles[this.currentProfileId]
+      || this.allData.profiles[this.currentProfileId];
     if (!profile) return;
 
     const contentW = this.browserW - 50;
@@ -575,7 +663,8 @@ export default class SocialNetworkScene extends Phaser.Scene {
   // =========================================================================
 
   _renderFriends() {
-    const profile = this.friendbookData.profiles[this.currentProfileId];
+    const profile = this.friendbookData.profiles[this.currentProfileId]
+      || this.allData.profiles[this.currentProfileId];
     if (!profile || !profile.friends) return;
 
     const contentW = this.browserW - 50;
@@ -592,7 +681,8 @@ export default class SocialNetworkScene extends Phaser.Scene {
     yOffset += 30;
 
     profile.friends.forEach((friendId) => {
-      const friend = this.friendbookData.profiles[friendId];
+      const friend = this.friendbookData.profiles[friendId]
+        || this.allData.profiles[friendId];
       if (!friend) return;
 
       // Mini avatar (portrait image or colored circle fallback)
@@ -622,7 +712,7 @@ export default class SocialNetworkScene extends Phaser.Scene {
         fontStyle: 'bold'
       })
         .setInteractive({ useHandCursor: true })
-        .on('pointerdown', () => this._showProfile(friendId));
+        .on('pointerdown', () => { this.sound.play('sfx_mouse_click', { volume: 0.4 }); this._showProfile(friendId); });
 
       // Bio text
       const bioText = this.add.text(48, yOffset + 22, friend.bio || '', {
@@ -654,34 +744,9 @@ export default class SocialNetworkScene extends Phaser.Scene {
       const maxScroll = Math.max(0, this.tabContentTotalHeight - viewableHeight);
       this.tabScrollOffset = Phaser.Math.Clamp(this.tabScrollOffset + deltaY * 0.5, 0, maxScroll);
       this.tabContentContainer.setY(this.tabContentY - this.tabScrollOffset);
-
-      // Check intel visibility after scroll
-      this._checkIntelVisibility();
     };
 
     this.input.on('wheel', this._scrollListener);
-  }
-
-  // =========================================================================
-  //  INTEL VISIBILITY TRACKING
-  // =========================================================================
-
-  _trackIntelVisibility(key, topY, bottomY) {
-    this._intelZones.push({ key, topY, bottomY });
-  }
-
-  _checkIntelVisibility() {
-    if (!this._intelZones || this._intelZones.length === 0) return;
-
-    const viewTop = this.tabScrollOffset;
-    const viewBottom = viewTop + (this.tabContentMaskBottom - this.tabContentY);
-
-    this._intelZones.forEach(({ key, topY, bottomY }) => {
-      // If the post is at least partially visible in the viewport
-      if (bottomY > viewTop && topY < viewBottom) {
-        gameState.markIntelSeen(key);
-      }
-    });
   }
 
   // =========================================================================
@@ -725,21 +790,15 @@ export default class SocialNetworkScene extends Phaser.Scene {
     });
     this.intelTrackerContainer.add(this.intelCountText);
 
-    // Intel items (each starts as locked/unknown)
+    // Intel items (each starts as locked/unknown, only revealed by AI tool call)
     this.intelItemTexts = {};
     intelKeys.forEach((intel, i) => {
       const y = 28 + i * 22;
 
-      // Check if already seen or used (in case scene is reopened)
-      let displayText = '\uD83D\uDD12 ???';
-      let displayColor = '#999999';
-      if (gameState.intelUsed.has(intel.key)) {
-        displayText = `\u2705 ${intel.description}`;
-        displayColor = '#2e7d32';
-      } else if (gameState.intelSeen.has(intel.key)) {
-        displayText = `\uD83D\uDC41 ${intel.description}`;
-        displayColor = '#5d4037';
-      }
+      // Only show description if the AI has confirmed it was used in conversation
+      const isUsed = gameState.intelUsed.has(intel.key);
+      const displayText = isUsed ? `\u2705 ${intel.description}` : '\uD83D\uDD12 ???';
+      const displayColor = isUsed ? '#2e7d32' : '#999999';
 
       const text = this.add.text(8, y, displayText, {
         fontSize: '11px',
@@ -755,29 +814,18 @@ export default class SocialNetworkScene extends Phaser.Scene {
     // Update initial count
     this._updateIntelCount();
 
-    // Listen for intel events from GameState
-    gameState.on('intel_seen', this._onIntelSeen, this);
+    // Listen for intel_used events (AI confirms intel was referenced in call)
     gameState.on('intel_used', this._onIntelUsed, this);
   }
 
-  _onIntelSeen(key) {
-    const intel = this.friendbookData.intelKeys.find(i => i.key === key);
-    if (!intel) return;
-
-    const text = this.intelItemTexts[key];
-    if (text && !gameState.intelUsed.has(key)) {
-      text.setText(`\uD83D\uDC41 ${intel.description}`);
-      text.setColor('#5d4037');
-    }
-    this._updateIntelCount();
-  }
-
   _onIntelUsed(key) {
+    if (!this.scene.isActive()) return;
+
     const intel = this.friendbookData.intelKeys.find(i => i.key === key);
     if (!intel) return;
 
     const text = this.intelItemTexts[key];
-    if (text) {
+    if (text && text.active) {
       text.setText(`\u2705 ${intel.description}`);
       text.setColor('#2e7d32');
     }
@@ -785,10 +833,10 @@ export default class SocialNetworkScene extends Phaser.Scene {
   }
 
   _updateIntelCount() {
-    if (!this.intelCountText) return;
-    const seen = gameState.intelSeen.size;
+    if (!this.intelCountText || !this.intelCountText.active) return;
+    const used = gameState.intelUsed.size;
     const total = this.friendbookData.intelKeys.length;
-    this.intelCountText.setText(`${seen}/${total}`);
+    this.intelCountText.setText(`${used}/${total}`);
   }
 
   // =========================================================================
@@ -807,11 +855,18 @@ export default class SocialNetworkScene extends Phaser.Scene {
   // =========================================================================
 
   shutdown() {
-    gameState.off('intel_seen', this._onIntelSeen, this);
     gameState.off('intel_used', this._onIntelUsed, this);
     if (this._scrollListener) {
       this.input.off('wheel', this._scrollListener);
       this._scrollListener = null;
+    }
+    if (this._searchKeyHandler) {
+      this.input.keyboard.off('keydown', this._searchKeyHandler);
+      this._searchKeyHandler = null;
+    }
+    if (this._searchCloseHandler) {
+      this.input.off('pointerdown', this._searchCloseHandler);
+      this._searchCloseHandler = null;
     }
   }
 }

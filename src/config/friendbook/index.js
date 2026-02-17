@@ -1,8 +1,8 @@
-import { getLevel1FriendBook } from './level1.js';
-import { getLevel2FriendBook } from './level2.js';
-import { getLevel3FriendBook } from './level3.js';
-import { getLevel4FriendBook } from './level4.js';
-import { getLevel5FriendBook } from './level5.js';
+import { getLevel1FriendBook, LEVEL1_DATA } from './level1.js';
+import { getLevel2FriendBook, LEVEL2_DATA } from './level2.js';
+import { getLevel3FriendBook, LEVEL3_DATA } from './level3.js';
+import { getLevel4FriendBook, LEVEL4_DATA } from './level4.js';
+import { getLevel5FriendBook, LEVEL5_DATA } from './level5.js';
 
 const levelGetters = {
   1: getLevel1FriendBook,
@@ -22,4 +22,28 @@ export function getFriendBookData(level, victimName) {
   const getter = levelGetters[level];
   if (!getter) return null;
   return getter(victimName);
+}
+
+/** Cached result for getAllProfiles */
+let _allProfilesCache = null;
+
+/**
+ * Get every profile and their posts across all levels.
+ * @returns {{ profiles: Object, posts: Object }}
+ */
+export function getAllProfiles() {
+  if (_allProfilesCache) return _allProfilesCache;
+
+  const allProfiles = {};
+  const allPosts = {};
+
+  for (const levelData of [LEVEL1_DATA, LEVEL2_DATA, LEVEL3_DATA, LEVEL4_DATA, LEVEL5_DATA]) {
+    for (const victimData of Object.values(levelData)) {
+      Object.assign(allProfiles, victimData.profiles);
+      Object.assign(allPosts, victimData.posts);
+    }
+  }
+
+  _allProfilesCache = { profiles: allProfiles, posts: allPosts };
+  return _allProfilesCache;
 }
