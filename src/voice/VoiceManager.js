@@ -177,8 +177,8 @@ class VoiceManager {
           // Attach to audio element (muted) so Chrome keeps the track alive
           this.audioEl.srcObject = event.streams[0];
           this.audioEl.muted = true;
-          // Route actual playback through telephone filter
-          this._applyTelephoneFilter(event.streams[0]);
+          // Route actual playback through telephone filter (per-victim params)
+          this._applyTelephoneFilter(event.streams[0], config.filterParams || null);
         }
       };
 
@@ -207,6 +207,9 @@ class VoiceManager {
 
         // Configure the session over the data channel
         this._sendSessionUpdate(config);
+
+        // Prompt the AI to speak first (victim answers the phone)
+        this._triggerResponse();
 
         if (this.onConnected) this.onConnected();
       };
@@ -284,40 +287,47 @@ class VoiceManager {
 
   /**
    * Route remote audio through Web Audio API bandpass filters to simulate
-   * a telephone line (300Hz-3400Hz passband with mild compression).
+   * a telephone line. Parameters can be customized per victim for audio
+   * differentiation.
    *
    * @param {MediaStream} stream - The remote audio stream from WebRTC
+   * @param {object} [filterParams] - Optional filter parameters
    * @private
    */
-  _applyTelephoneFilter(stream) {
+  _applyTelephoneFilter(stream, filterParams = null) {
+    const p = filterParams || {
+      highpass: 300, lowpass: 3400, midFreq: 1200, midGain: 4, midQ: 1.0,
+      compThreshold: -30, compRatio: 6,
+    };
+
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     this._phoneFilterCtx = ctx;
 
     const source = ctx.createMediaStreamSource(stream);
 
-    // High-pass at 300Hz — cuts rumble/bass
+    // High-pass — cuts rumble/bass
     const highpass = ctx.createBiquadFilter();
     highpass.type = 'highpass';
-    highpass.frequency.value = 300;
+    highpass.frequency.value = p.highpass || 300;
     highpass.Q.value = 0.7;
 
-    // Low-pass at 3400Hz — cuts high-end clarity
+    // Low-pass — cuts high-end clarity
     const lowpass = ctx.createBiquadFilter();
     lowpass.type = 'lowpass';
-    lowpass.frequency.value = 3400;
+    lowpass.frequency.value = p.lowpass || 3400;
     lowpass.Q.value = 0.7;
 
-    // Subtle mid-frequency boost for that nasal phone quality
+    // Mid-frequency boost for that nasal phone quality
     const midBoost = ctx.createBiquadFilter();
     midBoost.type = 'peaking';
-    midBoost.frequency.value = 1200;
-    midBoost.gain.value = 4;
-    midBoost.Q.value = 1.0;
+    midBoost.frequency.value = p.midFreq || 1200;
+    midBoost.gain.value = p.midGain || 4;
+    midBoost.Q.value = p.midQ || 1.0;
 
-    // Light compression to flatten dynamics like a phone codec
+    // Compression to flatten dynamics like a phone codec
     const compressor = ctx.createDynamicsCompressor();
-    compressor.threshold.value = -30;
-    compressor.ratio.value = 6;
+    compressor.threshold.value = p.compThreshold || -30;
+    compressor.ratio.value = p.compRatio || 6;
     compressor.knee.value = 10;
     compressor.attack.value = 0.003;
     compressor.release.value = 0.1;
@@ -519,6 +529,123 @@ class VoiceManager {
   /* ==================================================================
    * End call / cleanup
    * ================================================================*/
+
+  /**
+   * Switch the current session mid-call (used for Pierogi reveal).
+   * Tears down WebRTC but keeps mic, then starts a fresh session with new config.
+   *
+   * @param {number} level - The current game level
+   * @param {{ instructions: string, tools: object[], voice: string, filterParams?: object }} newConfig
+   * @returns {Promise<boolean>}
+   */
+  async switchSession(level, newConfig) {
+    // Save callbacks
+    const cbs = {
+      onGameStateUpdate: this.onGameStateUpdate,
+      onDesktopAction: this.onDesktopAction,
+      onCallEnd: this.onCallEnd,
+      onError: this.onError,
+      onConnected: this.onConnected,
+    };
+
+    // Tear down current WebRTC (keeps mic stream intact)
+    this._cleanup();
+
+    // Restore callbacks
+    Object.assign(this, cbs);
+
+    // Start fresh session with new config
+    return this.startCallWithConfig(level, newConfig);
+  }
+
+  /**
+   * Start a call with a pre-built config (used by switchSession and internally).
+   * @param {number} level
+   * @param {{ instructions: string, tools: object[], voice: string, filterParams?: object }} config
+   * @returns {Promise<boolean>}
+   */
+  async startCallWithConfig(level, config) {
+    try {
+      const apiKey = getApiKey();
+      if (!apiKey) throw new Error('No OpenAI API key configured.');
+
+      this.pc = new RTCPeerConnection({
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      });
+
+      this.audioEl = document.createElement('audio');
+      this.audioEl.autoplay = true;
+
+      this.pc.ontrack = (event) => {
+        if (event.streams && event.streams[0]) {
+          this.audioEl.srcObject = event.streams[0];
+          this.audioEl.muted = true;
+          this._applyTelephoneFilter(event.streams[0], config.filterParams || null);
+        }
+      };
+
+      if (!this.localStream) {
+        const granted = await this.requestMicPermission();
+        if (!granted) throw new Error('Microphone permission not granted');
+      }
+
+      this.localStream.getTracks().forEach((track) => {
+        this.pc.addTrack(track, this.localStream);
+      });
+
+      this.dc = this.pc.createDataChannel('oai-events', { ordered: true });
+
+      this.dc.onopen = () => {
+        this.connected = true;
+        this._sendSessionUpdate(config);
+        this._triggerResponse();
+        if (this.onConnected) this.onConnected();
+      };
+
+      this.dc.onclose = () => { this.connected = false; };
+      this.dc.onerror = (err) => {
+        if (this.onError) this.onError(err);
+      };
+      this.dc.onmessage = (event) => this.handleDataChannelMessage(event);
+
+      const offer = await this.pc.createOffer();
+      await this.pc.setLocalDescription(offer);
+
+      const sdpRes = await fetch(REALTIME_API_URL, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/sdp',
+        },
+        body: offer.sdp,
+      });
+
+      if (!sdpRes.ok) {
+        const errText = await sdpRes.text();
+        throw new Error(`SDP exchange failed (${sdpRes.status}): ${errText}`);
+      }
+
+      await this.pc.setRemoteDescription({
+        type: 'answer',
+        sdp: await sdpRes.text(),
+      });
+
+      this.pc.oniceconnectionstatechange = () => {
+        const state = this.pc?.iceConnectionState;
+        if (state === 'disconnected' || state === 'failed' || state === 'closed') {
+          this.connected = false;
+          if (this.onCallEnd) this.onCallEnd('connection_lost');
+        }
+      };
+
+      return true;
+    } catch (err) {
+      console.error('[VoiceManager] startCallWithConfig failed:', err);
+      this._cleanup();
+      if (this.onError) this.onError(err);
+      return false;
+    }
+  }
 
   /**
    * Gracefully end the current call: close the data channel, peer

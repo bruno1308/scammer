@@ -7,6 +7,7 @@
  */
 
 import Phaser from 'phaser';
+import SaveManager from '../state/SaveManager.js';
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -109,6 +110,98 @@ export class BootScene extends Phaser.Scene {
     this.load.image('boss_idle', 'assets/characters/boss_idle.png');
     this.load.image('boss_angry', 'assets/characters/boss_angry.png');
 
+    // Office assets (legacy)
+    this.load.image('office_bg', 'assets/office/office_bg.png');
+    this.load.image('office_monitor', 'assets/office/monitor.png');
+    this.load.image('office_phone', 'assets/office/phone.png');
+
+    // Office v3 — angle-consistent assets (seated eye-level camera)
+    this.load.image('back_wall', 'assets/office_v3/back_wall_empty.png');
+    this.load.image('foreground_desk', 'assets/office_v3/foreground_desk.png');
+    this.load.image('main_monitor', 'assets/office_v3/main_monitor.png');
+    this.load.image('phone_body', 'assets/office_v3/phone.png');
+    this.load.image('alarm_clock', 'assets/office_v3/alarm_clock.png');
+    this.load.image('cash_register', 'assets/office_v3/cash_register.png');
+
+    // Worker animated spritesheets (49 frames, 7x7 grid, 640x640 per frame)
+    this.load.spritesheet('anim_worker_1', 'assets/spritesheets/worker_1_typing_spritesheet.png',
+      { frameWidth: 640, frameHeight: 640 });
+    this.load.spritesheet('anim_worker_2', 'assets/spritesheets/worker_2_phone_spritesheet.png',
+      { frameWidth: 640, frameHeight: 640 });
+    this.load.spritesheet('anim_worker_3', 'assets/spritesheets/worker_3_music_spritesheet.png',
+      { frameWidth: 640, frameHeight: 640 });
+
+
+
+    // Office v2 — retained overlays and props
+    this.load.image('monitor_overlay', 'assets/office_v2/monitor_screen_overlay.png');
+    this.load.image('grime_overlay', 'assets/office_v2/grime_overlay.png');
+    this.load.image('coffee_mug', 'assets/office_v2/coffee_mug.png');
+    this.load.spritesheet('anim_steam', 'assets/spritesheets/anim_steam.png',
+      { frameWidth: 256, frameHeight: 256 });
+
+    // Spritesheets — regenerated via Ludo.ai (49 frames, 7x7 grid, 640x640 per frame)
+    this.load.spritesheet('anim_boss_walk', 'assets/spritesheets/boss_walk_cycle_spritesheet.png',
+      { frameWidth: 640, frameHeight: 640 });
+    this.load.spritesheet('anim_cable_sway', 'assets/spritesheets/cable_sway_spritesheet.png',
+      { frameWidth: 73, frameHeight: 73 });
+    this.load.spritesheet('anim_tape_recorder', 'assets/spritesheets/tape_recorder_reels_spritesheet.png',
+      { frameWidth: 640, frameHeight: 640 });
+    this.load.spritesheet('anim_receipt_tape', 'assets/spritesheets/receipt_tape_feed_spritesheet.png',
+      { frameWidth: 560, frameHeight: 752 });
+
+    // ---- Audio assets ----
+
+    // SFX
+    this.load.audio('sfx_phone_ring', 'assets/sfx/phone_ring.mp3');
+    this.load.audio('sfx_phone_pickup', 'assets/sfx/phone_pickup.mp3');
+    this.load.audio('sfx_phone_hangup', 'assets/sfx/phone_hangup.mp3');
+    this.load.audio('sfx_button_click', 'assets/sfx/button_click.mp3');
+    this.load.audio('sfx_money_chaching', 'assets/sfx/money_chaching.mp3');
+    this.load.audio('sfx_paper_rustle', 'assets/sfx/paper_rustle.mp3');
+    this.load.audio('sfx_stamp_press', 'assets/sfx/stamp_press.mp3');
+    this.load.audio('sfx_page_flip', 'assets/sfx/page_flip.mp3');
+    this.load.audio('sfx_drawer_open', 'assets/sfx/drawer_open.mp3');
+    this.load.audio('sfx_drawer_close', 'assets/sfx/drawer_close.mp3');
+    this.load.audio('sfx_keyboard_typing', 'assets/sfx/keyboard_typing.mp3');
+    this.load.audio('sfx_phone_dial_tone', 'assets/sfx/phone_dial_tone.mp3');
+    this.load.audio('sfx_notification_ding', 'assets/sfx/notification_ding.mp3');
+    this.load.audio('sfx_suspicion_warning', 'assets/sfx/suspicion_warning.mp3');
+    this.load.audio('sfx_level_complete', 'assets/sfx/level_complete.mp3');
+    this.load.audio('sfx_game_over', 'assets/sfx/game_over.mp3');
+    this.load.audio('sfx_tape_recorder_start', 'assets/sfx/tape_recorder_start.mp3');
+    this.load.audio('sfx_adding_machine', 'assets/sfx/adding_machine.mp3');
+    this.load.audio('sfx_mouse_click', 'assets/sfx/mouse_click.mp3');
+
+    // Ambient loops
+    this.load.audio('amb_office_ambience', 'assets/ambient/office_ambience.mp3');
+    this.load.audio('amb_fluorescent_hum', 'assets/ambient/fluorescent_hum.mp3');
+    this.load.audio('amb_night_office', 'assets/ambient/night_office.mp3');
+
+    // Music tracks
+    this.load.audio('music_menu_theme', 'assets/music/menu_theme.mp3');
+    this.load.audio('music_office_gameplay', 'assets/music/office_gameplay.mp3');
+    this.load.audio('music_call_active', 'assets/music/call_active.mp3');
+    this.load.audio('music_results_success', 'assets/music/results_success.mp3');
+    this.load.audio('music_results_failure', 'assets/music/results_failure.mp3');
+    this.load.audio('music_briefing_theme', 'assets/music/briefing_theme.mp3');
+    this.load.audio('music_game_over_theme', 'assets/music/game_over_theme.mp3');
+
+    // ---- UI assets ----
+    this.load.image('ui_gauge_frame', 'assets/ui/gauge_frame.png');
+    this.load.image('ui_dossier_panel', 'assets/ui/dossier_panel.png');
+    this.load.image('ui_portrait_frame', 'assets/ui/portrait_frame_polaroid.png');
+    this.load.image('ui_script_panel', 'assets/ui/script_panel.png');
+    this.load.image('ui_script_tab', 'assets/ui/script_tab.png');
+    this.load.image('ui_quota_board', 'assets/ui/quota_board.png');
+    this.load.image('ui_tape_recorder', 'assets/ui/tape_recorder.png');
+    this.load.image('ui_money_machine', 'assets/ui/money_machine.png');
+    this.load.image('ui_button_green', 'assets/ui/button_green.png');
+    this.load.image('ui_button_red', 'assets/ui/button_red.png');
+    this.load.image('ui_stamp_confirmed', 'assets/ui/stamp_confirmed.png');
+    this.load.image('ui_receipt_tape', 'assets/ui/receipt_tape.png');
+    this.load.image('ui_friendbook_logo', 'assets/ui/social_network_logo.png');
+
     // FriendBook avatars (family/friend profiles)
     const fbAvatars = {
       1: ['karen_mitchell', 'mike_mitchell', 'emma_mitchell',
@@ -169,11 +262,11 @@ export class BootScene extends Phaser.Scene {
     const barX = (width - barWidth) / 2;
     const barY = height / 2 - 12;
 
+    // ---- Migrate old single-slot save to slot 1 ----
+    SaveManager.migrateOldSave();
+
     // ---- Generate programmatic textures (fast, no network) ----
     const tasks = [
-      { label: '> Generating phone texture...', fn: () => this._generatePhoneTexture() },
-      { label: '> Generating monitor texture...', fn: () => this._generateMonitorTexture() },
-      { label: '> Generating desk background...', fn: () => this._generateDeskTexture() },
       { label: '> Generating button textures...', fn: () => this._generateButtonTextures() },
       { label: '> Initializing game state...', fn: () => {} },
       { label: '> Connecting to call center...', fn: () => {} },
@@ -202,73 +295,6 @@ export class BootScene extends Phaser.Scene {
         }
       }
     });
-  }
-
-  /**
-   * Generate a simple phone texture (rectangle with handset shape).
-   */
-  _generatePhoneTexture() {
-    const g = this.make.graphics({ add: false });
-    // Phone body
-    g.fillStyle(0x222233);
-    g.fillRoundedRect(0, 0, 80, 100, 6);
-    // Screen
-    g.fillStyle(0x112211);
-    g.fillRoundedRect(10, 10, 60, 35, 3);
-    // Buttons
-    for (let row = 0; row < 3; row++) {
-      for (let col = 0; col < 3; col++) {
-        g.fillStyle(0x444466);
-        g.fillRoundedRect(15 + col * 20, 55 + row * 14, 14, 10, 2);
-      }
-    }
-    // Neon accent line
-    g.lineStyle(1, 0x00ff88, 0.6);
-    g.strokeRoundedRect(0, 0, 80, 100, 6);
-    g.generateTexture('phone', 80, 100);
-    g.destroy();
-  }
-
-  /**
-   * Generate a monitor texture (rectangle with screen area).
-   */
-  _generateMonitorTexture() {
-    const g = this.make.graphics({ add: false });
-    // Monitor bezel
-    g.fillStyle(0x1a1a2e);
-    g.fillRoundedRect(0, 0, 400, 280, 8);
-    // Screen area
-    g.fillStyle(0x0d1117);
-    g.fillRoundedRect(12, 12, 376, 236, 4);
-    // Stand
-    g.fillStyle(0x222233);
-    g.fillRect(170, 280, 60, 20);
-    g.fillRect(140, 296, 120, 8);
-    // Neon border
-    g.lineStyle(2, 0x00ccff, 0.3);
-    g.strokeRoundedRect(10, 10, 380, 240, 4);
-    g.generateTexture('monitor', 400, 310);
-    g.destroy();
-  }
-
-  /**
-   * Generate desk background texture.
-   */
-  _generateDeskTexture() {
-    const g = this.make.graphics({ add: false });
-    // Desk surface
-    g.fillStyle(0x1c1c28);
-    g.fillRect(0, 0, 1280, 300);
-    // Wood grain lines
-    for (let i = 0; i < 20; i++) {
-      g.lineStyle(1, 0x252535, 0.4);
-      g.lineBetween(0, i * 15, 1280, i * 15 + 3);
-    }
-    // Edge highlight
-    g.lineStyle(2, 0x333344, 0.6);
-    g.lineBetween(0, 0, 1280, 0);
-    g.generateTexture('desk_bg', 1280, 300);
-    g.destroy();
   }
 
   /**
