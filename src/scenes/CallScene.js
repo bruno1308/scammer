@@ -9,7 +9,9 @@
 import Phaser from 'phaser';
 import gameState from '../state/GameState.js';
 import VoiceManager from '../voice/VoiceManager.js';
-import { LEVELS } from '../config/levels.js';
+import { FLOORS } from '../config/levels.js';
+import { getFriendBookData } from '../config/friendbook/index.js';
+import { ArcMeter } from '../ui/ArcMeter.js';
 
 export class CallScene extends Phaser.Scene {
   constructor() {
@@ -25,25 +27,11 @@ export class CallScene extends Phaser.Scene {
   create() {
     const { width, height } = this.scale;
 
-    // ---- Semi-transparent overlay background ----
-    const overlay = this.add.graphics();
-    overlay.fillStyle(0x000000, 0.4);
-    overlay.fillRect(0, 0, width, height);
-
-    // ---- Call panel (left side) ----
-    this._createCallPanel(30, 80, 300, 540);
-
-    // ---- Victim card ----
-    this._createVictimCard(380, 80, 500, 200);
-
-    // ---- Waveform visualization ----
-    this._createWaveform(380, 310, 500, 80);
+    // ---- Victim profile (left side, card with waveform + portrait + meters) ----
+    this._createVictimProfile(width, height);
 
     // ---- Active call indicator ----
     this._createCallIndicator(width / 2, 50);
-
-    // ---- Hang-up button ----
-    this._createHangUpButton(width / 2, height - 80);
 
     // ---- Scam script toggle tab (bottom-left, doesn't cover meters) ----
     this._createScriptPanel(width, height);
@@ -62,97 +50,53 @@ export class CallScene extends Phaser.Scene {
   }
 
   // =========================================================================
-  //  CALL PANEL
+  //  MONITOR CLICK ZONE (FriendBook access during call)
   // =========================================================================
 
-  _createCallPanel(x, y, w, h) {
-    const g = this.add.graphics();
+  _createMonitorZone(sceneW, sceneH) {
+    // Match OfficeScene monitor position: center-x, 38% height
+    const mx = sceneW / 2;
+    const my = sceneH * 0.38;
 
-    // Panel background
-    g.fillStyle(0x0a0e14, 0.95);
-    g.fillRoundedRect(x, y, w, h, 8);
-    g.lineStyle(1, 0x00ccff, 0.4);
-    g.strokeRoundedRect(x, y, w, h, 8);
+    // Hover outline glow (matches OfficeScene style)
+    this.monitorGlow = this.add.graphics();
+    this.monitorGlow.lineStyle(2, 0x00ccff, 0.8);
+    this.monitorGlow.strokeRoundedRect(mx - 155, my - 120, 310, 250, 10);
+    this.monitorGlow.setAlpha(0);
 
-    // Panel header
-    g.fillStyle(0x00ccff, 0.1);
-    g.fillRoundedRect(x, y, w, 35, { tl: 8, tr: 8, bl: 0, br: 0 });
-
-    this.add.text(x + w / 2, y + 17, 'CALL CONTROL', {
-      fontFamily: '"Courier New", monospace',
-      fontSize: '13px',
-      fontStyle: 'bold',
-      color: '#00ccff'
-    }).setOrigin(0.5);
-
-    // Call info items
-    const items = [
-      { label: 'STATUS', value: 'CONNECTED', color: '#00ff88' },
-      { label: 'TARGET', value: this.victim.name, color: '#ccddee' },
-      { label: 'LOCATION', value: this.victim.location, color: '#ccddee' },
-      { label: 'AGE', value: `${this.victim.age}`, color: '#ccddee' },
-      { label: 'LINE', value: `SECURE #${Phaser.Math.Between(1000, 9999)}`, color: '#ffcc00' },
-    ];
-
-    items.forEach((item, i) => {
-      const iy = y + 55 + i * 45;
-      this.add.text(x + 15, iy, item.label, {
-        fontFamily: '"Courier New", monospace',
-        fontSize: '10px',
-        color: '#556677'
-      });
-      this.add.text(x + 15, iy + 14, item.value, {
-        fontFamily: '"Courier New", monospace',
-        fontSize: '13px',
-        color: item.color,
-        wordWrap: { width: w - 30 }
-      });
-    });
-
-    // Signal strength bars
-    const sigX = x + 15;
-    const sigY = y + h - 60;
-    this.add.text(sigX, sigY - 15, 'SIGNAL', {
+    // Hint text
+    this.monitorHint = this.add.text(mx, my + 100, 'Click to open FriendBook', {
       fontFamily: '"Courier New", monospace',
       fontSize: '10px',
-      color: '#556677'
+      color: '#00ff88'
+    }).setOrigin(0.5).setAlpha(0);
+
+    // Clickable zone over the monitor
+    const zone = this.add.zone(mx, my, 300, 230).setInteractive({ useHandCursor: true });
+    zone.on('pointerover', () => {
+      this.monitorGlow.setAlpha(1);
+      this.monitorHint.setAlpha(1);
     });
-
-    const sigBars = this.add.graphics();
-    for (let i = 0; i < 5; i++) {
-      const barH = 6 + i * 5;
-      sigBars.fillStyle(i < 4 ? 0x00ff88 : 0x00ff88, i < 4 ? 0.8 : 0.3);
-      sigBars.fillRoundedRect(sigX + i * 12, sigY + 25 - barH, 8, barH, 1);
-    }
-
-    // Encryption indicator
-    this.add.text(sigX, sigY + 30, '> ENCRYPTED', {
-      fontFamily: '"Courier New", monospace',
-      fontSize: '10px',
-      color: '#00ff88',
-      alpha: 0.5
+    zone.on('pointerout', () => {
+      this.monitorGlow.setAlpha(0);
+      this.monitorHint.setAlpha(0);
     });
+    zone.on('pointerdown', () => { this.sound.play('sfx_mouse_click', { volume: 0.4 }); this._openFriendBook(); });
+  }
 
-    // Call duration display in panel
-    this.panelTimerText = this.add.text(x + w / 2, y + h - 20, '00:00', {
-      fontFamily: '"Courier New", monospace',
-      fontSize: '16px',
-      fontStyle: 'bold',
-      color: '#00ccff'
-    }).setOrigin(0.5);
+  _openFriendBook() {
+    if (this.scene.isActive('social-network')) return;
 
-    // Update panel timer
-    this.time.addEvent({
-      delay: 1000,
-      loop: true,
-      callback: () => {
-        if (gameState.callActive) {
-          const elapsed = gameState.getCallElapsedSec();
-          const mins = Math.floor(elapsed / 60).toString().padStart(2, '0');
-          const secs = (elapsed % 60).toString().padStart(2, '0');
-          this.panelTimerText.setText(`${mins}:${secs}`);
-        }
-      }
+    const friendbookData = getFriendBookData(this.levelNum, this.victim.name);
+    if (!friendbookData) return;
+
+    const targetProfileId = Object.keys(friendbookData.profiles)
+      .find(id => friendbookData.profiles[id].isTarget);
+
+    this.scene.launch('social-network', {
+      friendbookData,
+      targetProfileId,
+      level: this.levelNum
     });
   }
 
@@ -161,11 +105,11 @@ export class CallScene extends Phaser.Scene {
   // =========================================================================
 
   _createScriptPanel(sceneW, sceneH) {
-    const level = LEVELS[this.levelNum];
-    if (!level || !level.briefing || !level.briefing.scriptNotes) return;
+    const floor = FLOORS[this.levelNum];
+    if (!floor || !floor.briefing || !floor.briefing.scriptNotes) return;
 
-    const panelW = 280;
-    const panelH = 350;
+    const panelW = 340;
+    const panelH = 420;
     const tabW = 30;
     const panelX = 0;       // relative inside container
     const panelY = 0;
@@ -175,12 +119,18 @@ export class CallScene extends Phaser.Scene {
     this.scriptOpen = false;
 
     // ---- Toggle tab (always visible) ----
-    const tab = this.add.graphics();
-    tab.fillStyle(0x1a1a2e, 0.95);
-    tab.fillRoundedRect(-tabW, 0, tabW, 80, { tl: 6, tr: 0, bl: 6, br: 0 });
-    tab.lineStyle(1, 0xffcc00, 0.5);
-    tab.strokeRoundedRect(-tabW, 0, tabW, 80, { tl: 6, tr: 0, bl: 6, br: 0 });
-    this.scriptContainer.add(tab);
+    if (this.textures.exists('ui_script_tab')) {
+      const tabImg = this.add.image(-tabW / 2, 40, 'ui_script_tab')
+        .setDisplaySize(tabW + 8, 84);
+      this.scriptContainer.add(tabImg);
+    } else {
+      const tab = this.add.graphics();
+      tab.fillStyle(0x1a1a2e, 0.95);
+      tab.fillRoundedRect(-tabW, 0, tabW, 80, { tl: 6, tr: 0, bl: 6, br: 0 });
+      tab.lineStyle(1, 0xffcc00, 0.5);
+      tab.strokeRoundedRect(-tabW, 0, tabW, 80, { tl: 6, tr: 0, bl: 6, br: 0 });
+      this.scriptContainer.add(tab);
+    }
 
     // Tab text (vertical)
     const tabLabel = this.add.text(-tabW / 2, 40, 'S\nC\nR\nI\nP\nT', {
@@ -189,7 +139,9 @@ export class CallScene extends Phaser.Scene {
       fontStyle: 'bold',
       color: '#ffcc00',
       align: 'center',
-      lineSpacing: -2
+      lineSpacing: -2,
+      stroke: '#000000',
+      strokeThickness: 1
     }).setOrigin(0.5);
     this.scriptContainer.add(tabLabel);
 
@@ -199,61 +151,62 @@ export class CallScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
     this.scriptContainer.add(tabZone);
 
-    // ---- Panel content ----
+    // ---- Panel content (solid dark background for readability) ----
     const panelGfx = this.add.graphics();
     panelGfx.fillStyle(0x0a0e14, 0.95);
     panelGfx.fillRoundedRect(panelX, panelY, panelW, panelH, 8);
     panelGfx.lineStyle(1, 0xffcc00, 0.4);
     panelGfx.strokeRoundedRect(panelX, panelY, panelW, panelH, 8);
-
-    // Header
     panelGfx.fillStyle(0xffcc00, 0.08);
-    panelGfx.fillRoundedRect(panelX, panelY, panelW, 30, { tl: 8, tr: 8, bl: 0, br: 0 });
+    panelGfx.fillRoundedRect(panelX, panelY, panelW, 34, { tl: 8, tr: 8, bl: 0, br: 0 });
     this.scriptContainer.add(panelGfx);
 
-    this.scriptContainer.add(this.add.text(panelX + panelW / 2, panelY + 15, 'SCAM SCRIPT', {
+    this.scriptContainer.add(this.add.text(panelX + panelW / 2, panelY + 17, 'SCAM SCRIPT', {
       fontFamily: '"Courier New", monospace',
-      fontSize: '12px',
+      fontSize: '15px',
       fontStyle: 'bold',
-      color: '#ffcc00'
+      color: '#ffcc00',
+      stroke: '#000000',
+      strokeThickness: 2
     }).setOrigin(0.5));
 
     // Scam type
-    this.scriptContainer.add(this.add.text(panelX + 10, panelY + 38, level.name.toUpperCase(), {
+    this.scriptContainer.add(this.add.text(panelX + 12, panelY + 44, floor.name.toUpperCase(), {
       fontFamily: '"Courier New", monospace',
-      fontSize: '10px',
+      fontSize: '13px',
       fontStyle: 'bold',
       color: '#ff8844'
     }));
 
     // Script steps
-    const notes = level.briefing.scriptNotes;
-    let stepY = panelY + 58;
+    const notes = floor.briefing.scriptNotes;
+    let stepY = panelY + 68;
 
     notes.forEach((note, i) => {
-      this.scriptContainer.add(this.add.text(panelX + 8, stepY, `${i + 1}.`, {
+      this.scriptContainer.add(this.add.text(panelX + 10, stepY, `${i + 1}.`, {
         fontFamily: '"Courier New", monospace',
-        fontSize: '10px',
+        fontSize: '14px',
         fontStyle: 'bold',
         color: '#ffcc00',
         alpha: 0.7
       }));
 
-      const stepText = this.add.text(panelX + 24, stepY, note, {
+      const stepText = this.add.text(panelX + 28, stepY, note, {
         fontFamily: '"Courier New", monospace',
-        fontSize: '10px',
+        fontSize: '13px',
         color: '#ccddee',
-        wordWrap: { width: panelW - 40 },
-        lineSpacing: 2
+        wordWrap: { width: panelW - 46 },
+        lineSpacing: 3
       });
       this.scriptContainer.add(stepText);
 
-      stepY += stepText.height + 10;
+      stepY += stepText.height + 12;
     });
 
     // Toggle behavior
     tabZone.on('pointerdown', () => {
       this.scriptOpen = !this.scriptOpen;
+      this.sound.play(this.scriptOpen ? 'sfx_drawer_open' : 'sfx_drawer_close', { volume: 0.4 });
       this.tweens.add({
         targets: this.scriptContainer,
         x: this.scriptOpen ? sceneW - tabW - panelW : sceneW - tabW,
@@ -267,78 +220,77 @@ export class CallScene extends Phaser.Scene {
   //  VICTIM CARD
   // =========================================================================
 
-  _createVictimCard(x, y, w, h) {
-    const g = this.add.graphics();
+  _createVictimProfile(sceneW, sceneH) {
+    const cardX = 20;
+    const cardY = 70;
+    const cardW = 270;
+    const portraitX = cardX + cardW / 2;
 
-    // Card background
-    g.fillStyle(0x111122, 0.95);
-    g.fillRoundedRect(x, y, w, h, 8);
-    g.lineStyle(1, 0xffcc00, 0.4);
-    g.strokeRoundedRect(x, y, w, h, 8);
+    // Waveform sits at the top of the card
+    const waveY = cardY + 12;
+    const waveH = 30;
 
-    // Header
-    g.fillStyle(0xffcc00, 0.08);
-    g.fillRoundedRect(x, y, w, 30, { tl: 8, tr: 8, bl: 0, br: 0 });
+    // Portrait below waveform
+    const portraitRadius = 96;
+    const portraitY = waveY + waveH + 12 + portraitRadius;
 
-    this.add.text(x + w / 2, y + 15, 'VICTIM PROFILE', {
-      fontFamily: '"Courier New", monospace',
-      fontSize: '12px',
-      fontStyle: 'bold',
-      color: '#ffcc00'
-    }).setOrigin(0.5);
+    // Text below portrait + arcs
+    const textY = portraitY + portraitRadius + 28;
 
-    // Portrait area
-    const portraitX = x + 70;
-    const portraitY = y + 115;
+    // Card height calculated to fit everything
+    const cardH = textY + 80 - cardY;
+
+    // ---- Card background ----
+    const card = this.add.graphics();
+    card.fillStyle(0x0a0e18, 0.88);
+    card.fillRoundedRect(cardX, cardY, cardW, cardH, 10);
+    card.lineStyle(1, 0x334466, 0.5);
+    card.strokeRoundedRect(cardX, cardY, cardW, cardH, 10);
+
+    // ---- Waveform at top of card ----
+    this._createWaveform(cardX + 12, waveY, cardW - 24, waveH);
+
+    // ---- Portrait with arc meters ----
     this._showVictimPortrait(portraitX, portraitY);
 
-    // Victim details
-    const detX = x + 160;
-    const detY = y + 50;
-
-    this.add.text(detX, detY, this.victim.name, {
+    // ---- Victim info below portrait ----
+    this.add.text(portraitX, textY, this.victim.name, {
       fontFamily: '"Courier New", monospace',
       fontSize: '16px',
       fontStyle: 'bold',
-      color: '#ffffff'
-    });
+      color: '#ffffff',
+      stroke: '#000000',
+      strokeThickness: 3
+    }).setOrigin(0.5);
 
-    this.add.text(detX, detY + 25, `Age: ${this.victim.age}`, {
+    this.add.text(portraitX, textY + 22, `Age: ${this.victim.age}  |  ${this.victim.location}`, {
       fontFamily: '"Courier New", monospace',
-      fontSize: '12px',
-      color: '#aabbcc'
-    });
-
-    this.add.text(detX, detY + 45, `Location: ${this.victim.location}`, {
-      fontFamily: '"Courier New", monospace',
-      fontSize: '12px',
-      color: '#aabbcc'
-    });
+      fontSize: '11px',
+      color: '#aabbcc',
+      stroke: '#000000',
+      strokeThickness: 2
+    }).setOrigin(0.5);
 
     // Emotion display
-    this.victimEmotionText = this.add.text(detX, detY + 75, 'Mood: CALM', {
+    this.victimEmotionText = this.add.text(portraitX, textY + 46, 'Mood: CALM', {
       fontFamily: '"Courier New", monospace',
       fontSize: '13px',
       fontStyle: 'bold',
-      color: '#88aacc'
-    });
+      color: '#88aacc',
+      stroke: '#000000',
+      strokeThickness: 2
+    }).setOrigin(0.5);
 
-    // Emotion emoji/indicator
-    this.emotionIndicator = this.add.text(detX + 160, detY + 75, '', {
-      fontFamily: '"Courier New", monospace',
-      fontSize: '13px',
-      color: '#88aacc'
-    });
-
-    // Listen for emotion changes
     gameState.on('emotion_change', this._onEmotionChange, this);
 
     // Suspicion warning
-    this.suspicionWarning = this.add.text(x + w / 2, y + h - 15, '', {
+    this.suspicionWarning = this.add.text(portraitX, textY + 70, '', {
       fontFamily: '"Courier New", monospace',
-      fontSize: '11px',
+      fontSize: '12px',
       fontStyle: 'bold',
-      color: '#ff2244'
+      color: '#ff2244',
+      stroke: '#000000',
+      strokeThickness: 2
     }).setOrigin(0.5).setAlpha(0);
 
     gameState.on('suspicion_change', this._onSuspicionWarning, this);
@@ -346,27 +298,67 @@ export class CallScene extends Phaser.Scene {
 
   _showVictimPortrait(x, y) {
     const key = this.victim.portraitKey;
+    const radius = 96;
+
+    // Subtle dark circle behind portrait for depth
+    const shadow = this.add.graphics();
+    shadow.fillStyle(0x000000, 0.5);
+    shadow.fillCircle(x, y, radius + 4);
+
     if (key && this.textures.exists(key)) {
       const portrait = this.add.image(x, y, key);
-      // Scale to fit ~96px circle area (50% larger than original 64px)
-      const maxSize = 96;
+      const maxSize = radius * 2;
       const scale = maxSize / Math.max(portrait.width, portrait.height);
       portrait.setScale(scale);
 
-      // Circular mask (not added to display list — used only as mask shape)
       const maskShape = this.make.graphics({ add: false });
       maskShape.fillStyle(0xffffff);
-      maskShape.fillCircle(x, y, 48);
+      maskShape.fillCircle(x, y, radius);
       portrait.setMask(maskShape.createGeometryMask());
     } else {
-      // Fallback: simple silhouette if image not loaded
       const g = this.add.graphics();
       g.fillStyle(0x334455, 0.8);
-      g.fillCircle(x, y, 48);
+      g.fillCircle(x, y, radius);
       g.fillStyle(0x556677, 0.6);
-      g.fillCircle(x, y - 12, 21);
-      g.fillEllipse(x, y + 30, 54, 30);
+      g.fillCircle(x, y - 24, 42);
+      g.fillEllipse(x, y + 55, 108, 60);
     }
+
+    // Polaroid frame overlay
+    if (this.textures.exists('ui_portrait_frame')) {
+      this.add.image(x, y, 'ui_portrait_frame')
+        .setDisplaySize(radius * 2.4, radius * 2.4).setAlpha(0.9);
+    }
+
+    // Thin ring border around portrait
+    const ring = this.add.graphics();
+    ring.lineStyle(2, 0x556688, 0.6);
+    ring.strokeCircle(x, y, radius + 1);
+
+    // Arc meters wrapping the portrait
+    this.suspicionArc = new ArcMeter(this, x, y, {
+      side: 'left',
+      label: 'SUS',
+      color: 0xff2244,
+      maxValue: 100,
+      radius: radius + 14,
+      thickness: 10
+    });
+    this.suspicionArc.setValue(gameState.suspicion);
+
+    this.complianceArc = new ArcMeter(this, x, y, {
+      side: 'right',
+      label: 'COMP',
+      color: 0x00ff88,
+      maxValue: 100,
+      radius: radius + 14,
+      thickness: 10
+    });
+    this.complianceArc.setValue(gameState.compliance);
+
+    // Listen for value changes
+    gameState.on('suspicion_change', this._onSuspicionArc, this);
+    gameState.on('compliance_change', this._onComplianceArc, this);
   }
 
   _onEmotionChange({ current }) {
@@ -398,14 +390,14 @@ export class CallScene extends Phaser.Scene {
       crying: '[ T_T ]',
     };
 
-    this.victimEmotionText.setText(`Mood: ${emotionLabels[current] || current.toUpperCase()}`);
+    const symbol = emotionSymbols[current] || '';
+    this.victimEmotionText.setText(`Mood: ${emotionLabels[current] || current.toUpperCase()}  ${symbol}`);
     this.victimEmotionText.setColor(emotionColors[current] || '#cccccc');
-    this.emotionIndicator.setText(emotionSymbols[current] || '');
-    this.emotionIndicator.setColor(emotionColors[current] || '#cccccc');
   }
 
   _onSuspicionWarning({ current }) {
     if (current >= 75) {
+      this.sound.play('sfx_suspicion_warning', { volume: 0.6 });
       this.suspicionWarning.setText('!! HIGH SUSPICION - DANGER !!');
       this.suspicionWarning.setAlpha(1);
       this.tweens.add({
@@ -432,36 +424,28 @@ export class CallScene extends Phaser.Scene {
 
     // Background
     const bg = this.add.graphics();
-    bg.fillStyle(0x0a0e14, 0.95);
-    bg.fillRoundedRect(0, 0, w, h, 6);
-    bg.lineStyle(1, 0x00ff88, 0.3);
-    bg.strokeRoundedRect(0, 0, w, h, 6);
+    bg.fillStyle(0x0a0e14, 0.85);
+    bg.fillRoundedRect(0, 0, w, h, 4);
+    bg.lineStyle(1, 0x00ff88, 0.2);
+    bg.strokeRoundedRect(0, 0, w, h, 4);
     container.add(bg);
 
-    // Label
-    const label = this.add.text(10, 5, 'AUDIO WAVEFORM', {
-      fontFamily: '"Courier New", monospace',
-      fontSize: '9px',
-      color: '#00ff88',
-      alpha: 0.5
-    });
-    container.add(label);
-
-    // Waveform bars
+    // Waveform bars — use full height, no label
     this.waveformBars = [];
-    const barCount = 50;
-    const barWidth = (w - 20) / barCount;
+    const barCount = 30;
+    const pad = 6;
+    const barWidth = (w - pad * 2) / barCount;
     const waveGfx = this.add.graphics();
     container.add(waveGfx);
 
-    // Center line
-    const centerY = h / 2;
+    // Center line slightly below center for visual weight
+    const centerY = h * 0.55;
     waveGfx.lineStyle(1, 0x00ff88, 0.1);
-    waveGfx.lineBetween(10, centerY, w - 10, centerY);
+    waveGfx.lineBetween(pad, centerY, w - pad, centerY);
 
     // Animate waveform bars
     this.waveformGraphics = waveGfx;
-    this.waveformConfig = { x: 10, centerY, barWidth, barCount, w, h };
+    this.waveformConfig = { x: pad, centerY, barWidth, barCount, w, h };
 
     this.time.addEvent({
       delay: 80,
@@ -544,8 +528,14 @@ export class CallScene extends Phaser.Scene {
     }).setOrigin(0, 0.5);
     container.add(text);
 
+    // Tape recorder icon
+    if (this.textures.exists('ui_tape_recorder')) {
+      const tape = this.add.image(70, 0, 'ui_tape_recorder').setDisplaySize(28, 28);
+      container.add(tape);
+    }
+
     // REC indicator
-    const rec = this.add.text(70, 0, 'REC', {
+    const rec = this.add.text(88, 0, 'REC', {
       fontFamily: '"Courier New", monospace',
       fontSize: '10px',
       fontStyle: 'bold',
@@ -562,73 +552,6 @@ export class CallScene extends Phaser.Scene {
     });
   }
 
-  // =========================================================================
-  //  HANG-UP BUTTON
-  // =========================================================================
-
-  _createHangUpButton(x, y) {
-    const container = this.add.container(x, y);
-
-    // Outer glow circle
-    const glow = this.add.graphics();
-    glow.fillStyle(0xff2244, 0.1);
-    glow.fillCircle(0, 0, 42);
-    glow.setAlpha(0);
-    container.add(glow);
-
-    // Main button circle
-    const btn = this.add.graphics();
-    btn.fillStyle(0x330011, 0.95);
-    btn.fillCircle(0, 0, 35);
-    btn.lineStyle(3, 0xff2244, 0.8);
-    btn.strokeCircle(0, 0, 35);
-    container.add(btn);
-
-    // Phone icon (rotated handset made with lines)
-    const icon = this.add.graphics();
-    icon.lineStyle(4, 0xff2244, 0.9);
-    // Handset shape: curved line
-    icon.beginPath();
-    icon.arc(0, 0, 14, Math.PI + 0.3, -0.3, false);
-    icon.strokePath();
-    // Ear/mouth pieces
-    icon.fillStyle(0xff2244, 0.9);
-    icon.fillRoundedRect(-18, -6, 10, 12, 3);
-    icon.fillRoundedRect(8, -6, 10, 12, 3);
-    icon.setAngle(135);
-    container.add(icon);
-
-    // Label
-    const label = this.add.text(0, 50, 'HANG UP', {
-      fontFamily: '"Courier New", monospace',
-      fontSize: '12px',
-      fontStyle: 'bold',
-      color: '#ff2244'
-    }).setOrigin(0.5);
-    container.add(label);
-
-    // Hit area
-    const zone = this.add.zone(0, 0, 70, 70)
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-    container.add(zone);
-
-    zone.on('pointerover', () => glow.setAlpha(1));
-    zone.on('pointerout', () => glow.setAlpha(0));
-    zone.on('pointerdown', () => {
-      btn.setScale(0.9);
-    });
-    zone.on('pointerup', () => {
-      btn.setScale(1);
-      this._hangUp();
-    });
-  }
-
-  _hangUp() {
-    // End the call via both VoiceManager and GameState
-    this._tryEndVoice();
-    gameState.endCall('player_hangup');
-  }
 
   _tryEndVoice() {
     try {
@@ -718,6 +641,7 @@ export class CallScene extends Phaser.Scene {
     const dismissZone = this.add.zone(pw / 2, ph / 2, pw, ph).setOrigin(0.5).setInteractive();
     container.add(dismissZone);
     dismissZone.on('pointerup', () => {
+      this.sound.play('sfx_button_click', { volume: 0.3 });
       this.tweens.add({
         targets: container,
         alpha: 0,
@@ -795,28 +719,19 @@ export class CallScene extends Phaser.Scene {
     this.callIntelTexts = {};
     gameState.intelKeys.forEach((intel, i) => {
       const y = 24 + i * 20;
-      const state = gameState.intelUsed.has(intel.key) ? '[OK]' :
-                    gameState.intelSeen.has(intel.key) ? '[>>]' : '[??]';
-      const label = gameState.intelSeen.has(intel.key) ? intel.description : '???';
+      const isUsed = gameState.intelUsed.has(intel.key);
+      const state = isUsed ? '[OK]' : '[??]';
+      const label = isUsed ? intel.description : '???';
       const text = this.add.text(8, y, `${state} ${label}`, {
         fontFamily: '"Courier New", monospace',
         fontSize: '10px',
-        color: gameState.intelUsed.has(intel.key) ? '#66bb6a' : '#cccccc'
+        color: isUsed ? '#66bb6a' : '#cccccc'
       });
       this.intelPanel.add(text);
       this.callIntelTexts[intel.key] = text;
     });
 
-    gameState.on('intel_seen', this._onCallIntelSeen, this);
     gameState.on('intel_used', this._onCallIntelUsed, this);
-  }
-
-  _onCallIntelSeen(key) {
-    const intel = gameState.intelKeys.find(i => i.key === key);
-    const text = this.callIntelTexts?.[key];
-    if (intel && text) {
-      text.setText(`[>>] ${intel.description}`);
-    }
   }
 
   _onCallIntelUsed(key) {
@@ -833,18 +748,130 @@ export class CallScene extends Phaser.Scene {
         ease: 'Quad.easeOut'
       });
     }
+
+    if (intel) {
+      this._showIntelToast(intel.description);
+    }
+  }
+
+  // =========================================================================
+  //  INTEL TOAST
+  // =========================================================================
+
+  _showIntelToast(description) {
+    this.sound.play('sfx_notification_ding', { volume: 0.5 });
+    const { width } = this.scale;
+    const toastW = 280;
+    const toastH = 58;
+    const toastX = width - toastW - 20;
+    const toastY = 90;
+
+    const container = this.add.container(toastX + toastW + 20, toastY);
+    container.setDepth(300);
+    container.setAlpha(0);
+
+    // Background
+    const bg = this.add.graphics();
+    bg.fillStyle(0x0a1a0a, 0.95);
+    bg.fillRoundedRect(0, 0, toastW, toastH, 8);
+    bg.lineStyle(2, 0x00ff88, 0.7);
+    bg.strokeRoundedRect(0, 0, toastW, toastH, 8);
+    // Top accent bar
+    bg.fillStyle(0x00ff88, 0.15);
+    bg.fillRoundedRect(0, 0, toastW, 3, { tl: 8, tr: 8, bl: 0, br: 0 });
+    container.add(bg);
+
+    // Checkmark icon
+    const icon = this.add.text(12, toastH / 2, '\u2713', {
+      fontFamily: '"Courier New", monospace',
+      fontSize: '20px',
+      fontStyle: 'bold',
+      color: '#00ff88'
+    }).setOrigin(0, 0.5);
+    container.add(icon);
+
+    // Title
+    const title = this.add.text(38, 10, 'INTEL CONFIRMED', {
+      fontFamily: '"Courier New", monospace',
+      fontSize: '12px',
+      fontStyle: 'bold',
+      color: '#00ff88'
+    });
+    container.add(title);
+
+    // Description
+    const desc = this.add.text(38, 30, description, {
+      fontFamily: '"Courier New", monospace',
+      fontSize: '10px',
+      color: '#aaddaa',
+      wordWrap: { width: toastW - 50 }
+    });
+    container.add(desc);
+
+    // Scanline decoration
+    const scanline = this.add.graphics();
+    scanline.fillStyle(0x00ff88, 0.05);
+    for (let i = 0; i < toastH; i += 4) {
+      scanline.fillRect(0, i, toastW, 1);
+    }
+    container.add(scanline);
+
+    // Slide in from right + fade in
+    this.tweens.add({
+      targets: container,
+      x: toastX,
+      alpha: 1,
+      duration: 400,
+      ease: 'Back.easeOut'
+    });
+
+    // Icon pulse
+    this.tweens.add({
+      targets: icon,
+      scaleX: 1.4,
+      scaleY: 1.4,
+      duration: 200,
+      delay: 400,
+      yoyo: true,
+      ease: 'Quad.easeOut'
+    });
+
+    // Auto-dismiss: slide out right + fade
+    this.time.delayedCall(3000, () => {
+      if (container && container.active) {
+        this.tweens.add({
+          targets: container,
+          x: toastX + toastW + 20,
+          alpha: 0,
+          duration: 400,
+          ease: 'Quad.easeIn',
+          onComplete: () => {
+            if (container && container.active) container.destroy();
+          }
+        });
+      }
+    });
   }
 
   // =========================================================================
   //  CALL END
   // =========================================================================
 
+  _onSuspicionArc({ current }) {
+    if (this.suspicionArc) this.suspicionArc.setValue(current);
+  }
+
+  _onComplianceArc({ current }) {
+    if (this.complianceArc) this.complianceArc.setValue(current);
+  }
+
   _onCallEnd() {
     // Clean up listeners and close this overlay
     gameState.off('call_end', this._onCallEnd, this);
     gameState.off('emotion_change', this._onEmotionChange, this);
     gameState.off('suspicion_change', this._onSuspicionWarning, this);
-    gameState.off('intel_seen', this._onCallIntelSeen, this);
+    gameState.off('suspicion_change', this._onSuspicionArc, this);
+    gameState.off('compliance_change', this._onComplianceArc, this);
     gameState.off('intel_used', this._onCallIntelUsed, this);
     if (this._onSuspicionTutorial) {
       gameState.off('suspicion_change', this._onSuspicionTutorial, this);
@@ -864,7 +891,8 @@ export class CallScene extends Phaser.Scene {
     gameState.off('call_end', this._onCallEnd, this);
     gameState.off('emotion_change', this._onEmotionChange, this);
     gameState.off('suspicion_change', this._onSuspicionWarning, this);
-    gameState.off('intel_seen', this._onCallIntelSeen, this);
+    gameState.off('suspicion_change', this._onSuspicionArc, this);
+    gameState.off('compliance_change', this._onComplianceArc, this);
     gameState.off('intel_used', this._onCallIntelUsed, this);
     if (this._onSuspicionTutorial) {
       gameState.off('suspicion_change', this._onSuspicionTutorial, this);

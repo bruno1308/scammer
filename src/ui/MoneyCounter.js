@@ -2,12 +2,10 @@
  * MoneyCounter.js - Animated Dollar Amount Display
  *
  * Displays the player's extracted money with a smooth count-up animation.
- * Includes a quota progress bar that fills as the player approaches their target.
  *
  * Features:
  *   - Animated count-up/count-down when value changes
  *   - Green neon text on dark panel background
- *   - Quota progress bar with color transitions
  *   - Programmatic drawing via Phaser.GameObjects.Graphics (no external assets)
  */
 
@@ -24,7 +22,6 @@ export class MoneyCounter extends Phaser.GameObjects.Container {
 
     this.currentAmount = 0;
     this.displayAmount = 0;
-    this.quota = 0;
 
     // --- Background panel ---
     this.panelGraphics = scene.add.graphics();
@@ -32,7 +29,7 @@ export class MoneyCounter extends Phaser.GameObjects.Container {
     this._drawPanel();
 
     // --- Dollar sign label (static, slightly dimmer) ---
-    this.dollarSign = scene.add.text(-90, -14, '$', {
+    this.dollarSign = scene.add.text(-90, -8, '$', {
       fontFamily: '"Courier New", monospace',
       fontSize: '28px',
       fontStyle: 'bold',
@@ -43,7 +40,7 @@ export class MoneyCounter extends Phaser.GameObjects.Container {
     this.add(this.dollarSign);
 
     // --- Amount text (animated) ---
-    this.amountText = scene.add.text(-65, -14, '0.00', {
+    this.amountText = scene.add.text(-65, -8, '0.00', {
       fontFamily: '"Courier New", monospace',
       fontSize: '28px',
       fontStyle: 'bold',
@@ -53,44 +50,18 @@ export class MoneyCounter extends Phaser.GameObjects.Container {
     }).setOrigin(0, 0.5);
     this.add(this.amountText);
 
-    // --- "QUOTA" label ---
-    this.quotaLabel = scene.add.text(-90, 12, 'QUOTA:', {
-      fontFamily: '"Courier New", monospace',
-      fontSize: '10px',
-      color: '#6688aa',
-      stroke: '#000000',
-      strokeThickness: 1
-    }).setOrigin(0, 0.5);
-    this.add(this.quotaLabel);
-
-    // --- Quota progress bar ---
-    this.quotaBarGraphics = scene.add.graphics();
-    this.add(this.quotaBarGraphics);
-    this._drawQuotaBar(0);
-
-    // --- Quota amount text (right-aligned) ---
-    this.quotaText = scene.add.text(90, 12, '$0 / $0', {
-      fontFamily: '"Courier New", monospace',
-      fontSize: '10px',
-      color: '#6688aa',
-      stroke: '#000000',
-      strokeThickness: 1
-    }).setOrigin(1, 0.5);
-    this.add(this.quotaText);
-
     // Add to scene
     scene.add.existing(this);
   }
 
   /**
    * Draw the dark background panel behind the money display.
-   * Styled with a subtle border and inner shadow for depth.
    * @private
    */
   _drawPanel() {
     const g = this.panelGraphics;
     const w = 200;
-    const h = 55;
+    const h = 40;
 
     g.clear();
 
@@ -115,81 +86,7 @@ export class MoneyCounter extends Phaser.GameObjects.Container {
   }
 
   /**
-   * Draw the quota progress bar at the given fill percentage.
-   * Bar color shifts from red -> yellow -> green as quota completion increases.
-   * @param {number} percent - Fill percentage from 0 to 1
-   * @private
-   */
-  _drawQuotaBar(percent) {
-    const g = this.quotaBarGraphics;
-    const barX = -38;
-    const barY = 8;
-    const barW = 120;
-    const barH = 8;
-
-    g.clear();
-
-    // Bar background
-    g.fillStyle(0x111122, 0.8);
-    g.fillRoundedRect(barX, barY, barW, barH, 3);
-
-    // Bar border
-    g.lineStyle(1, 0x334455, 0.6);
-    g.strokeRoundedRect(barX, barY, barW, barH, 3);
-
-    if (percent <= 0) return;
-
-    // Determine fill color based on quota completion
-    let fillColor;
-    if (percent >= 1.0) {
-      fillColor = 0x33ff55; // Bright green - quota met
-    } else if (percent >= 0.7) {
-      fillColor = 0x88dd33; // Yellow-green - almost there
-    } else if (percent >= 0.4) {
-      fillColor = 0xddaa22; // Yellow - making progress
-    } else {
-      fillColor = 0xdd4422; // Red - far from quota
-    }
-
-    const fillW = Math.min((barW - 2) * percent, barW - 2);
-
-    // Fill bar
-    g.fillStyle(fillColor, 0.85);
-    g.fillRoundedRect(barX + 1, barY + 1, fillW, barH - 2, 2);
-
-    // Highlight on top edge of fill
-    g.fillStyle(0xffffff, 0.15);
-    g.fillRect(barX + 2, barY + 1, fillW - 2, 1);
-  }
-
-  /**
-   * Set the quota target for the progress bar.
-   * @param {number} quota - The dollar amount the player needs to reach
-   */
-  setQuota(quota) {
-    this.quota = quota;
-    this._updateQuotaDisplay();
-  }
-
-  /**
-   * Update the quota text and progress bar to reflect the current amount.
-   * @private
-   */
-  _updateQuotaDisplay() {
-    const percent = this.quota > 0 ? this.currentAmount / this.quota : 0;
-    this._drawQuotaBar(Math.min(percent, 1));
-    this.quotaText.setText(`$${Math.round(this.currentAmount)} / $${this.quota}`);
-
-    // Flash the quota text green when quota is met
-    if (percent >= 1.0 && this.quotaLabel.style.color !== '#33ff55') {
-      this.quotaLabel.setColor('#33ff55');
-      this.quotaText.setColor('#33ff55');
-    }
-  }
-
-  /**
    * Smoothly animate the display to a new dollar amount.
-   * The number counts up/down over a short duration for a satisfying effect.
    * @param {number} amount - The new dollar amount to display
    */
   setValue(amount) {
@@ -211,15 +108,10 @@ export class MoneyCounter extends Phaser.GameObjects.Container {
       onUpdate: () => {
         this.displayAmount = proxy.value;
         this.amountText.setText(proxy.value.toFixed(2));
-        // Update quota bar during animation
-        const percent = this.quota > 0 ? proxy.value / this.quota : 0;
-        this._drawQuotaBar(Math.min(percent, 1));
-        this.quotaText.setText(`$${Math.round(proxy.value)} / $${this.quota}`);
       },
       onComplete: () => {
         this.displayAmount = amount;
         this.amountText.setText(amount.toFixed(2));
-        this._updateQuotaDisplay();
       }
     });
 
@@ -246,7 +138,6 @@ export class MoneyCounter extends Phaser.GameObjects.Container {
 
   /**
    * Add a delta amount to the current value (convenience method).
-   * Triggers the same count-up animation as setValue.
    * @param {number} delta - Amount to add (can be negative)
    */
   addMoney(delta) {
@@ -255,7 +146,7 @@ export class MoneyCounter extends Phaser.GameObjects.Container {
 
   /**
    * Get the current dollar amount.
-   * @returns {number} Current amount
+   * @returns {number}
    */
   getValue() {
     return this.currentAmount;
