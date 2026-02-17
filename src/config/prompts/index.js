@@ -3,6 +3,8 @@ import { getPromptConfig as getLevel2Config } from './level2.js';
 import { getPromptConfig as getLevel3Config } from './level3.js';
 import { getPromptConfig as getLevel4Config } from './level4.js';
 import { getPromptConfig as getLevel5Config } from './level5.js';
+import { getVictimPersonality } from './victims/index.js';
+export { getPierogiConfig } from './pierogi_reveal.js';
 
 const levelConfigs = {
   1: getLevel1Config,
@@ -14,16 +16,37 @@ const levelConfigs = {
 
 /**
  * Get the prompt configuration for a given level, interpolated with victim data.
+ * If a per-victim personality exists, it's injected into the prompt and the
+ * victim-specific voice/filterParams are used instead of the generic ones.
+ *
  * @param {number} level - Level number (1-5)
  * @param {string} name - Victim name
  * @param {number} age - Victim age
  * @param {string} location - Victim location
  * @param {string} [gender] - Victim gender ('male' or 'female')
  * @param {Array<{ key: string, boost: number, description: string }>} [intelTriggers] - FriendBook intel data
- * @returns {{ instructions: string, tools: object[], voice: string }}
+ * @returns {{ instructions: string, tools: object[], voice: string, filterParams?: object }}
  */
 export function getPromptConfig(level, name, age, location, gender, intelTriggers) {
   const configFn = levelConfigs[level];
   if (!configFn) throw new Error(`Unknown level: ${level}`);
-  return configFn(name, age, location, gender, intelTriggers);
+
+  const baseConfig = configFn(name, age, location, gender, intelTriggers);
+  const victimData = getVictimPersonality(name);
+
+  if (victimData) {
+    // Inject per-victim personality block into the prompt
+    if (victimData.personalityBlock) {
+      baseConfig.instructions = baseConfig.instructions + '\n\n' + victimData.personalityBlock;
+    }
+    // Override voice and filter params with victim-specific values
+    if (victimData.voice) {
+      baseConfig.voice = victimData.voice;
+    }
+    if (victimData.filterParams) {
+      baseConfig.filterParams = victimData.filterParams;
+    }
+  }
+
+  return baseConfig;
 }
