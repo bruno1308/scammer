@@ -3,53 +3,51 @@
  *
  * Shows the boss character delivering instructions before each shift.
  * Displays level-specific dialogue one line at a time, then reveals
- * the scam script card. Player clicks "START SHIFT" to begin.
+ * the scam script card with floor progress and expense info.
+ * Player clicks "START SHIFT" to begin.
  */
 
 import Phaser from 'phaser';
-import gameState, { LEVEL_CONFIG } from '../state/GameState.js';
+import gameState from '../state/GameState.js';
+import { FLOORS, getTotalExpenses, getRemainingVictims } from '../config/levels.js';
 
-/** Boss dialogue per level. */
+/** Boss dialogue per floor (compound narrative). */
 const BOSS_DIALOGUE = {
   1: [
-    '"Welcome to your first day, rookie."',
-    '"The job is simple: call people, follow the script, get paid."',
-    '"Today you\'re running the Gift Card Refund scam."',
-    '"Tell them there was a billing error. They need to buy gift cards to fix it."',
-    '"Don\'t overthink it. Just stay calm and stick to the script."',
-    '"Hit your quota or you\'re done. Got it?"',
+    '"Welcome to your new home, fresh meat."',
+    '"You owe us two thousand dollars for your travel expenses."',
+    '"The only way you pay that off is by working the phones."',
+    '"Today is simple. Gift card refund scam. Follow the script."',
+    '"The clock starts when you sit down. Make every minute count."',
+    '"And don\'t even think about running. There\'s nowhere to go."',
   ],
   2: [
-    '"Not bad yesterday, kid. You survived."',
-    '"Today we\'re stepping it up -- IRS Tax Scam."',
-    '"Tell them they owe back taxes and there\'s a warrant for their arrest."',
-    '"Fear is your friend. Use urgency. They need to pay NOW."',
+    '"Not bad. You survived your first floor."',
+    '"Your debt has been restructured. You owe more now."',
+    '"Today: IRS Tax Scam. Scare them. Make them pay."',
     '"These marks are tougher. Watch your suspicion meter."',
-    '"Quota\'s higher today. Don\'t disappoint me."',
+    '"Oh, and your bunk fee went up. Welcome to the corner suite."',
   ],
   3: [
-    '"Alright, time for Tech Support."',
-    '"You\'ll call them pretending to be from Microsoft."',
-    '"Tell them their computer is infected, show them fake errors."',
-    '"You\'ve got a remote desktop tool -- use it to scare them."',
-    '"Then sell them the \'protection plan\' for $299."',
-    '"This one takes finesse. Build trust first, then strike."',
+    '"New expense today. Protection fee."',
+    '"Cops have been sniffing around. Everyone chips in."',
+    '"Today: Tech Support. You\'re Microsoft. Sound helpful."',
+    '"Show them scary errors, sell the protection plan."',
+    '"And no, the protection fee is NOT optional."',
   ],
   4: [
-    '"This next one\'s... different."',
-    '"Romance scam. You\'re pretending to be someone they can trust."',
-    '"Build the relationship. Make them feel special."',
-    '"Then hit them with the emergency -- you need money urgently."',
-    '"Big payouts on this one, but it takes patience."',
-    '"Don\'t catch feelings, rookie. It\'s just business."',
+    '"This one\'s different. Romance scam."',
+    '"You\'re pretending to be someone they love."',
+    '"Build the connection. Make them feel special. Then ask for money."',
+    '"Big payouts here. You might make a dent in your debt."',
+    '"...I said MIGHT."',
   ],
   5: [
-    '"Listen carefully. This is the big leagues."',
-    '"CEO Fraud. You\'re impersonating a company executive."',
-    '"These are corporate targets -- accountants, finance people."',
-    '"They\'re smart and suspicious. One wrong word and it\'s over."',
-    '"But the payouts? Life-changing money."',
-    '"This is your last shift. Make it count."',
+    '"Last floor. CEO Fraud. The big leagues."',
+    '"You\'re impersonating corporate executives."',
+    '"Sound important. Sound impatient. These people are smart."',
+    '"Nail this and... well, you\'ll see."',
+    '"Get on the phone."',
   ],
 };
 
@@ -113,14 +111,26 @@ export class BriefingScene extends Phaser.Scene {
   }
 
   init(data) {
-    this.levelNum = data?.level || this.registry.get('currentLevel') || 1;
+    this.levelNum = data?.level || data?.floor || this.registry.get('currentLevel') || 1;
   }
 
   create() {
+    // If all victims on this floor are already completed (e.g. player quit on
+    // the ledger before clicking "NEXT FLOOR"), auto-advance to the next floor.
+    const remaining = getRemainingVictims(this.levelNum, gameState.completedVictims);
+    if (remaining.length === 0 && this.levelNum < 5) {
+      this.levelNum += 1;
+      gameState.currentFloor = this.levelNum;
+    }
+
     const { width, height } = this.scale;
     this.cameras.main.setBackgroundColor(0x0a0a1a);
 
-    const levelConfig = LEVEL_CONFIG[this.levelNum];
+    // ---- Audio ----
+    this.sound.stopAll();
+    this.sound.play('music_briefing_theme', { loop: true, volume: 0.25 });
+
+    const floor = FLOORS[this.levelNum];
     const dialogue = BOSS_DIALOGUE[this.levelNum] || BOSS_DIALOGUE[1];
     const script = SCAM_SCRIPTS[this.levelNum] || SCAM_SCRIPTS[1];
 
@@ -129,7 +139,7 @@ export class BriefingScene extends Phaser.Scene {
     this.showingScript = false;
 
     // ---- Header ----
-    this.add.text(width / 2, 25, `SHIFT ${this.levelNum}: ${levelConfig?.name?.toUpperCase() || 'UNKNOWN'}`, {
+    this.add.text(width / 2, 25, `FLOOR ${this.levelNum}: ${floor?.name?.toUpperCase() || 'UNKNOWN'}`, {
       fontFamily: '"Courier New", monospace',
       fontSize: '20px',
       fontStyle: 'bold',
@@ -138,10 +148,23 @@ export class BriefingScene extends Phaser.Scene {
       strokeThickness: 2
     }).setOrigin(0.5);
 
+    // Subtitle
+    if (floor?.subtitle) {
+      this.add.text(width / 2, 48, floor.subtitle, {
+        fontFamily: '"Courier New", monospace',
+        fontSize: '11px',
+        color: '#556677',
+        fontStyle: 'italic'
+      }).setOrigin(0.5);
+    }
+
     // Decorative line
     const lineGfx = this.add.graphics();
     lineGfx.lineStyle(1, 0x00ff88, 0.3);
-    lineGfx.lineBetween(100, 50, width - 100, 50);
+    lineGfx.lineBetween(100, 62, width - 100, 62);
+
+    // ---- Floor progress bar ----
+    this._drawFloorProgress(width, 80);
 
     // ---- Boss portrait ----
     this._showBossPortrait(200, 310);
@@ -233,8 +256,8 @@ export class BriefingScene extends Phaser.Scene {
       this.scriptContainer.add(lineText);
     });
 
-    // ---- Quota info ----
-    this.quotaText = this.add.text(width / 2, height - 110, '', {
+    // ---- Shift info text ----
+    this.shiftInfoText = this.add.text(width / 2, height - 110, '', {
       fontFamily: '"Courier New", monospace',
       fontSize: '13px',
       color: '#ffcc00',
@@ -280,6 +303,7 @@ export class BriefingScene extends Phaser.Scene {
       btnText.setScale(1);
     });
     btnZone.on('pointerup', () => {
+      this.sound.play('sfx_button_click', { volume: 0.5 });
       this._startShift();
     });
 
@@ -298,6 +322,52 @@ export class BriefingScene extends Phaser.Scene {
         this._showNextLine();
       }
     });
+  }
+
+  /**
+   * Draw floor progress info below the header.
+   */
+  _drawFloorProgress(width, y) {
+    const floor = FLOORS[this.levelNum];
+    if (!floor) return;
+
+    const totalVictims = floor.victims.length;
+    const completedCount = floor.victims.filter(
+      v => gameState.completedVictims[v.name]
+    ).length;
+    const remaining = getRemainingVictims(this.levelNum, gameState.completedVictims);
+    const expenses = getTotalExpenses(this.levelNum);
+
+    const progressLine = [
+      `Victims: ${completedCount}/${totalVictims}`,
+      `Debt: $${gameState.shortfallDebt}`,
+      `Shortfalls: ${gameState.shortfallCount}/3`,
+    ].join('  |  ');
+
+    this.add.text(width / 2, y, progressLine, {
+      fontFamily: '"Courier New", monospace',
+      fontSize: '11px',
+      color: '#667788'
+    }).setOrigin(0.5);
+
+    const shiftLine = [
+      `Shift: 5:00`,
+      `Base pay: $${floor.basePayout}/call`,
+      `Expenses: $${expenses}`,
+    ].join('  |  ');
+
+    this.add.text(width / 2, y + 16, shiftLine, {
+      fontFamily: '"Courier New", monospace',
+      fontSize: '11px',
+      color: '#556677'
+    }).setOrigin(0.5);
+
+    // Tonight's target count
+    this.add.text(width / 2, y + 34, `Tonight: ${remaining.length} target${remaining.length !== 1 ? 's' : ''} available`, {
+      fontFamily: '"Courier New", monospace',
+      fontSize: '11px',
+      color: '#ffcc00'
+    }).setOrigin(0.5);
   }
 
   /**
@@ -340,6 +410,7 @@ export class BriefingScene extends Phaser.Scene {
    */
   _showNextLine() {
     if (this.currentLine < this.dialogueLines.length) {
+      this.sound.play('sfx_page_flip', { volume: 0.3 });
       this.dialogueText.setText(this.dialogueLines[this.currentLine]);
       this.currentLine++;
 
@@ -363,15 +434,16 @@ export class BriefingScene extends Phaser.Scene {
     this.showingScript = true;
     this.continueText.setVisible(false);
 
-    const levelConfig = LEVEL_CONFIG[this.levelNum];
+    const floor = FLOORS[this.levelNum];
+    const expenses = getTotalExpenses(this.levelNum);
 
-    // Show quota info
-    this.quotaText.setText(
-      `QUOTA: $${levelConfig.quota}  |  CALLS: ${levelConfig.callsTotal}  |  BASE PAY: $${levelConfig.basePayout}/call`
+    // Show shift info
+    this.shiftInfoText.setText(
+      `SHIFT: 5:00  |  BASE PAY: $${floor.basePayout}/call  |  EXPENSES: $${expenses}`
     );
 
     this.tweens.add({
-      targets: [this.scriptContainer, this.quotaText],
+      targets: [this.scriptContainer, this.shiftInfoText],
       alpha: 1,
       duration: 500,
       ease: 'Cubic.easeOut'
@@ -393,7 +465,7 @@ export class BriefingScene extends Phaser.Scene {
    * Transition to the Office scene.
    */
   _startShift() {
-    gameState.startLevel(this.levelNum);
+    gameState.startShift(this.levelNum);
     this.registry.set('currentLevel', this.levelNum);
     this.scene.start('office', { level: this.levelNum });
   }

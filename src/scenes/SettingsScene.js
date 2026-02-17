@@ -239,6 +239,7 @@ export class SettingsScene extends Phaser.Scene {
 
     hitArea.on('pointerup', () => {
       text.setScale(1.05);
+      this.sound.play('sfx_button_click', { volume: 0.5 });
       callback();
     });
 
