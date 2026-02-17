@@ -2,12 +2,13 @@ import Phaser from 'phaser';
 import { BootScene } from './scenes/BootScene.js';
 import { MenuScene } from './scenes/MenuScene.js';
 import { SettingsScene } from './scenes/SettingsScene.js';
+import { IntroScene } from './scenes/IntroScene.js';
 import { BriefingScene } from './scenes/BriefingScene.js';
 import { OfficeScene } from './scenes/OfficeScene.js';
 import { CallScene } from './scenes/CallScene.js';
 import { TechDesktopScene } from './scenes/TechDesktopScene.js';
 import SocialNetworkScene from './scenes/SocialNetworkScene.js';
-import { ResultsScene } from './scenes/ResultsScene.js';
+import { LedgerScene } from './scenes/LedgerScene.js';
 import { GameOverScene } from './scenes/GameOverScene.js';
 
 const config = {
@@ -20,12 +21,13 @@ const config = {
     BootScene,
     MenuScene,
     SettingsScene,
+    IntroScene,
     BriefingScene,
     OfficeScene,
     CallScene,
     TechDesktopScene,
     SocialNetworkScene,
-    ResultsScene,
+    LedgerScene,
     GameOverScene
   ],
   scale: {
@@ -38,3 +40,6 @@ const config = {
 };
 
 const game = new Phaser.Game(config);
+
+// Expose for dev tools / automated testing
+window.__PHASER_GAME__ = game;
