@@ -422,11 +422,24 @@ export class OfficeScene extends Phaser.Scene {
     bg.strokeRoundedRect(-80, -15, 160, 32, 4);
     this.moneyContainer.add(bg);
 
-    // Money machine icon (left of text)
-    if (this.textures.exists('ui_money_machine')) {
-      this.add.image(width - 168, 28, 'ui_money_machine')
-        .setDisplaySize(55, 55).setAlpha(0.8).setDepth(50);
-    }
+    // Dollar bill icon (left of text)
+    const billIcon = this.add.graphics().setDepth(50);
+    const bx = width - 168, by = 28;
+    // Bill body
+    billIcon.fillStyle(0x1a6b3c, 0.9);
+    billIcon.fillRoundedRect(bx - 16, by - 10, 32, 20, 3);
+    billIcon.lineStyle(1.5, 0x2ecc71, 0.8);
+    billIcon.strokeRoundedRect(bx - 16, by - 10, 32, 20, 3);
+    // Inner border
+    billIcon.lineStyle(0.5, 0x2ecc71, 0.4);
+    billIcon.strokeRoundedRect(bx - 13, by - 7, 26, 14, 2);
+    // Dollar sign
+    this.add.text(bx, by, '$', {
+      fontFamily: '"Courier New", monospace',
+      fontSize: '14px',
+      fontStyle: 'bold',
+      color: '#2ecc71'
+    }).setOrigin(0.5).setDepth(50);
 
     this.moneyText = this.add.text(width - 90, 30, `$${gameState.wallet}`, {
       fontFamily: '"Courier New", monospace',
