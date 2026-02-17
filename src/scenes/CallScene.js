@@ -31,7 +31,7 @@ export class CallScene extends Phaser.Scene {
     this._createVictimProfile(width, height);
 
     // ---- Active call indicator ----
-    this._createCallIndicator(width / 2, 50);
+    this._createCallIndicator(width / 2, 80);
 
     // ---- Scam script toggle tab (bottom-left, doesn't cover meters) ----
     this._createScriptPanel(width, height);
@@ -237,8 +237,13 @@ export class CallScene extends Phaser.Scene {
     // Text below portrait + arcs
     const textY = portraitY + portraitRadius + 28;
 
-    // Card height calculated to fit everything
-    const cardH = textY + 80 - cardY;
+    // Base card height (without intel)
+    const baseCardH = textY + 80 - cardY;
+
+    // Calculate intel section height
+    const intelKeys = gameState.intelKeys || [];
+    const intelH = intelKeys.length > 0 ? 28 + intelKeys.length * 20 + 8 : 0;
+    const cardH = baseCardH + intelH;
 
     // ---- Card background ----
     const card = this.add.graphics();
@@ -246,6 +251,9 @@ export class CallScene extends Phaser.Scene {
     card.fillRoundedRect(cardX, cardY, cardW, cardH, 10);
     card.lineStyle(1, 0x334466, 0.5);
     card.strokeRoundedRect(cardX, cardY, cardW, cardH, 10);
+
+    // Store layout info for intel panel
+    this._cardLayout = { cardX, cardY, cardW, baseCardH };
 
     // ---- Waveform at top of card ----
     this._createWaveform(cardX + 12, waveY, cardW - 24, waveH);
@@ -322,12 +330,6 @@ export class CallScene extends Phaser.Scene {
       g.fillStyle(0x556677, 0.6);
       g.fillCircle(x, y - 24, 42);
       g.fillEllipse(x, y + 55, 108, 60);
-    }
-
-    // Polaroid frame overlay
-    if (this.textures.exists('ui_portrait_frame')) {
-      this.add.image(x, y, 'ui_portrait_frame')
-        .setDisplaySize(radius * 2.4, radius * 2.4).setAlpha(0.9);
     }
 
     // Thin ring border around portrait
@@ -498,24 +500,17 @@ export class CallScene extends Phaser.Scene {
     bg.strokeRoundedRect(-100, -15, 200, 30, 6);
     container.add(bg);
 
-    // Pulsing green dot
+    // Blinking red dot
     const dot = this.add.graphics();
-    dot.fillStyle(0x00ff88, 0.9);
+    dot.fillStyle(0xff2244, 1);
     dot.fillCircle(-75, 0, 5);
     container.add(dot);
 
-    // Pulsing ring
-    const ring = this.add.graphics();
-    ring.lineStyle(2, 0x00ff88, 0.5);
-    ring.strokeCircle(-75, 0, 5);
-    container.add(ring);
-
     this.tweens.add({
-      targets: ring,
-      scaleX: 2,
-      scaleY: 2,
-      alpha: 0,
-      duration: 1000,
+      targets: dot,
+      alpha: { from: 1, to: 0.15 },
+      duration: 800,
+      yoyo: true,
       repeat: -1
     });
 
@@ -527,29 +522,6 @@ export class CallScene extends Phaser.Scene {
       color: '#00ff88'
     }).setOrigin(0, 0.5);
     container.add(text);
-
-    // Tape recorder icon
-    if (this.textures.exists('ui_tape_recorder')) {
-      const tape = this.add.image(70, 0, 'ui_tape_recorder').setDisplaySize(28, 28);
-      container.add(tape);
-    }
-
-    // REC indicator
-    const rec = this.add.text(88, 0, 'REC', {
-      fontFamily: '"Courier New", monospace',
-      fontSize: '10px',
-      fontStyle: 'bold',
-      color: '#ff2244'
-    }).setOrigin(0.5);
-    container.add(rec);
-
-    this.tweens.add({
-      targets: rec,
-      alpha: { from: 1, to: 0.2 },
-      duration: 800,
-      yoyo: true,
-      repeat: -1
-    });
   }
 
 
@@ -697,37 +669,34 @@ export class CallScene extends Phaser.Scene {
 
   _createIntelPanel() {
     if (!gameState.intelKeys || gameState.intelKeys.length === 0) return;
+    if (!this._cardLayout) return;
 
-    const panelX = 16;
-    const panelY = this.scale.height - 160;
-    this.intelPanel = this.add.container(panelX, panelY);
+    const { cardX, cardY, cardW, baseCardH } = this._cardLayout;
+    const intelY = cardY + baseCardH;
 
-    const panelH = 28 + gameState.intelKeys.length * 20;
-    const bg = this.add.graphics();
-    bg.fillStyle(0x000000, 0.7);
-    bg.fillRoundedRect(0, 0, 180, panelH, 6);
-    this.intelPanel.add(bg);
+    // Divider line
+    const divider = this.add.graphics();
+    divider.lineStyle(1, 0x334466, 0.5);
+    divider.lineBetween(cardX + 12, intelY, cardX + cardW - 12, intelY);
 
-    const header = this.add.text(8, 5, 'Intel', {
+    const header = this.add.text(cardX + 14, intelY + 6, 'Intel', {
       fontFamily: '"Courier New", monospace',
       fontSize: '11px',
       color: '#ffd54f',
       fontStyle: 'bold'
     });
-    this.intelPanel.add(header);
 
     this.callIntelTexts = {};
     gameState.intelKeys.forEach((intel, i) => {
-      const y = 24 + i * 20;
+      const y = intelY + 24 + i * 20;
       const isUsed = gameState.intelUsed.has(intel.key);
       const state = isUsed ? '[OK]' : '[??]';
       const label = isUsed ? intel.description : '???';
-      const text = this.add.text(8, y, `${state} ${label}`, {
+      const text = this.add.text(cardX + 14, y, `${state} ${label}`, {
         fontFamily: '"Courier New", monospace',
         fontSize: '10px',
         color: isUsed ? '#66bb6a' : '#cccccc'
       });
-      this.intelPanel.add(text);
       this.callIntelTexts[intel.key] = text;
     });
 
