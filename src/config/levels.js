@@ -204,7 +204,7 @@ export const FLOORS = {
       { name: 'Linda Foster', age: 56, location: 'Nashville, Tennessee', portraitIdx: 1, gender: 'female' },
       { name: 'Robert Kim', age: 48, location: 'San Diego, California', portraitIdx: 2, gender: 'male' },
       { name: 'Patricia Martinez', age: 62, location: 'Albuquerque, New Mexico', portraitIdx: 3, gender: 'female' },
-      { name: 'William Brooks', age: 53, location: 'Charlotte, North Carolina', portraitIdx: 2, gender: 'male' },
+      { name: 'William Brooks', age: 53, location: 'Charlotte, North Carolina', portraitIdx: 4, gender: 'male' },
     ],
   },
 
