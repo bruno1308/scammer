@@ -1,69 +1,6 @@
 import Phaser from 'phaser';
-
-/**
- * Level configuration table.
- * Each level defines starting values, quota, number of calls, and payout amounts.
- */
-const LEVEL_CONFIG = {
-  1: {
-    name: 'Gift Card Refund',
-    suspicionStart: 10,
-    complianceStart: 20,
-    quota: 500,
-    callsTotal: 3,
-    basePayout: 200,
-    callTimeLimitSec: null, // no time limit on tutorial
-  },
-  2: {
-    name: 'IRS Tax Scam',
-    suspicionStart: 30,
-    complianceStart: 10,
-    quota: 1200,
-    callsTotal: 4,
-    basePayout: 400,
-    callTimeLimitSec: 300,
-  },
-  3: {
-    name: 'Tech Support Scam',
-    suspicionStart: 15,
-    complianceStart: 25,
-    quota: 1500,
-    callsTotal: 4,
-    basePayout: 450,
-    callTimeLimitSec: 360,
-  },
-  4: {
-    name: 'Romance / Catfish',
-    suspicionStart: 10,
-    complianceStart: 15,
-    quota: 2500,
-    callsTotal: 3,
-    basePayout: 1000,
-    callTimeLimitSec: 420,
-  },
-  5: {
-    name: 'CEO Fraud',
-    suspicionStart: 50,
-    complianceStart: 5,
-    quota: 5000,
-    callsTotal: 5,
-    basePayout: 1500,
-    callTimeLimitSec: 240,
-  },
-};
-
-/**
- * Scoring constants used by getCallScore().
- */
-const SCORING = {
-  speedBonusThresholdSec: 120,   // calls under 2 minutes get a speed bonus
-  speedBonusMultiplier: 1.5,
-  lowSuspicionThreshold: 50,     // suspicion below 50 at call end = bonus
-  lowSuspicionBonus: 150,
-  cleanExitBonus: 200,           // no police threat, no hang-up by victim
-  comboMultiplierStep: 0.25,     // each consecutive success adds 25% multiplier
-  maxComboMultiplier: 2.5,
-};
+import { FLOORS, SCORING, getRemainingVictims, getTonightVictims, getTotalExpenses } from '../config/levels.js';
+import SaveManager from './SaveManager.js';
 
 /**
  * Valid emotion values the AI can report.
@@ -95,79 +32,98 @@ const TERMINAL_EVENTS = [
  * state-change events without tight coupling.
  *
  * Emitted events:
- *   'suspicion_change'   { previous, current, delta }
- *   'compliance_change'  { previous, current, delta }
- *   'emotion_change'     { previous, current }
- *   'game_event'         { event }  (e.g. 'threatens_police')
- *   'call_end'           { reason, score, callResult }
- *   'shift_end'          { totalMoney, quota, passed, shiftResults }
- *   'heat_change'        { previous, current, delta }
- *   'money_change'       { previous, current, delta }
- *   'combo_change'       { previous, current }
- *   'intel_reset'        intelKeys[]
- *   'intel_seen'         key
- *   'intel_used'         key
+ *   'suspicion_change'    { previous, current, delta }
+ *   'compliance_change'   { previous, current, delta }
+ *   'emotion_change'      { previous, current }
+ *   'game_event'          { event }  (e.g. 'threatens_police', 'pierogi_reveal')
+ *   'call_end'            { reason, score, callResult }
+ *   'shift_end'           { shiftEarnings, expenses, expenseBreakdown, wallet, shortfall, shortfallCount, floorComplete, shiftResults }
+ *   'heat_change'         { previous, current, delta }
+ *   'money_change'        { previous, current, delta }
+ *   'combo_change'        { previous, current }
+ *   'intel_reset'         intelKeys[]
+ *   'intel_seen'          key
+ *   'intel_used'          key
+ *   'no_victims_tonight'  (no data)
+ *   'remittance_sent'     { amount, total }
  */
 class GameState extends Phaser.Events.EventEmitter {
   constructor() {
     super();
 
-    // ---- shift / level state ----
-    this.currentLevel = 1;
-    this.suspicion = 0;
-    this.compliance = 0;
-    this.emotion = 'calm';
-    this.money = 0;
-    this.quota = 0;
-    this.callsCompleted = 0;
-    this.callsTotal = 0;
-    this.combo = 0;
+    // ---- Persistent economy (survives across floors, saved to localStorage) ----
+    this.wallet = 0;
+    this.totalRemittance = 0;
+    this.shortfallCount = 0;
+    this.shortfallDebt = 0;
 
-    // ---- global state (persists across levels) ----
-    this.heat = 0;
+    // ---- Floor / victim tracking ----
+    this.currentFloor = 1;
+    this.completedVictims = {};       // { "Dorothy Miller": true }
+    this.attemptedTonight = [];       // names attempted this shift
+    this.currentNightVictimQueue = []; // shuffled queue for tonight
 
-    // ---- per-call state ----
-    this.currentVictim = null;   // { name, age, location, portrait }
-    this.callActive = false;
-    this.callStartTime = null;
-    this.callEndedClean = true;  // tracks whether victim threatened police / hung up
-
-    // ---- Intel tracking for FriendBook ----
-    this.intelKeys = [];        // Array of { key, boost, description } for current victim
-    this.intelSeen = new Set();  // Keys the player has seen on FriendBook
-    this.intelUsed = new Set();  // Keys the AI confirmed were used in conversation
-
-    // ---- results ----
-    this.shiftResults = [];      // array of per-call result objects
-  }
-
-  /* ------------------------------------------------------------------
-   * Level lifecycle
-   * ----------------------------------------------------------------*/
-
-  /**
-   * Reset shift state and configure for the given level.
-   * @param {number} levelNum - 1 through 5
-   */
-  startLevel(levelNum) {
-    const config = LEVEL_CONFIG[levelNum];
-    if (!config) {
-      console.error(`[GameState] Unknown level: ${levelNum}`);
-      return;
-    }
-
-    this.currentLevel = levelNum;
-    this.money = 0;
-    this.callsCompleted = 0;
-    this.callsTotal = config.callsTotal;
-    this.quota = config.quota;
+    // ---- Shift state ----
+    this.shiftEarnings = 0;
+    this.shiftActive = false;
+    this.shiftStartTime = null;
+    this.shiftDurationSec = 300;
     this.combo = 0;
     this.shiftResults = [];
 
-    // Per-call values will be set properly in startCall, but we initialise
-    // them here so the UI can show baseline meters during briefing.
-    this.suspicion = config.suspicionStart;
-    this.compliance = config.complianceStart;
+    // ---- Per-call state ----
+    this.suspicion = 0;
+    this.compliance = 0;
+    this.emotion = 'calm';
+    this.callActive = false;
+    this.callStartTime = null;
+    this.callEndedClean = true;
+    this.currentVictim = null;
+
+    // ---- Global state (persists across levels) ----
+    this.heat = 0;
+
+    // ---- Flags ----
+    this.introSeen = false;
+    this.pierogiConvinced = false;
+
+    // ---- Intel tracking for FriendBook ----
+    this.intelKeys = [];
+    this.intelSeen = new Set();
+    this.intelUsed = new Set();
+  }
+
+  /* ------------------------------------------------------------------
+   * Shift lifecycle
+   * ----------------------------------------------------------------*/
+
+  /**
+   * Start a new shift for the given floor.
+   * @param {number} floorNum - 1 through 5
+   */
+  startShift(floorNum) {
+    const floor = FLOORS[floorNum];
+    if (!floor) {
+      console.error(`[GameState] Unknown floor: ${floorNum}`);
+      return;
+    }
+
+    this.currentFloor = floorNum;
+    this.shiftEarnings = 0;
+    this.shiftDurationSec = floor.shiftDurationSec;
+    this.shiftActive = true;
+    this.shiftStartTime = Date.now();
+    this.combo = 0;
+    this.shiftResults = [];
+    this.attemptedTonight = [];
+
+    // Build tonight's victim queue: remaining victims, shuffled
+    const remaining = getRemainingVictims(floorNum, this.completedVictims);
+    this.currentNightVictimQueue = Phaser.Utils.Array.Shuffle([...remaining]);
+
+    // Per-call values (baseline for UI)
+    this.suspicion = floor.suspicionStart;
+    this.compliance = floor.complianceStart;
     this.emotion = 'calm';
     this.callActive = false;
     this.currentVictim = null;
@@ -184,14 +140,14 @@ class GameState extends Phaser.Events.EventEmitter {
 
   /**
    * Prepare state for a new call.
-   * @param {{ name: string, age: number, location: string, portrait: string }} victimInfo
+   * @param {{ name: string, age: number, location: string }} victimInfo
    */
   startCall(victimInfo) {
-    const config = LEVEL_CONFIG[this.currentLevel];
+    const floor = FLOORS[this.currentFloor];
 
     this.currentVictim = victimInfo;
-    this.suspicion = config.suspicionStart;
-    this.compliance = config.complianceStart;
+    this.suspicion = floor.suspicionStart;
+    this.compliance = floor.complianceStart;
     this.emotion = 'calm';
     this.callActive = true;
     this.callStartTime = Date.now();
@@ -260,7 +216,7 @@ class GameState extends Phaser.Events.EventEmitter {
     }
 
     console.log(
-      `[GameState] 📊 AI update_game_state:\n` +
+      `[GameState] AI update_game_state:\n` +
       `  suspicion: ${data.suspicion_delta >= 0 ? '+' : ''}${data.suspicion_delta} (${this.suspicion} → ${Phaser.Math.Clamp(this.suspicion + (data.suspicion_delta || 0), 0, 100)})\n` +
       `  compliance: ${data.compliance_delta >= 0 ? '+' : ''}${data.compliance_delta} (${this.compliance} → ${Phaser.Math.Clamp(this.compliance + (data.compliance_delta || 0), 0, 100)})\n` +
       `  emotion: ${data.emotion || 'unchanged'}\n` +
@@ -272,7 +228,6 @@ class GameState extends Phaser.Events.EventEmitter {
       const prev = this.suspicion;
       this.suspicion = Phaser.Math.Clamp(this.suspicion + data.suspicion_delta, 0, 100);
       if (this.suspicion !== prev) {
-        console.log(`[GameState] 🔴 Suspicion changed: ${prev} → ${this.suspicion} (delta: ${data.suspicion_delta})`);
         this.emit('suspicion_change', {
           previous: prev,
           current: this.suspicion,
@@ -286,7 +241,6 @@ class GameState extends Phaser.Events.EventEmitter {
       const prev = this.compliance;
       this.compliance = Phaser.Math.Clamp(this.compliance + data.compliance_delta, 0, 100);
       if (this.compliance !== prev) {
-        console.log(`[GameState] 🟢 Compliance changed: ${prev} → ${this.compliance} (delta: ${data.compliance_delta})`);
         this.emit('compliance_change', {
           previous: prev,
           current: this.compliance,
@@ -300,7 +254,6 @@ class GameState extends Phaser.Events.EventEmitter {
       const prev = this.emotion;
       if (data.emotion !== prev) {
         this.emotion = data.emotion;
-        console.log(`[GameState] 😐 Emotion changed: ${prev} → ${this.emotion}`);
         this.emit('emotion_change', {
           previous: prev,
           current: this.emotion,
@@ -310,22 +263,27 @@ class GameState extends Phaser.Events.EventEmitter {
 
     // --- Special events ---
     if (data.event) {
-      console.log(`[GameState] ⚡ Event triggered: ${data.event}`);
+      console.log(`[GameState] Event triggered: ${data.event}`);
       this.emit('game_event', { event: data.event });
 
-      // Track dirty exit conditions
-      if (data.event === 'threatens_police' || data.event === 'hangs_up') {
-        this.callEndedClean = false;
-      }
+      // Pierogi reveal is NOT terminal — call continues with new session
+      if (data.event === 'pierogi_reveal') {
+        // Handled by OfficeScene/CallScene — don't end call
+      } else {
+        // Track dirty exit conditions
+        if (data.event === 'threatens_police' || data.event === 'hangs_up') {
+          this.callEndedClean = false;
+        }
 
-      // Add heat for risky events
-      if (data.event === 'threatens_police') {
-        this._addHeat(15);
-      }
+        // Add heat for risky events
+        if (data.event === 'threatens_police') {
+          this._addHeat(15);
+        }
 
-      // Auto-end the call on terminal events
-      if (TERMINAL_EVENTS.includes(data.event)) {
-        this.endCall(data.event);
+        // Auto-end the call on terminal events
+        if (TERMINAL_EVENTS.includes(data.event)) {
+          this.endCall(data.event);
+        }
       }
     }
 
@@ -345,9 +303,7 @@ class GameState extends Phaser.Events.EventEmitter {
 
   /**
    * End the current call.
-   * @param {string} reason - Why the call ended (e.g. 'agrees_to_pay', 'hangs_up',
-   *                          'player_hangup', 'suspicion_maxed', 'compliance_maxed',
-   *                          'time_expired', 'connection_lost')
+   * @param {string} reason - Why the call ended
    */
   endCall(reason) {
     if (!this.callActive) return;
@@ -362,13 +318,14 @@ class GameState extends Phaser.Events.EventEmitter {
 
     const score = this.getCallScore(success, reason);
 
-    // Update money
+    // Update wallet and shift earnings
     if (success) {
-      const prevMoney = this.money;
-      this.money += score;
+      const prevWallet = this.wallet;
+      this.wallet += score;
+      this.shiftEarnings += score;
       this.emit('money_change', {
-        previous: prevMoney,
-        current: this.money,
+        previous: prevWallet,
+        current: this.wallet,
         delta: score,
       });
     }
@@ -389,6 +346,23 @@ class GameState extends Phaser.Events.EventEmitter {
       this._addHeat(5);
     }
 
+    // Mark victim as completed (success) or just attempted (failure)
+    if (this.currentVictim) {
+      if (success) {
+        this.completedVictims[this.currentVictim.name] = true;
+      }
+      if (!this.attemptedTonight.includes(this.currentVictim.name)) {
+        this.attemptedTonight.push(this.currentVictim.name);
+      }
+
+      // Track Pierogi outcome (Floor 5 Amanda Price)
+      if (this.currentFloor === 5
+        && this.currentVictim.name === 'Amanda Price, CFO'
+        && success) {
+        this.pierogiConvinced = true;
+      }
+    }
+
     // Build call result record
     const callResult = {
       victim: this.currentVictim ? { ...this.currentVictim } : null,
@@ -405,31 +379,68 @@ class GameState extends Phaser.Events.EventEmitter {
     };
 
     this.shiftResults.push(callResult);
-    this.callsCompleted += 1;
 
     this.emit('call_end', { reason, score, callResult });
 
-    // Auto-end shift if all calls are done
-    if (this.callsCompleted >= this.callsTotal) {
-      this.endShift();
+    // Check if any victims remain for tonight
+    const tonightRemaining = getTonightVictims(
+      this.currentFloor, this.completedVictims, this.attemptedTonight
+    );
+    if (tonightRemaining.length === 0) {
+      this.emit('no_victims_tonight');
     }
+
+    // Auto-save after each call
+    SaveManager.save(this.getSerializableState());
   }
 
   /**
-   * End the current shift, evaluate quota, emit results.
+   * End the current shift, calculate expenses, emit results.
    */
   endShift() {
-    const passed = this.money >= this.quota;
+    if (!this.shiftActive) return; // Idempotency guard — prevent double-charge
+    this.shiftActive = false;
+    const floor = FLOORS[this.currentFloor];
+    const expenses = getTotalExpenses(this.currentFloor);
 
-    // Failing a shift adds significant heat
-    if (!passed) {
+    // Deduct shortfall debt from previous shifts
+    if (this.shortfallDebt > 0) {
+      const debtPayment = Math.min(this.shiftEarnings, this.shortfallDebt);
+      this.wallet -= debtPayment;
+      this.shortfallDebt -= debtPayment;
+    }
+
+    // Deduct expenses
+    this.wallet -= expenses;
+
+    // Check shortfall
+    let shortfall = 0;
+    if (this.wallet < 0) {
+      shortfall = Math.abs(this.wallet);
+      this.shortfallDebt += shortfall;
+      this.wallet = 0;
+      this.shortfallCount += 1;
+    }
+
+    // Failing a shift adds heat
+    if (this.shiftEarnings === 0) {
       this._addHeat(20);
     }
 
+    // Determine if floor is complete
+    const floorComplete = getRemainingVictims(this.currentFloor, this.completedVictims).length === 0;
+
+    // Save state
+    SaveManager.save(this.getSerializableState());
+
     this.emit('shift_end', {
-      totalMoney: this.money,
-      quota: this.quota,
-      passed,
+      shiftEarnings: this.shiftEarnings,
+      expenses,
+      expenseBreakdown: floor.expenses,
+      wallet: this.wallet,
+      shortfall,
+      shortfallCount: this.shortfallCount,
+      floorComplete,
       shiftResults: [...this.shiftResults],
     });
   }
@@ -440,18 +451,17 @@ class GameState extends Phaser.Events.EventEmitter {
 
   /**
    * Compute the score for the current (or just-completed) call.
-   *
-   * @param {boolean} [success=true] - Whether the call was a success.
-   * @param {string}  [reason='']    - The end-call reason, for clean-exit evaluation.
-   * @returns {number} The computed score (0 if call failed).
+   * @param {boolean} [success=true]
+   * @param {string}  [reason='']
+   * @returns {number}
    */
   getCallScore(success = true, reason = '') {
     if (!success) return 0;
 
-    const config = LEVEL_CONFIG[this.currentLevel];
-    let score = config.basePayout;
+    const floor = FLOORS[this.currentFloor];
+    let score = floor.basePayout;
 
-    // Speed bonus -- calls completed in under the threshold get a multiplier
+    // Speed bonus
     if (this.callStartTime) {
       const durationSec = (Date.now() - this.callStartTime) / 1000;
       if (durationSec < SCORING.speedBonusThresholdSec) {
@@ -464,7 +474,7 @@ class GameState extends Phaser.Events.EventEmitter {
       score += SCORING.lowSuspicionBonus;
     }
 
-    // Clean exit bonus (no police threat, no victim hang-up)
+    // Clean exit bonus
     const cleanReasons = [
       'agrees_to_pay',
       'gives_gift_card_code',
@@ -474,7 +484,7 @@ class GameState extends Phaser.Events.EventEmitter {
       score += SCORING.cleanExitBonus;
     }
 
-    // Combo multiplier (applied on the combo count BEFORE this call increments it)
+    // Combo multiplier
     const comboMultiplier = Math.min(
       1 + this.combo * SCORING.comboMultiplierStep,
       SCORING.maxComboMultiplier,
@@ -485,11 +495,60 @@ class GameState extends Phaser.Events.EventEmitter {
   }
 
   /* ------------------------------------------------------------------
-   * Heat (global across levels)
+   * Shift timer helpers
    * ----------------------------------------------------------------*/
 
   /**
-   * Add heat and emit the change event.
+   * Seconds remaining in the current shift.
+   * @returns {number}
+   */
+  getShiftRemainingSec() {
+    if (!this.shiftStartTime) return this.shiftDurationSec;
+    const elapsed = (Date.now() - this.shiftStartTime) / 1000;
+    return Math.max(0, this.shiftDurationSec - elapsed);
+  }
+
+  /**
+   * Whether the shift timer has expired.
+   * @returns {boolean}
+   */
+  isShiftTimeUp() {
+    return this.shiftActive && this.getShiftRemainingSec() <= 0;
+  }
+
+  /**
+   * Get the next available victim for tonight.
+   * @returns {object|null}
+   */
+  getNextVictimTonight() {
+    return this.currentNightVictimQueue.find(v =>
+      !this.attemptedTonight.includes(v.name) && !this.completedVictims[v.name]
+    ) || null;
+  }
+
+  /* ------------------------------------------------------------------
+   * Remittance (send money home)
+   * ----------------------------------------------------------------*/
+
+  /**
+   * Send money home to family.
+   * @param {number} amount
+   * @returns {boolean} Whether the transfer succeeded
+   */
+  sendRemittance(amount) {
+    if (amount > this.wallet || amount <= 0) return false;
+    this.wallet -= amount;
+    this.totalRemittance += amount;
+    this.emit('remittance_sent', { amount, total: this.totalRemittance });
+    SaveManager.save(this.getSerializableState());
+    return true;
+  }
+
+  /* ------------------------------------------------------------------
+   * Heat (global across floors)
+   * ----------------------------------------------------------------*/
+
+  /**
    * @param {number} delta
    * @private
    */
@@ -506,6 +565,48 @@ class GameState extends Phaser.Events.EventEmitter {
   }
 
   /* ------------------------------------------------------------------
+   * Save / Load
+   * ----------------------------------------------------------------*/
+
+  /**
+   * Return a plain object suitable for JSON serialization.
+   * @returns {object}
+   */
+  getSerializableState() {
+    return {
+      currentFloor: this.currentFloor,
+      completedVictims: { ...this.completedVictims },
+      attemptedTonight: [...this.attemptedTonight],
+      wallet: this.wallet,
+      shortfallCount: this.shortfallCount,
+      shortfallDebt: this.shortfallDebt,
+      totalRemittance: this.totalRemittance,
+      heat: this.heat,
+      introSeen: this.introSeen,
+      pierogiConvinced: this.pierogiConvinced,
+      shiftEarnings: this.shiftEarnings,
+    };
+  }
+
+  /**
+   * Load state from a save object (typically from SaveManager.load()).
+   * @param {object} save
+   */
+  loadFromSave(save) {
+    this.currentFloor = save.currentFloor || save.currentChapter || 1;
+    this.completedVictims = { ...(save.completedVictims || {}) };
+    this.attemptedTonight = [...(save.attemptedTonight || [])];
+    this.wallet = save.wallet || 0;
+    this.shortfallCount = save.shortfallCount || 0;
+    this.shortfallDebt = save.shortfallDebt || 0;
+    this.totalRemittance = save.totalRemittance || 0;
+    this.heat = save.heat || 0;
+    this.introSeen = save.introSeen || false;
+    this.pierogiConvinced = save.pierogiConvinced || false;
+    this.shiftEarnings = save.shiftEarnings || 0;
+  }
+
+  /* ------------------------------------------------------------------
    * Full reset
    * ----------------------------------------------------------------*/
 
@@ -513,41 +614,50 @@ class GameState extends Phaser.Events.EventEmitter {
    * Full reset for a brand-new game.
    */
   reset() {
-    this.currentLevel = 1;
+    this.currentFloor = 1;
+    this.completedVictims = {};
+    this.attemptedTonight = [];
+    this.currentNightVictimQueue = [];
+    this.wallet = 0;
+    this.totalRemittance = 0;
+    this.shortfallCount = 0;
+    this.shortfallDebt = 0;
+    this.shiftEarnings = 0;
+    this.shiftActive = false;
+    this.shiftStartTime = null;
+    this.shiftDurationSec = 300;
+    this.combo = 0;
+    this.shiftResults = [];
     this.suspicion = 0;
     this.compliance = 0;
     this.emotion = 'calm';
-    this.money = 0;
-    this.quota = 0;
-    this.callsCompleted = 0;
-    this.callsTotal = 0;
-    this.combo = 0;
-    this.heat = 0;
-    this.currentVictim = null;
     this.callActive = false;
     this.callStartTime = null;
     this.callEndedClean = true;
+    this.currentVictim = null;
+    this.heat = 0;
+    this.introSeen = false;
+    this.pierogiConvinced = false;
     this.intelKeys = [];
     this.intelSeen = new Set();
     this.intelUsed = new Set();
-    this.shiftResults = [];
   }
 
   /* ------------------------------------------------------------------
-   * Helpers
+   * Helpers (backward-compatible)
    * ----------------------------------------------------------------*/
 
   /**
-   * Return the configuration object for the current (or specified) level.
+   * Return the floor config for the current (or specified) floor.
    * @param {number} [level]
    * @returns {object|null}
    */
   getLevelConfig(level) {
-    return LEVEL_CONFIG[level ?? this.currentLevel] ?? null;
+    return FLOORS[level ?? this.currentFloor] ?? null;
   }
 
   /**
-   * Elapsed call time in seconds (0 if no active call).
+   * Elapsed call time in seconds.
    * @returns {number}
    */
   getCallElapsedSec() {
@@ -556,13 +666,10 @@ class GameState extends Phaser.Events.EventEmitter {
   }
 
   /**
-   * Whether the current call has exceeded the level time limit.
-   * @returns {boolean}
+   * @deprecated Shift timer replaces per-call time limits
    */
   isCallOverTime() {
-    const config = LEVEL_CONFIG[this.currentLevel];
-    if (!config || !config.callTimeLimitSec) return false;
-    return this.getCallElapsedSec() >= config.callTimeLimitSec;
+    return false;
   }
 }
 
@@ -573,4 +680,5 @@ class GameState extends Phaser.Events.EventEmitter {
 const gameState = new GameState();
 
 export default gameState;
-export { GameState, LEVEL_CONFIG, SCORING, VALID_EMOTIONS, TERMINAL_EVENTS };
+export { GameState, SCORING, VALID_EMOTIONS, TERMINAL_EVENTS };
+

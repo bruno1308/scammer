@@ -75,24 +75,6 @@ export function calculateCallScore(callData) {
 }
 
 /**
- * Get a letter grade based on how well the player performed relative to the quota.
- *
- * @param {number} totalEarned - Total money earned during the level
- * @param {number} quota - The level's required quota
- * @returns {string} Letter grade: 'S', 'A', 'B', 'C', 'D', or 'F'
- */
-export function getGrade(totalEarned, quota) {
-  const ratio = totalEarned / quota;
-
-  if (ratio >= 2.0) return 'S';  // Double the quota - outstanding
-  if (ratio >= 1.5) return 'A';  // 50% over quota - excellent
-  if (ratio >= 1.0) return 'B';  // Met quota - good
-  if (ratio >= 0.75) return 'C'; // 75% of quota - below expectations
-  if (ratio >= 0.5) return 'D';  // Half the quota - poor
-  return 'F';                     // Less than half - failure
-}
-
-/**
  * Calculate a breakdown of all score bonuses for display on the results screen.
  * Returns an object with each bonus category and its multiplier.
  *
