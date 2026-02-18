@@ -106,7 +106,16 @@ export class CallScene extends Phaser.Scene {
 
   _createScriptPanel(sceneW, sceneH) {
     const floor = FLOORS[this.levelNum];
-    if (!floor || !floor.briefing || !floor.briefing.scriptNotes) return;
+    if (!floor) return;
+
+    // Per-victim script steps (new system) or fallback to floor-level scriptNotes
+    const victimSteps = this.victim.scriptSteps;
+    const genericSteps = floor.genericSteps;
+    const hasProgressiveReveal = this.levelNum >= 3 && genericSteps;
+
+    // Need either victim steps or legacy scriptNotes
+    if (!victimSteps && (!floor.briefing || !floor.briefing.scriptNotes)) return;
+    const steps = victimSteps || (floor.briefing && floor.briefing.scriptNotes) || [];
 
     const panelW = 340;
     const panelH = 420;
@@ -170,38 +179,76 @@ export class CallScene extends Phaser.Scene {
       strokeThickness: 2
     }).setOrigin(0.5));
 
-    // Scam type
-    this.scriptContainer.add(this.add.text(panelX + 12, panelY + 44, floor.name.toUpperCase(), {
+    // Scam type / variant label
+    const variantLabel = this.victim.scamVariant
+      ? this.victim.scamVariant.replace(/_/g, ' ').toUpperCase()
+      : floor.name.toUpperCase();
+    this.scriptContainer.add(this.add.text(panelX + 12, panelY + 44, variantLabel, {
       fontFamily: '"Courier New", monospace',
       fontSize: '13px',
       fontStyle: 'bold',
       color: '#ff8844'
     }));
 
-    // Script steps
-    const notes = floor.briefing.scriptNotes;
+    // Intel counter for floors 3-5 (progressive reveal)
+    if (hasProgressiveReveal) {
+      const intelKeys = gameState.intelKeys || [];
+      const seenCount = gameState.intelSeen ? gameState.intelSeen.size : 0;
+      this._intelCounterText = this.add.text(panelX + panelW - 12, panelY + 44, `Intel: ${seenCount}/${intelKeys.length}`, {
+        fontFamily: '"Courier New", monospace',
+        fontSize: '11px',
+        color: '#ffd54f',
+        fontStyle: 'bold'
+      }).setOrigin(1, 0);
+      this.scriptContainer.add(this._intelCounterText);
+    }
+
+    // Script steps — progressive reveal for floors 3-5, static for floors 1-2
+    this._scriptStepTexts = [];
+    this._scriptStepNums = [];
+    this._scriptSteps = steps;
+    this._genericSteps = genericSteps;
+    this._hasProgressiveReveal = hasProgressiveReveal;
+
     let stepY = panelY + 68;
 
-    notes.forEach((note, i) => {
-      this.scriptContainer.add(this.add.text(panelX + 10, stepY, `${i + 1}.`, {
+    const displaySteps = hasProgressiveReveal ? genericSteps : steps;
+    const maxSteps = Math.max(steps.length, hasProgressiveReveal ? genericSteps.length : 0);
+
+    for (let i = 0; i < maxSteps; i++) {
+      const isRevealed = !hasProgressiveReveal || this._isStepRevealed(i);
+      const text = isRevealed ? (steps[i] || '') : (genericSteps[i] || '');
+      const color = isRevealed ? '#ccddee' : '#667788';
+
+      const numText = this.add.text(panelX + 10, stepY, `${i + 1}.`, {
         fontFamily: '"Courier New", monospace',
         fontSize: '14px',
         fontStyle: 'bold',
-        color: '#ffcc00',
-        alpha: 0.7
-      }));
+        color: isRevealed ? '#ffcc00' : '#555555',
+        alpha: isRevealed ? 0.7 : 0.4
+      });
+      this.scriptContainer.add(numText);
 
-      const stepText = this.add.text(panelX + 28, stepY, note, {
+      const stepText = this.add.text(panelX + 28, stepY, text, {
         fontFamily: '"Courier New", monospace',
         fontSize: '13px',
-        color: '#ccddee',
+        color,
         wordWrap: { width: panelW - 46 },
-        lineSpacing: 3
+        lineSpacing: 3,
+        alpha: isRevealed ? 1 : 0.5
       });
       this.scriptContainer.add(stepText);
 
+      this._scriptStepTexts.push(stepText);
+      this._scriptStepNums.push(numText);
+
       stepY += stepText.height + 12;
-    });
+    }
+
+    // Listen for intel discovery to update progressive reveal
+    if (hasProgressiveReveal) {
+      gameState.on('intel_seen', this._onIntelSeenForScript, this);
+    }
 
     // Toggle behavior
     tabZone.on('pointerdown', () => {
@@ -214,6 +261,71 @@ export class CallScene extends Phaser.Scene {
         ease: 'Back.easeOut'
       });
     });
+  }
+
+  /**
+   * Check if a script step should be revealed based on discovered intel.
+   * Uses the `unlocks` arrays from intel items: each seen intel key unlocks
+   * specific script step indices. A step is revealed if ANY seen intel
+   * includes it in its `unlocks` array.
+   */
+  _isStepRevealed(stepIndex) {
+    if (!gameState.intelSeen || gameState.intelSeen.size === 0) return false;
+    const intelKeys = gameState.intelKeys || [];
+    for (const intel of intelKeys) {
+      if (gameState.intelSeen.has(intel.key) && intel.unlocks && intel.unlocks.includes(stepIndex)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Called when intel is discovered on FriendBook — update script panel.
+   */
+  _onIntelSeenForScript() {
+    if (!this._hasProgressiveReveal || !this._scriptStepTexts) return;
+
+    const intelKeys = gameState.intelKeys || [];
+    const seenCount = gameState.intelSeen ? gameState.intelSeen.size : 0;
+
+    // Update intel counter
+    if (this._intelCounterText) {
+      this._intelCounterText.setText(`Intel: ${seenCount}/${intelKeys.length}`);
+    }
+
+    // Update each step
+    for (let i = 0; i < this._scriptStepTexts.length; i++) {
+      const wasRevealed = this._scriptStepTexts[i].alpha === 1;
+      const isRevealed = this._isStepRevealed(i);
+
+      if (isRevealed && !wasRevealed) {
+        // Reveal this step with animation
+        const stepText = this._scriptStepTexts[i];
+        const numText = this._scriptStepNums[i];
+        const revealedContent = this._scriptSteps[i] || '';
+
+        stepText.setText(revealedContent);
+        stepText.setColor('#ccddee');
+        numText.setColor('#ffcc00');
+
+        this.tweens.add({
+          targets: [stepText, numText],
+          alpha: { from: 0.3, to: 1 },
+          duration: 400,
+          ease: 'Quad.easeOut'
+        });
+
+        // Brief highlight flash
+        this.tweens.add({
+          targets: stepText,
+          scaleX: { from: 1.05, to: 1 },
+          scaleY: { from: 1.05, to: 1 },
+          duration: 300,
+          ease: 'Back.easeOut'
+        });
+      }
+    }
   }
 
   // =========================================================================
@@ -842,6 +954,7 @@ export class CallScene extends Phaser.Scene {
     gameState.off('suspicion_change', this._onSuspicionArc, this);
     gameState.off('compliance_change', this._onComplianceArc, this);
     gameState.off('intel_used', this._onCallIntelUsed, this);
+    gameState.off('intel_seen', this._onIntelSeenForScript, this);
     if (this._onSuspicionTutorial) {
       gameState.off('suspicion_change', this._onSuspicionTutorial, this);
     }
@@ -863,6 +976,7 @@ export class CallScene extends Phaser.Scene {
     gameState.off('suspicion_change', this._onSuspicionArc, this);
     gameState.off('compliance_change', this._onComplianceArc, this);
     gameState.off('intel_used', this._onCallIntelUsed, this);
+    gameState.off('intel_seen', this._onIntelSeenForScript, this);
     if (this._onSuspicionTutorial) {
       gameState.off('suspicion_change', this._onSuspicionTutorial, this);
     }

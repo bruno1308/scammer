@@ -93,17 +93,11 @@ export class BootScene extends Phaser.Scene {
 
     // ---- Queue all image assets ----
 
-    // Victim portrait images for all levels
-    for (let v = 1; v <= 5; v++) {
-      this.load.image(`l1_victim_${v}`, `assets/portraits/level1/victim_${v}.png`);
-    }
-    for (let v = 1; v <= 4; v++) {
-      this.load.image(`l2_victim_${v}`, `assets/portraits/level2/victim_${v}.png`);
-      this.load.image(`l3_victim_${v}`, `assets/portraits/level3/victim_${v}.png`);
-      this.load.image(`l4_victim_${v}`, `assets/portraits/level4/victim_${v}.png`);
-    }
-    for (let v = 1; v <= 3; v++) {
-      this.load.image(`l5_victim_${v}`, `assets/portraits/level5/victim_${v}.png`);
+    // Victim portrait images for all levels (3 per floor)
+    for (let level = 1; level <= 5; level++) {
+      for (let v = 1; v <= 3; v++) {
+        this.load.image(`l${level}_victim_${v}`, `assets/portraits/level${level}/victim_${v}.png`);
+      }
     }
 
     // Boss

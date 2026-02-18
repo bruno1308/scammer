@@ -3,16 +3,27 @@
  * Difficulty: Clues buried in comment threads
  *
  * Intel is hidden in the back-and-forth comments on seemingly innocent posts.
- * The posts themselves are mundane — players must read the replies carefully.
+ * The posts themselves are mundane -- players must read the replies carefully.
  *
- * Victims: Karen Thompson, Mike Rodriguez, Susan Lee, Tom Anderson
+ * Each victim has a unique scam variant:
+ *   Karen Thompson: antivirus_expiry (Norton antivirus licence expired)
+ *   Mike Rodriguez: email_compromise (Email account sent unauthorized messages)
+ *   Susan Lee:      banking_alert (Unrecognized login to bank account)
+ *   Tom Anderson:   subscription_trap (Free trial auto-renewed at $399/year)
+ *
+ * Intel categories:
+ *   angle (15)       - The tech problem they actually have. Reveals the scam variant.
+ *   corroborating (10) - A second data point confirming the story.
+ *   emotional (8)    - Why this scares them specifically.
+ *   timing (5)       - When the problem happened. No script unlock, just call boost.
  */
 
 const FRIENDBOOK_DATA = {
 
-  // ─────────────────────────────────────────────
+  // -----------------------------------------------
   // KAREN THOMPSON (35, Denver CO, female)
-  // ─────────────────────────────────────────────
+  // Scam variant: antivirus_expiry
+  // -----------------------------------------------
   'Karen Thompson': {
     profiles: {
       karen_thompson: {
@@ -76,64 +87,86 @@ const FRIENDBOOK_DATA = {
     posts: {
       karen_thompson: [
         {
-          text: 'Ugh my computer has been SO slow this week. Everything takes forever to load and I keep getting these weird pop-up things. Is Mercury in retrograde or something?? lol',
+          // MUNDANE POST: meal prepping photo. Intel buried in the comment thread
+          // where Diane asks about Karen's computer and Brian reveals the Norton issue.
+          text: 'Sunday meal prep complete! 5 days of lunches, 3 dinners, AND a batch of energy balls. I am a MACHINE today. Someone give me an award',
           time: '3 hours ago',
-          likes: 4,
+          likes: 22,
           comments: [
-            { author: 'diane_morrison', text: 'Oh no honey. Did you renew that Norton thing Brian set up for you? Those subscriptions expire you know' },
-            { author: 'brian_thompson', text: 'Your Dell is only 2 years old, it shouldn\'t be slow. DON\'T click those pop-ups. I\'ll look at it tonight' },
-            { author: 'karen_thompson', text: 'Ok ok I won\'t click anything. But hurry, I need it for work tomorrow' }
+            { author: 'brian_thompson', text: 'Babe you made my lunch for the week?? You are a saint' },
+            { author: 'diane_morrison', text: 'Oh Karen that looks wonderful! By the way how is your computer doing? Still acting up?' },
+            { author: 'karen_thompson', text: 'UGH don\'t remind me Mom. Pop-ups everywhere and everything is slow. Brian says it\'s because the Norton thing expired like 3 weeks ago' },
+            { author: 'brian_thompson', text: 'I keep saying I\'ll renew it but work has been insane. Karen please don\'t click anything weird in the meantime' },
+            { author: 'karen_thompson', text: 'I\'m not clicking anything!! But it\'s been like this for weeks and it\'s getting worse' }
           ],
-          intel: { key: 'ANTIVIRUS', value: 'Norton antivirus set up by husband Brian' }
+          intel: { key: 'NORTON_EXPIRY', value: 'Norton antivirus expired about 3 weeks ago, computer unprotected since' }
         },
         {
-          text: 'I literally cannot remember a single password anymore. I have like 47 accounts and they all want different requirements. Upper case lower case special character a blood sacrifice...',
-          time: '2 days ago',
-          likes: 18,
-          comments: [
-            { author: 'diane_morrison', text: 'Just use Lily\'s birthday like I told you, easy to remember! That\'s what I do with yours' },
-            { author: 'brian_thompson', text: 'MOM. DIANE. Please do NOT use birthdays as passwords. I will set you both up with a password manager this weekend I swear' },
-            { author: 'karen_thompson', text: 'lol Brian is gonna have an aneurysm' }
-          ],
-          intel: { key: 'PASSWORD_HINT', value: 'Uses daughter Lily\'s birthday as password' }
-        },
-        {
-          text: 'Sunday morning vibes. Lily made me "breakfast in bed" which was a granola bar on a paper plate. 10/10 would recommend',
-          time: '4 days ago',
-          likes: 32,
-          comments: [
-            { author: 'diane_morrison', text: 'That is the sweetest thing!! She is such a little angel' },
-            { author: 'brian_thompson', text: 'She also used every dish in the kitchen trying to make eggs first. I cleaned up lol' }
-          ],
-          intel: null
-        },
-        {
+          // MUNDANE POST: Target shopping. Intel buried in comment where Karen
+          // complains about pop-ups and computer being slow -- confirms malware symptoms.
           text: 'Does anyone else just go to Target for one thing and leave with $200 worth of stuff?? Just me?? Ok cool',
-          time: '6 days ago',
+          time: '1 day ago',
           likes: 45,
           comments: [
-            { author: 'diane_morrison', text: 'That\'s what your father used to say about Home Depot haha' }
+            { author: 'diane_morrison', text: 'That\'s what your father used to say about Home Depot haha' },
+            { author: 'karen_thompson', text: 'Speaking of spending money I need a new computer at this rate. Mine keeps freezing and I got this pop-up that said I had 47 threats detected. Almost had a heart attack' },
+            { author: 'brian_thompson', text: 'Karen. Those pop-ups ARE the threat. They\'re fake. Your computer is just slow because you have no antivirus running and probably picked up some adware' },
+            { author: 'karen_thompson', text: 'Well it\'s also doing this thing where random tabs open by themselves when I\'m browsing. Is THAT normal??' },
+            { author: 'brian_thompson', text: 'No that is definitely not normal. I\'ll clean it up this weekend I promise' }
           ],
-          intel: null
+          intel: { key: 'MALWARE_SYMPTOMS', value: 'Computer is slow, fake pop-ups, random tabs opening -- classic adware symptoms since Norton expired' }
         },
         {
-          text: 'Computer froze AGAIN in the middle of a report. Brian is "working" so I can\'t bother him. Someone please send help or a new laptop',
-          time: '1 day ago',
-          likes: 7,
-          comments: [
-            { author: 'brian_thompson', text: 'I was in a standup meeting babe. And don\'t click those pop-ups, remember when you almost gave them your Chase login? Just close the browser and reopen' },
-            { author: 'karen_thompson', text: 'THAT WAS ONE TIME and the page looked really real ok' },
-            { author: 'diane_morrison', text: 'What happened with Chase?? Karen Louise you need to be more careful!' }
-          ],
-          intel: { key: 'BANK_NAME', value: 'Banks with Chase, almost entered login on fake site before' }
-        },
-        {
+          // MUNDANE POST: Lily's gymnastics. Intel buried in Karen's worried
+          // comment about her work files being on the computer.
           text: 'Lily\'s gymnastics recital is next Saturday! She\'s been practicing her cartwheel for weeks. So proud of this kiddo',
-          time: '5 days ago',
+          time: '2 days ago',
           likes: 24,
           comments: [
             { author: 'diane_morrison', text: 'I will be there with my camera!! Front row grandma!!' },
-            { author: 'brian_thompson', text: 'She nailed it at practice yesterday. Going to be great' }
+            { author: 'brian_thompson', text: 'She nailed it at practice yesterday. Going to be great' },
+            { author: 'karen_thompson', text: 'I need to make the recital program on my computer and I\'m honestly terrified I\'ll lose the file. All my work stuff from the pediatrics office is on there too. Patient scheduling templates, billing reports... if I lose those I am SO screwed' },
+            { author: 'brian_thompson', text: 'I told you to use the cloud backup. Please tell me you at least saved the billing stuff somewhere else' },
+            { author: 'karen_thompson', text: 'Define "somewhere else"' },
+            { author: 'brian_thompson', text: 'Karen.' }
+          ],
+          intel: { key: 'WORK_FILES_FEAR', value: 'Karen has important work files (patient scheduling, billing) on the computer and is terrified of losing them' }
+        },
+        {
+          // MUNDANE POST: weekend hiking photo. Intel buried in a comment about
+          // when exactly the Norton subscription lapsed.
+          text: 'Hiked Lookout Mountain with the fam this morning! Lily made it all the way to the top without complaining once. She\'s getting so strong',
+          time: '4 days ago',
+          likes: 31,
+          imageKey: 'fb_l3_post_family_drawing',
+          comments: [
+            { author: 'diane_morrison', text: 'What a beautiful day for it! Lily looks so happy!' },
+            { author: 'brian_thompson', text: 'Great morning. Almost makes up for the fact that I spent Friday night trying to figure out why Karen\'s Norton auto-renew failed' },
+            { author: 'karen_thompson', text: 'Wait so when did it actually expire?? You set it up last year right?' },
+            { author: 'brian_thompson', text: 'It expired January 28th. The card on file was the old Chase debit card we cancelled. So it just silently stopped renewing. I only noticed when the pop-ups started around mid-February' },
+            { author: 'karen_thompson', text: 'So I\'ve been unprotected for like a MONTH?! Brian!!' }
+          ],
+          intel: { key: 'EXPIRY_DATE', value: 'Norton expired January 28th when the linked Chase card was cancelled. Unprotected for about a month.' }
+        },
+        {
+          // MUNDANE POST: coffee morning. No intel.
+          text: 'Monday morning. Coffee is the only reason I function before 9am. This is not a personality trait, this is a medical necessity',
+          time: '5 days ago',
+          likes: 38,
+          comments: [
+            { author: 'diane_morrison', text: 'You sound just like your father! He couldn\'t form sentences without his morning cup' },
+            { author: 'brian_thompson', text: 'Can confirm. She is not a person before coffee. Just a Karen-shaped warning sign' }
+          ],
+          intel: null
+        },
+        {
+          // MUNDANE POST: Lily drawing. No intel.
+          text: 'Lily drew a "family portrait" and apparently I have purple hair and dad is a stick figure with a laptop for a head. She\'s not wrong honestly',
+          time: '6 days ago',
+          likes: 41,
+          comments: [
+            { author: 'brian_thompson', text: 'I mean... she\'s not wrong about the laptop head thing' },
+            { author: 'diane_morrison', text: 'That is going right on my fridge!! What an artist!' }
           ],
           intel: null
         }
@@ -159,12 +192,12 @@ const FRIENDBOOK_DATA = {
           intel: null
         },
         {
-          text: 'Anyone else think the Dell XPS line has gone downhill? Karen\'s is fine but my old Thinkpad was indestructible',
+          text: 'Anyone else think the Dell XPS line has gone downhill? Karen\'s is fine hardware-wise but my old Thinkpad was indestructible',
           time: '5 days ago',
           likes: 6,
           comments: [
             { author: 'karen_thompson', text: 'My Dell is NOT fine, it hates me' },
-            { author: 'brian_thompson', text: 'It\'s fine, you just have 47 Chrome tabs open at all times' }
+            { author: 'brian_thompson', text: 'It\'s fine, you just have 47 Chrome tabs open at all times and no antivirus running' }
           ],
           intel: null
         },
@@ -225,7 +258,6 @@ const FRIENDBOOK_DATA = {
           text: 'I drew a picture of my family!! Daddy is the tall one and mommy has big hair and grandma has a book (posted by Mom)',
           time: '3 days ago',
           likes: 38,
-          imageKey: 'fb_l3_post_family_drawing',
           comments: [
             { author: 'diane_morrison', text: 'I LOVE IT!! Going right on my fridge!!' },
             { author: 'brian_thompson', text: 'I don\'t think I\'m that tall but I\'ll take it' },
@@ -237,16 +269,17 @@ const FRIENDBOOK_DATA = {
     },
 
     intelKeys: [
-      { key: 'BANK_NAME', boost: 15, description: 'Karen banks with Chase' },
-      { key: 'ANTIVIRUS', boost: 10, description: 'Norton antivirus subscription' },
-      { key: 'COMPUTER_MODEL', boost: 8, description: 'Uses a Dell computer (2 years old)' },
-      { key: 'PASSWORD_HINT', boost: 5, description: 'Uses daughter\'s birthday as passwords' }
+      { key: 'NORTON_EXPIRY', boost: 15, description: 'Norton antivirus expired weeks ago, computer unprotected', callHint: 'Reference the expired Norton subscription to establish the antivirus_expiry scam variant', category: 'angle', unlocks: [0, 1] },
+      { key: 'MALWARE_SYMPTOMS', boost: 10, description: 'Pop-ups, slowness, random tabs opening -- adware symptoms', callHint: 'Describe exactly the symptoms she is experiencing to prove you can see her system', category: 'corroborating', unlocks: [2] },
+      { key: 'WORK_FILES_FEAR', boost: 8, description: 'Terrified of losing work files (patient scheduling, billing)', callHint: 'Warn that the infection could destroy her important work files to create urgency', category: 'emotional', unlocks: [3] },
+      { key: 'EXPIRY_DATE', boost: 5, description: 'Norton expired January 28th, unprotected for about a month', callHint: 'Cite the exact expiry date to sound like you have her account records', category: 'timing', unlocks: [] }
     ]
   },
 
-  // ─────────────────────────────────────────────
+  // -----------------------------------------------
   // MIKE RODRIGUEZ (48, Phoenix AZ, male)
-  // ─────────────────────────────────────────────
+  // Scam variant: email_compromise
+  // -----------------------------------------------
   'Mike Rodriguez': {
     profiles: {
       mike_rodriguez: {
@@ -310,51 +343,67 @@ const FRIENDBOOK_DATA = {
     posts: {
       mike_rodriguez: [
         {
-          text: 'Something wrong with my email this morning. Keeps saying "session expired" and won\'t let me back in. Anybody else having issues?',
-          time: '4 hours ago',
-          likes: 3,
-          comments: [
-            { author: 'carmen_rodriguez', text: 'Is it your Gmail or your work Outlook acting up? If it\'s the shop email call that IT guy' },
-            { author: 'mike_rodriguez', text: 'The personal one. I\'ll figure it out' },
-            { author: 'diego_rodriguez', text: 'Dad just clear your cookies. Also change your password if it\'s being weird' }
-          ],
-          intel: { key: 'EMAIL_PROVIDER', value: 'Personal email is Gmail, work uses Outlook' }
-        },
-        {
-          text: 'Got a pop-up on the computer saying "YOUR PC IS INFECTED - CALL THIS NUMBER IMMEDIATELY." Real official looking with a Microsoft logo. Almost called it. Closed it instead. These scammers are getting creative',
-          time: '1 day ago',
-          likes: 11,
-          comments: [
-            { author: 'tony_rodriguez', text: 'Bro didn\'t you already pay $200 to those fake Microsoft guys last year? Glad you learned lol' },
-            { author: 'mike_rodriguez', text: 'Man shut up I don\'t need to be reminded' },
-            { author: 'carmen_rodriguez', text: 'Tony don\'t be mean. At least he didn\'t fall for it this time' },
-            { author: 'diego_rodriguez', text: 'Dad I told you to stop using Internet Explorer, use Chrome. IE hasn\'t been supported in years' }
-          ],
-          intel: { key: 'RECENT_SCAM', value: 'Paid $200 to fake Microsoft support last year' }
-        },
-        {
+          // MUNDANE POST: Suns game. Intel buried in comment thread where
+          // Tony and Carmen mention getting weird emails from Mike's address.
           text: 'Suns game tonight!! Who\'s coming?? Got 4 tickets, section 210. LET\'S GOOO',
-          time: '3 days ago',
+          time: '4 hours ago',
           likes: 19,
           comments: [
             { author: 'tony_rodriguez', text: 'I\'m in! Beers on you though' },
-            { author: 'diego_rodriguez', text: 'Can\'t, got a study group. Take pics' },
-            { author: 'carmen_rodriguez', text: 'Have fun boys. Don\'t stay out too late, you have an 8am appointment at the shop' }
+            { author: 'carmen_rodriguez', text: 'Have fun boys. Mike btw did you send Tony and me some weird email about a "security alert" this morning? It didn\'t look like you' },
+            { author: 'mike_rodriguez', text: 'What?? No I definitely didn\'t send anything like that. Let me check' },
+            { author: 'tony_rodriguez', text: 'Yeah bro I got one too. Said something about verifying my identity. From your Gmail. I just deleted it' },
+            { author: 'diego_rodriguez', text: 'Dad your email might be compromised. DON\'T click anything in your sent folder until I look at it. I\'ll come by after class' }
           ],
-          intel: null
+          intel: { key: 'WEIRD_EMAILS', value: 'Mike\'s Gmail sent unauthorized security alert emails to family members (Carmen and Tony)' }
         },
         {
+          // MUNDANE POST: Mustang job at the shop. Intel buried in comment
+          // thread where Carmen mentions which email service he uses.
           text: 'New brake pads, rotors, and a full fluid flush on a \'67 Mustang today. This is why I love my job',
-          time: '5 days ago',
+          time: '1 day ago',
           likes: 27,
           imageKey: 'fb_l3_post_mustang_brakes',
           comments: [
             { author: 'tony_rodriguez', text: 'That thing is gorgeous. Owner wants to sell?' },
-            { author: 'mike_rodriguez', text: 'Not a chance, he\'s had it since high school' }
+            { author: 'mike_rodriguez', text: 'Not a chance, he\'s had it since high school' },
+            { author: 'carmen_rodriguez', text: 'Mike you still haven\'t replied to the parts supplier email I forwarded. Check your Gmail, I sent it to your personal not the shop Outlook' },
+            { author: 'mike_rodriguez', text: 'My Gmail has been weird lately, keeps logging me out. I\'ll check it when I get home' },
+            { author: 'diego_rodriguez', text: 'Dad if it keeps logging you out that\'s a really bad sign. Someone might have changed your password settings' }
           ],
-          intel: null
+          intel: { key: 'EMAIL_PROVIDER', value: 'Personal email is Gmail (keeps getting logged out), work email is Outlook for the shop' }
         },
         {
+          // MUNDANE POST: BBQ cookout recap. Intel buried in comment where
+          // Tony reveals Mike's boss at the parts distributor got one of the spam emails.
+          text: 'Sunday cookout was a hit. Brisket was perfect, 14 hours low and slow. Carmen\'s elote dip disappeared in about 5 minutes flat',
+          time: '3 days ago',
+          likes: 34,
+          comments: [
+            { author: 'carmen_rodriguez', text: 'I told you I need to make double next time! Everyone loved it' },
+            { author: 'tony_rodriguez', text: 'Bro that brisket was ELITE. Best you\'ve ever done' },
+            { author: 'tony_rodriguez', text: 'Oh hey btw, your buddy Ray from Desert Auto Parts texted me asking if you got hacked. He said he got some email from your address asking him to "verify account details." He almost clicked it because he thought it was shop business' },
+            { author: 'mike_rodriguez', text: 'Oh no. Ray is one of my biggest parts suppliers. That\'s not good. How many people got that??' },
+            { author: 'carmen_rodriguez', text: 'Mike this is serious, if your business contacts got those emails it could hurt the shop\'s reputation. Call Diego' }
+          ],
+          intel: { key: 'CONTACTS_AFFECTED', value: 'Mike\'s business contact Ray (parts supplier) received the spam email -- professional reputation at stake' }
+        },
+        {
+          // MUNDANE POST: fishing trip. Intel buried in the comment where
+          // Diego pinpoints when the unauthorized emails started.
+          text: 'Nothing like ice fishing on a Saturday morning. Lake Pleasant at sunrise, no phone, just peace and quiet. Caught two bass and a catfish',
+          time: '5 days ago',
+          likes: 16,
+          comments: [
+            { author: 'tony_rodriguez', text: 'Jealous bro. I was pouring concrete in 95 degree heat' },
+            { author: 'diego_rodriguez', text: 'Dad while you were off the grid fishing on Saturday, that\'s when the first batch of weird emails went out. Carmen showed me the timestamp -- 10:47am Saturday. You were at the lake with no signal right?' },
+            { author: 'mike_rodriguez', text: 'Yeah I didn\'t even have my phone on. So someone else was sending from my account while I was gone??' },
+            { author: 'diego_rodriguez', text: 'Exactly. Someone got into your Gmail Saturday morning while you had no way to notice. Classic timing' }
+          ],
+          intel: { key: 'INCIDENT_DATE', value: 'Unauthorized emails started Saturday morning at 10:47am while Mike was fishing with no cell signal' }
+        },
+        {
+          // MUNDANE POST: truck talk. No intel.
           text: 'Why is my computer so slow today? Running the shop software and it takes 30 seconds to open anything',
           time: '2 days ago',
           likes: 2,
@@ -363,7 +412,7 @@ const FRIENDBOOK_DATA = {
             { author: 'diego_rodriguez', text: 'How much RAM does that thing even have? You probably need to upgrade' },
             { author: 'mike_rodriguez', text: 'I don\'t know what RAM is, I fix cars not computers' }
           ],
-          intel: { key: 'WORK_SOFTWARE', value: 'Uses QuickBooks for the auto repair shop' }
+          intel: null
         }
       ],
       carmen_rodriguez: [
@@ -480,16 +529,17 @@ const FRIENDBOOK_DATA = {
     },
 
     intelKeys: [
-      { key: 'EMAIL_PROVIDER', boost: 15, description: 'Personal email is Gmail' },
-      { key: 'RECENT_SCAM', boost: 10, description: 'Paid $200 to fake Microsoft support before' },
-      { key: 'COMPUTER_SETUP', boost: 8, description: 'Still uses Internet Explorer' },
-      { key: 'WORK_SOFTWARE', boost: 5, description: 'Uses QuickBooks for business' }
+      { key: 'WEIRD_EMAILS', boost: 15, description: 'Family received unauthorized emails from Mike\'s address', callHint: 'Reference the suspicious emails his contacts received to establish the email_compromise scam variant', category: 'angle', unlocks: [0, 1] },
+      { key: 'EMAIL_PROVIDER', boost: 10, description: 'Personal email is Gmail, work email is Outlook', callHint: 'Mention Gmail specifically and the logout issue to confirm you can see his account activity', category: 'corroborating', unlocks: [2] },
+      { key: 'CONTACTS_AFFECTED', boost: 8, description: 'Business contact Ray got the spam -- professional reputation at risk', callHint: 'Warn that business contacts received the emails, threatening his shop\'s reputation', category: 'emotional', unlocks: [3] },
+      { key: 'INCIDENT_DATE', boost: 5, description: 'Unauthorized emails started Saturday at 10:47am', callHint: 'Cite the Saturday morning timestamp to prove you have his account logs', category: 'timing', unlocks: [] }
     ]
   },
 
-  // ─────────────────────────────────────────────
+  // -----------------------------------------------
   // SUSAN LEE (52, Seattle WA, female)
-  // ─────────────────────────────────────────────
+  // Scam variant: banking_alert
+  // -----------------------------------------------
   'Susan Lee': {
     profiles: {
       susan_lee: {
@@ -553,63 +603,88 @@ const FRIENDBOOK_DATA = {
     posts: {
       susan_lee: [
         {
-          text: 'Online shopping is dangerous. I just spent 2 hours on Nordstrom\'s website and my cart has 14 items in it. Someone stop me',
-          time: '5 hours ago',
-          likes: 12,
-          comments: [
-            { author: 'janet_park', text: 'DON\'T STOP. Treat yourself unnie!!' },
-            { author: 'david_lee', text: 'Make sure you\'re on the real Chase site when you check out, not a fake one. Those phishing emails have been going around again' },
-            { author: 'susan_lee', text: 'David I know how to shop online' },
-            { author: 'kevin_lee', text: 'Mom just use the app, it\'s safer than the browser' }
-          ],
-          intel: { key: 'BANKING_INFO', value: 'Banks with Chase, husband warns about phishing' }
-        },
-        {
-          text: 'My computer is doing that thing again where Safari freezes and I have to force quit everything. So frustrating. I was in the middle of editing my watercolors for the gallery submission!',
-          time: '1 day ago',
-          likes: 6,
-          comments: [
-            { author: 'kevin_lee', text: 'Mom your MacBook is fine, just close Safari and reopen it. How many tabs do you have open? Be honest' },
-            { author: 'susan_lee', text: '... a few' },
-            { author: 'janet_park', text: 'Remember that "Apple support" call you got? Kevin was so mad lol' },
-            { author: 'kevin_lee', text: 'I WAS mad. Apple does NOT cold call people. That was 100% a scam' },
-            { author: 'susan_lee', text: 'I hung up before giving them anything so it\'s fine!!' }
-          ],
-          intel: { key: 'PREVIOUS_INCIDENT', value: 'Received a fake Apple support call, Kevin caught it' }
-        },
-        {
+          // MUNDANE POST: new watercolor piece. Intel buried in comment thread
+          // where Janet and David discuss Susan doing banking on her old laptop.
           text: 'New watercolor piece finished! Painted the view from Kerry Park at sunset. Thinking about submitting it to the Bellevue Arts Fair. Thoughts?',
-          time: '3 days ago',
+          time: '5 hours ago',
           likes: 47,
           imageKey: 'fb_l3_post_watercolor_kerry',
           comments: [
             { author: 'david_lee', text: 'It\'s beautiful honey. You should absolutely submit it' },
             { author: 'janet_park', text: 'GORGEOUS unnie!! I want a print for the salon!!' },
-            { author: 'kevin_lee', text: 'This is really good Mom. Do it' }
+            { author: 'kevin_lee', text: 'This is really good Mom. Do it' },
+            { author: 'janet_park', text: 'Unnie are you still using that ancient laptop to submit your art? David said the thing is like 8 years old' },
+            { author: 'susan_lee', text: 'It works fine for painting! And I do everything on it, banking, email, shopping...' },
+            { author: 'kevin_lee', text: 'Mom you do BANKING on an 8 year old laptop?? With no security updates?? Please tell me you\'re joking' },
+            { author: 'susan_lee', text: 'Kevin it has a password! That counts as security!' }
           ],
-          intel: null
+          intel: { key: 'OLD_LAPTOP', value: 'Susan does banking, email, and shopping on an old 8-year-old laptop with no security updates' }
         },
         {
+          // MUNDANE POST: H Mart order. Intel buried in comments about which bank she uses.
+          text: 'Finally figured out how to order from H Mart online. David set it up on my laptop for me. Technology 1, Susan 0... well, maybe Susan 0.5 because I placed the order myself!',
+          time: '1 day ago',
+          likes: 15,
+          comments: [
+            { author: 'david_lee', text: 'Just use the Wells Fargo Visa for online stuff, the Amex is for travel only. I don\'t want to sort out the statements again' },
+            { author: 'susan_lee', text: 'Yes dear' },
+            { author: 'janet_park', text: 'Haha you two. David is so particular about the Wells Fargo account' },
+            { author: 'kevin_lee', text: 'Mom please set up two-factor authentication on your bank. I can walk you through it this weekend' }
+          ],
+          intel: { key: 'BANK_NAME', value: 'Susan banks with Wells Fargo (Visa debit card), also has an Amex for travel' }
+        },
+        {
+          // MUNDANE POST: kimchi recipe. Intel buried in comment where Susan
+          // worries about her savings after seeing news about bank fraud.
           text: 'Made kimchi jjigae from Mom\'s recipe today. The apartment smells amazing (David disagrees but he\'ll eat 3 bowls anyway)',
-          time: '5 days ago',
+          time: '3 days ago',
           likes: 21,
           comments: [
             { author: 'david_lee', text: 'I said it smells STRONG not bad. And yes I had 3 bowls. It was delicious' },
             { author: 'janet_park', text: 'Save some for me!!!' },
-            { author: 'kevin_lee', text: 'Mom\'s jjigae hits different. Can I come over for dinner this weekend?' }
+            { author: 'susan_lee', text: 'Janet did you see that news story about people having their bank accounts drained? Some kind of online hack. It scared me so much I almost moved our savings to a different account' },
+            { author: 'janet_park', text: 'Unnie don\'t worry too much! Just be careful with your passwords' },
+            { author: 'david_lee', text: 'Susan our retirement savings are fine. But Kevin is right that you should update your laptop and set up two-factor. We have a LOT in that account' }
+          ],
+          intel: { key: 'SAVINGS_WORRY', value: 'Susan is anxious about bank fraud after seeing news stories; has significant retirement savings she worries about' }
+        },
+        {
+          // MUNDANE POST: farmers market. Intel buried in comment about when
+          // she noticed something odd with her bank login.
+          text: 'Pike Place on a Saturday morning is pure magic. Got heirloom tomatoes, fresh flowers, and the best cheese samples. Summer vibes in February',
+          time: '5 days ago',
+          likes: 28,
+          comments: [
+            { author: 'janet_park', text: 'I\'m so jealous! Boba and I need to come next time' },
+            { author: 'susan_lee', text: 'Yes!! By the way something weird happened when I checked my bank on my phone after the market. It said there was a login from an "unrecognized device" last Tuesday evening. I just hit dismiss because I thought it was David\'s iPad' },
+            { author: 'david_lee', text: 'That wasn\'t me, I haven\'t logged into our bank in weeks. Susan when exactly was this?' },
+            { author: 'susan_lee', text: 'It said Tuesday at 9:47pm. I assumed it was you watching something on the iPad' },
+            { author: 'kevin_lee', text: 'MOM. That is NOT something you just dismiss. I\'m calling you tonight' }
+          ],
+          intel: { key: 'LOGIN_TIMING', value: 'Unrecognized login to her bank account on Tuesday at 9:47pm, she dismissed the alert thinking it was David' }
+        },
+        {
+          // MUNDANE POST: K-drama night. No intel.
+          text: 'Started watching "Crash Landing on You" with David. He said he\'d only watch one episode. We\'re on episode six. I told you so',
+          time: '2 days ago',
+          likes: 33,
+          comments: [
+            { author: 'david_lee', text: 'The plot is... compelling. That\'s all I will say.' },
+            { author: 'janet_park', text: 'David is a K-drama convert!! I KNEW IT!!' },
+            { author: 'kevin_lee', text: 'Dad said he "doesn\'t watch Korean shows" three months ago. This is incredible' }
           ],
           intel: null
         },
         {
-          text: 'Finally figured out how to order from H Mart online. David set it up on my laptop for me. Technology 1, Susan 0... well, maybe Susan 0.5 because I placed the order myself!',
-          time: '2 days ago',
-          likes: 15,
+          // MUNDANE POST: garden update. No intel.
+          text: 'My dahlias are finally blooming! After months of rain and patience, look at these beauties. Seattle gardens require a special kind of stubbornness',
+          time: '6 days ago',
+          likes: 19,
           comments: [
-            { author: 'david_lee', text: 'Just use the Visa for online stuff, the Amex is for travel only. I don\'t want to sort out the statements again' },
-            { author: 'susan_lee', text: 'Yes dear' },
-            { author: 'janet_park', text: 'Haha you two. David is so particular about money stuff' }
+            { author: 'david_lee', text: 'You have earned those flowers. Your patience is unmatched' },
+            { author: 'janet_park', text: 'I kill every plant I touch. Teach me your ways unnie!' }
           ],
-          intel: { key: 'PAYMENT_METHOD', value: 'Has a Visa for everyday purchases and an Amex for travel' }
+          intel: null
         }
       ],
       david_lee: [
@@ -729,16 +804,17 @@ const FRIENDBOOK_DATA = {
     },
 
     intelKeys: [
-      { key: 'BANKING_INFO', boost: 15, description: 'Banks with Chase' },
-      { key: 'PREVIOUS_INCIDENT', boost: 10, description: 'Received a fake Apple support scam call' },
-      { key: 'COMPUTER_DETAILS', boost: 8, description: 'Uses a MacBook with Safari' },
-      { key: 'PAYMENT_METHOD', boost: 5, description: 'Visa for everyday, Amex for travel' }
+      { key: 'OLD_LAPTOP', boost: 15, description: 'Does banking on an 8-year-old laptop with no security updates', callHint: 'Reference her insecure laptop to establish the banking_alert scam variant', category: 'angle', unlocks: [0, 1] },
+      { key: 'BANK_NAME', boost: 10, description: 'Banks with Wells Fargo (Visa debit card)', callHint: 'Name Wells Fargo specifically to prove you are calling from her bank', category: 'corroborating', unlocks: [2] },
+      { key: 'SAVINGS_WORRY', boost: 8, description: 'Anxious about bank fraud, has significant retirement savings', callHint: 'Play on her fear of losing her retirement savings to fraud', category: 'emotional', unlocks: [3] },
+      { key: 'LOGIN_TIMING', boost: 5, description: 'Unrecognized bank login on Tuesday at 9:47pm', callHint: 'Cite the exact Tuesday 9:47pm login to sound like you have her account security logs', category: 'timing', unlocks: [] }
     ]
   },
 
-  // ─────────────────────────────────────────────
+  // -----------------------------------------------
   // TOM ANDERSON (44, Minneapolis MN, male)
-  // ─────────────────────────────────────────────
+  // Scam variant: subscription_trap
+  // -----------------------------------------------
   'Tom Anderson': {
     profiles: {
       tom_anderson: {
@@ -802,61 +878,77 @@ const FRIENDBOOK_DATA = {
     posts: {
       tom_anderson: [
         {
+          // MUNDANE POST: internet complaint. Intel buried in comment thread
+          // where Tom describes a pop-up about a subscription auto-renewal.
           text: 'Internet has been absolutely crawling all week. Can\'t even load a video without it buffering every 5 seconds. Working from home like this is impossible',
           time: '3 hours ago',
           likes: 5,
           comments: [
-            { author: 'rachel_anderson', text: 'I\'m calling Comcast tomorrow, this is ridiculous. I have a client presentation on Thursday and I can\'t have it freezing' },
-            { author: 'tom_anderson', text: 'Good because I\'ve been on hold with them for 45 minutes and gave up' },
-            { author: 'zoe_anderson', text: 'The wifi in my room is literally nonexistent. I can\'t even upload my art portfolio' },
-            { author: 'walt_anderson', text: 'In my day we had dial-up and we were happy about it' }
+            { author: 'rachel_anderson', text: 'The wifi is terrible but also did you see that weird notification that popped up on your laptop? Something about a subscription renewing?' },
+            { author: 'tom_anderson', text: 'Yeah I got this pop-up saying "Your CloudShield Pro free trial has auto-renewed at $399/year." I have NO idea what CloudShield Pro even is. I don\'t remember signing up for anything' },
+            { author: 'zoe_anderson', text: 'Dad that sounds like a scam pop-up. Don\'t click it' },
+            { author: 'tom_anderson', text: 'But what if it already charged me?? It had what looked like an order confirmation number and everything' },
+            { author: 'walt_anderson', text: 'In my day software came in a box and you knew what you were paying for' }
           ],
-          intel: { key: 'ISP', value: 'Internet service provider is Comcast' }
+          intel: { key: 'SUBSCRIPTION_POPUP', value: 'Tom got a pop-up saying CloudShield Pro free trial auto-renewed at $399/year with an order confirmation number' }
         },
         {
-          text: 'Laptop is running hot and making that fan noise again. Sounds like a jet engine taking off. Pretty sure it\'s on its last legs',
-          time: '1 day ago',
-          likes: 4,
-          comments: [
-            { author: 'zoe_anderson', text: 'Dad your HP laptop is from like 2018, just get a new one already' },
-            { author: 'tom_anderson', text: 'It works fine! Mostly. Sometimes.' },
-            { author: 'rachel_anderson', text: 'Tom it does NOT work fine. You complained about it 3 times yesterday' },
-            { author: 'walt_anderson', text: 'Just take it to that Best Buy Geek Squad like last time. They fixed it before' }
-          ],
-          intel: { key: 'DEVICE_INFO', value: 'Uses an HP laptop from 2018, overheating issues' }
-        },
-        {
+          // MUNDANE POST: Wild game. Intel buried in comment thread where
+          // Rachel identifies the service name from the notification.
           text: 'Wild game last night was INSANE. OT winner in the last 30 seconds. Zoe pretended she didn\'t care but I saw her cheering',
-          time: '3 days ago',
+          time: '1 day ago',
           likes: 18,
           comments: [
             { author: 'zoe_anderson', text: 'I was cheering because it meant you\'d finally stop yelling at the TV' },
             { author: 'rachel_anderson', text: 'The neighbors probably heard you Tom' },
-            { author: 'walt_anderson', text: 'That\'s my boy! Wild are looking good this year' }
+            { author: 'walt_anderson', text: 'That\'s my boy! Wild are looking good this year' },
+            { author: 'rachel_anderson', text: 'Tom btw I looked at that subscription thing on your laptop. It says "CloudShield Pro - Premium Security Suite" and it has a phone number to call to cancel. The confirmation page looks pretty official, has a logo and everything' },
+            { author: 'tom_anderson', text: 'Should I call the number? I really don\'t want to get charged $399. That\'s insane for something I never signed up for' },
+            { author: 'zoe_anderson', text: 'DAD NO. Don\'t call random numbers from pop-ups. Google the company first at least' }
           ],
-          intel: null
+          intel: { key: 'SERVICE_NAME', value: 'The subscription is called "CloudShield Pro - Premium Security Suite" with an official-looking cancellation page and phone number' }
         },
         {
+          // MUNDANE POST: laptop overheating. Intel buried in comment thread
+          // about Tom stressing about the $399 charge on top of other expenses.
+          text: 'Laptop is running hot and making that fan noise again. Sounds like a jet engine taking off. Pretty sure it\'s on its last legs',
+          time: '3 days ago',
+          likes: 4,
+          comments: [
+            { author: 'zoe_anderson', text: 'Dad your HP laptop is from like 2018, just get a new one already' },
+            { author: 'tom_anderson', text: 'Between Zoe\'s MCAD summer program fees, the new furnace, and now this mystery $399 subscription charge, a new laptop is NOT in the budget. I swear money just disappears' },
+            { author: 'rachel_anderson', text: 'Tom we\'ll figure it out. The furnace was necessary and Zoe\'s program is an investment. Just cancel that subscription thing and we\'re fine' },
+            { author: 'walt_anderson', text: 'Just take it to that Best Buy Geek Squad like last time. They fixed it before' },
+            { author: 'tom_anderson', text: 'Can\'t afford that either right now Dad. Everything is piling up' }
+          ],
+          intel: { key: 'BUDGET_STRESS', value: 'Tom is stressed about money -- MCAD fees, new furnace, and now the $399 subscription charge on top of everything' }
+        },
+        {
+          // MUNDANE POST: ice fishing. Intel buried in comment where Zoe
+          // pinpoints when Tom first saw the subscription notification.
           text: 'Nothing like ice fishing on a Saturday morning. 14 degrees, thermos of coffee, no cell signal. Paradise.',
           time: '5 days ago',
           likes: 22,
           comments: [
             { author: 'walt_anderson', text: 'That\'s real living right there. You catch anything?' },
             { author: 'tom_anderson', text: 'Two walleye and a northern. Enough for dinner tonight' },
-            { author: 'rachel_anderson', text: 'And I had a quiet house for 6 hours. Win-win' }
+            { author: 'rachel_anderson', text: 'And I had a quiet house for 6 hours. Win-win' },
+            { author: 'zoe_anderson', text: 'Dad wasn\'t that the day you came home and found the subscription pop-up? You said it was on the screen when you opened your laptop Wednesday night and it was still there when you got back from fishing Saturday' },
+            { author: 'tom_anderson', text: 'Yeah it first showed up Wednesday evening. Been there every time I open the browser since. Can\'t figure out how to make it go away' }
           ],
-          intel: null
+          intel: { key: 'NOTIFICATION_DATE', value: 'The subscription pop-up first appeared Wednesday evening and has persisted since, showing every time he opens the browser' }
         },
         {
+          // MUNDANE POST: work from home. No intel.
           text: 'Trying to get some work done from home but everything is running slow. Between video calls dropping and files taking forever to save, I\'m about to just drive to the office',
           time: '2 days ago',
           likes: 3,
           comments: [
-            { author: 'rachel_anderson', text: 'Don\'t let them touch the laptop if you take it somewhere, all my client files are on there too. I need the Henderson deck by Friday' },
-            { author: 'tom_anderson', text: 'I know I know. I\'ll back everything up first' },
-            { author: 'walt_anderson', text: 'Just take it to that Best Buy Geek Squad like last time' }
+            { author: 'rachel_anderson', text: 'I\'m calling Comcast tomorrow, this is ridiculous. I have a client presentation on Thursday' },
+            { author: 'tom_anderson', text: 'Good because I\'ve been on hold with them for 45 minutes and gave up' },
+            { author: 'walt_anderson', text: 'In my day we had dial-up and we were happy about it' }
           ],
-          intel: { key: 'PREVIOUS_SUPPORT', value: 'Has used Best Buy Geek Squad for computer help before' }
+          intel: null
         }
       ],
       rachel_anderson: [
@@ -986,10 +1078,10 @@ const FRIENDBOOK_DATA = {
     },
 
     intelKeys: [
-      { key: 'ISP', boost: 15, description: 'Internet provider is Comcast' },
-      { key: 'DEVICE_INFO', boost: 10, description: 'Uses an HP laptop from 2018' },
-      { key: 'PREVIOUS_SUPPORT', boost: 8, description: 'Has used Best Buy Geek Squad before' },
-      { key: 'WORK_USAGE', boost: 5, description: 'Shares laptop with wife\'s client files' }
+      { key: 'SUBSCRIPTION_POPUP', boost: 15, description: 'Got a pop-up about CloudShield Pro auto-renewing at $399/year', callHint: 'Reference the CloudShield Pro subscription to establish the subscription_trap scam variant', category: 'angle', unlocks: [0, 1] },
+      { key: 'SERVICE_NAME', boost: 10, description: 'The service is called CloudShield Pro - Premium Security Suite', callHint: 'Use the exact name "CloudShield Pro Premium Security Suite" to sound like official support', category: 'corroborating', unlocks: [2] },
+      { key: 'BUDGET_STRESS', boost: 8, description: 'Financially stressed -- MCAD fees, furnace, can\'t afford $399', callHint: 'Emphasize that you can process a full refund to relieve the financial pressure', category: 'emotional', unlocks: [3] },
+      { key: 'NOTIFICATION_DATE', boost: 5, description: 'Pop-up first appeared Wednesday evening, still persisting', callHint: 'Reference the Wednesday start date to prove you have his account renewal records', category: 'timing', unlocks: [] }
     ]
   }
 };

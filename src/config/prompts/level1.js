@@ -143,13 +143,13 @@ When the call begins, answer with something like: "Hello? Who's calling please?"
 
   if (intelTriggers && intelTriggers.length > 0) {
     instructions += `\n\nINTEL TRIGGERS:
-The caller may have researched you on social media. They may know personal details about your life.
-React naturally to personal details they mention. When they reference something personal and specific:
+The caller may reference specific details about your recent purchases, transactions, or account activity.
+When they mention something accurate and specific about your real situation, feel reassured that they have legitimate access to your records — this makes them sound like a real customer service representative.
 
-${intelTriggers.map(t => `- ${t.description}: If the caller references this detail naturally, feel a warm connection and increased trust. Call update_game_state with compliance_delta +${Math.round(t.boost * 0.6)}, suspicion_delta -${Math.round(t.boost * 0.4)}, and intel_triggered: "${t.key}"`).join('\n')}
+${intelTriggers.map(t => `- ${t.description}: If the caller references this detail naturally in context, feel reassured they genuinely have your account information. Call update_game_state with compliance_delta +${Math.round(t.boost * 0.6)}, suspicion_delta -${Math.round(t.boost * 0.4)}, and intel_triggered: "${t.key}"`).join('\n')}
 
-IMPORTANT: If the caller uses personal details in a CREEPY, FORCED, or UNNATURAL way (like reading a list of facts about you), get SCARED:
-"How do you know that?! Who IS this?!" — Call update_game_state with suspicion_delta +20, compliance_delta -10, intel_triggered: null`;
+IMPORTANT: If the caller uses these details in a FORCED, ROBOTIC, or UNNATURAL way (reading facts like a list, mentioning things that don't fit the conversation), become alarmed:
+"Wait — how do you know that? Something doesn't feel right..." — Call update_game_state with suspicion_delta +20, compliance_delta -10, intel_triggered: null`;
   }
 
   return {

@@ -1,6 +1,15 @@
 /**
- * FriendBook data for Level 1: Gift Card Refund Scam
+ * FriendBook data for Level 1: Consumer Refund Scams
  * Difficulty: Easy — clues are on the victim's own profile
+ *
+ * Intel redesign: each piece of intel makes the scam story CREDIBLE
+ * rather than just revealing personal trivia.
+ *
+ * Categories per victim:
+ *   primary (boost 15)       — The specific purchase/transaction to reference
+ *   corroborating (boost 10) — A detail that makes you sound like you have their file
+ *   authority (boost 8)      — Payment method or account detail adding legitimacy
+ *   timing (boost 5)         — When it happened, making the claim date-specific
  */
 
 const FRIENDBOOK_DATA = {
@@ -66,13 +75,13 @@ const FRIENDBOOK_DATA = {
     posts: {
       dorothy_miller: [
         {
-          text: "Just ordered a little something on Amazon for my granddaughter Emma's birthday! She's going to be 8 \u2014 where does the time go? \u{1f381}",
+          text: "Just ordered the LEGO Unicorn set on Amazon for my granddaughter Emma's birthday! $49.99 \u2014 a little pricey but she's been begging for months. She's going to be 8 \u2014 where does the time go? \u{1f381}",
           time: '2 hours ago',
           likes: 8,
           comments: [
             { author: 'karen_mitchell', text: "Mom you always spoil her \u{1f602} She's already asking what Grandma got her!" }
           ],
-          intel: { key: 'GRANDCHILD_NAME', value: "Granddaughter's name is Emma" }
+          intel: { key: 'AMAZON_ORDER', value: 'Dorothy ordered a LEGO Unicorn set ($49.99) on Amazon for her granddaughter' }
         },
         {
           text: "Beautiful morning at First Baptist. Pastor Dave's sermon really spoke to me today. Feeling blessed. \u{1f64f}",
@@ -93,7 +102,7 @@ const FRIENDBOOK_DATA = {
             { author: 'mike_mitchell', text: "Those look amazing Dorothy! Save some for us when we visit?" },
             { author: 'karen_mitchell', text: "Dad loved your garden. He'd say 'best tomatoes in Iowa' \u2764\ufe0f" }
           ],
-          intel: { key: 'LATE_SPOUSE', value: "Late husband's name was Harold" }
+          intel: null
         },
         {
           text: "Does anyone know how to stop those pop-up ads on my computer? I keep clicking the X but more appear. My grandson said not to click anything but it's hard when they cover the whole screen!",
@@ -115,7 +124,7 @@ const FRIENDBOOK_DATA = {
             { author: 'dorothy_miller', text: "Oh I wish I could be there in person! Sending a big box of surprises \u{1f4e6}" },
             { author: 'mike_mitchell', text: 'I have been assigned balloon duty \u{1fae1}' }
           ],
-          intel: { key: 'GRANDCHILD_BIRTHDAY', value: "Emma turns 8 next Tuesday, unicorn party" }
+          intel: { key: 'ORDER_DETAILS', value: "Dorothy ordered a LEGO Unicorn set for $49.99 as a birthday gift \u2014 Emma turns 8 next Tuesday" }
         },
         {
           text: 'School pickup line is my personal purgatory. 45 minutes. FORTY. FIVE. MINUTES.',
@@ -127,13 +136,13 @@ const FRIENDBOOK_DATA = {
       ],
       mike_mitchell: [
         {
-          text: "Pro tip: CVS gift cards make great last-minute gifts. Not that I would know anything about forgetting anniversaries... \u{1f605}",
-          time: '4 days ago',
-          likes: 12,
+          text: "Dorothy just texted me asking if her Visa got charged twice for the Amazon order. Told her it's probably just a pending hold. She worries about every little charge on that card \u2014 she uses her Visa debit for everything online. \u{1f602}",
+          time: '1 day ago',
+          likes: 6,
           comments: [
-            { author: 'karen_mitchell', text: "Michael. Thomas. Mitchell. \u{1f624}" }
+            { author: 'karen_mitchell', text: "She called me about it too! Mom, if you're reading this, it's FINE \u{1f602}" }
           ],
-          intel: { key: 'GIFT_CARD_STORE', value: 'Family buys gift cards at CVS' }
+          intel: { key: 'PAYMENT_CARD', value: 'Dorothy used her Visa debit card for the Amazon purchase' }
         },
         {
           text: "Vikings game day! Who's coming over? Bringing the smoker out \u{1f3c8}\u{1f525}",
@@ -145,8 +154,18 @@ const FRIENDBOOK_DATA = {
       ],
       emma_mitchell: [
         {
+          text: "grandma ordered me a birthday present on saturday and it says it shipped already!! tracking says delivery by wednesday!! i think its the unicorn lego set!!! \u{1f984}\u{1f984}\u{1f984}",
+          time: '1 day ago',
+          likes: 14,
+          comments: [
+            { author: 'dorothy_miller', text: "No peeking, young lady! \u{1f60a}" },
+            { author: 'karen_mitchell', text: "Emma do NOT look at Grandma's order history again \u{1f624}" }
+          ],
+          intel: { key: 'DELIVERY_STATUS', value: "Dorothy's Amazon order shipped Saturday, tracking shows delivery by Wednesday" }
+        },
+        {
           text: "my cat mr whiskers learned a new trick!! he sits when i say sit!! well sometimes \u{1f431}",
-          time: '2 days ago',
+          time: '3 days ago',
           likes: 18,
           comments: [
             { author: 'dorothy_miller', text: "Mr. Whiskers is such a smart kitty! Just like his owner \u{1f60a}" }
@@ -156,10 +175,10 @@ const FRIENDBOOK_DATA = {
       ]
     },
     intelKeys: [
-      { key: 'GRANDCHILD_NAME', boost: 15, description: "Granddaughter's name" },
-      { key: 'GRANDCHILD_BIRTHDAY', boost: 10, description: "Granddaughter's birthday" },
-      { key: 'LATE_SPOUSE', boost: 8, description: "Late husband's name" },
-      { key: 'GIFT_CARD_STORE', boost: 5, description: 'Where family buys gift cards' }
+      { key: 'AMAZON_ORDER', boost: 15, description: 'Ordered a LEGO Unicorn set ($49.99) on Amazon', category: 'primary', callHint: 'Reference her specific Amazon order for the LEGO set to establish you have her account on file' },
+      { key: 'ORDER_DETAILS', boost: 10, description: 'Order was $49.99 birthday gift for granddaughter', category: 'corroborating', callHint: 'Mention the $49.99 charge and the item description to sound like you are reading her order record' },
+      { key: 'PAYMENT_CARD', boost: 8, description: 'Paid with Visa debit card', category: 'authority', callHint: 'Say "the Visa debit card on file" to sound like you see her payment method' },
+      { key: 'DELIVERY_STATUS', boost: 5, description: 'Order shipped Saturday, delivery by Wednesday', category: 'timing', callHint: 'Mention the shipping status or Saturday order date to make the billing error feel date-specific' }
     ]
   },
 
@@ -233,36 +252,27 @@ const FRIENDBOOK_DATA = {
             { author: 'richard_patterson', text: 'Ha! Took ME about 50 tries when you taught me, Dad.' },
             { author: 'tyler_patterson', text: 'grandpa i caught a bigger one than you and you know it \u{1f60e}' }
           ],
-          intel: { key: 'GRANDSON_NAME', value: "Grandson's name is Tyler" }
+          intel: null
         },
         {
-          text: "Five years without you, Ruth. Still make your coffee every morning \u2014 two sugars, splash of cream, just how you liked it. The house is too quiet. \u{1f495}",
-          time: '3 days ago',
-          likes: 34,
+          text: "Checked my Arizona Federal Credit Union statement and there's a charge for $347 from some electronics store I've never heard of. I didn't buy anything! Richard says call the bank but I hate those phone menus. This kind of thing never happened with checkbooks. \u{1f620}",
+          time: '2 days ago',
+          likes: 5,
           comments: [
-            { author: 'lisa_patterson', text: 'She was the most wonderful woman. We miss her every day. \u2764\ufe0f' },
-            { author: 'richard_patterson', text: "Love you Dad. Mom's watching over all of us." }
+            { author: 'richard_patterson', text: "Dad do NOT call any number from a random email. Let me look at it when I come Saturday. Could be fraud." },
+            { author: 'lisa_patterson', text: "Harold, freeze the card just in case. Richard will sort it out." }
           ],
-          intel: { key: 'LATE_WIFE', value: "Late wife's name was Ruth, died 2020" }
+          intel: { key: 'BANK_NAME', value: "Harold's bank is Arizona Federal Credit Union \u2014 he saw a suspicious charge on his statement" }
         },
         {
-          text: "Well, I finally did it \u2014 ordered myself a new laptop from Best Buy. My old one was slower than molasses. Richard says I need to \"set up the cloud\" whatever that means. Wish Ruth was here, she was always better with these gadgets than me.",
+          text: "Well, I finally did it \u2014 used my debit card to order myself a new laptop from Best Buy online. $489 on my checking account. My old one was slower than molasses. Richard says I need to \"set up the cloud\" whatever that means. Wish Ruth was here, she was always better with these gadgets than me.",
           time: '4 days ago',
           likes: 7,
           comments: [
             { author: 'richard_patterson', text: "Dad I told you I'd come set it up this weekend. Please don't click on anything until I get there." },
             { author: 'lisa_patterson', text: 'Exciting! You can video call Tyler now \u{1f60a}' }
           ],
-          intel: { key: 'RECENT_PURCHASE', value: 'Harold recently bought a new laptop from Best Buy' }
-        },
-        {
-          text: "Picked up my prescriptions at Walgreens and the pharmacist remembered my name. Small town kindness still exists, folks. Also got some of those butterscotch candies Ruth always loved. Old habits. \u{1f62c}",
-          time: '6 days ago',
-          likes: 11,
-          comments: [
-            { author: 'lisa_patterson', text: 'Harold you are the sweetest man. \u2764\ufe0f' }
-          ],
-          intel: { key: 'PHARMACY', value: 'Harold picks up prescriptions at Walgreens' }
+          intel: { key: 'RECENT_CHARGE', value: 'Harold recently purchased a laptop from Best Buy for $489 using his debit card' }
         },
         {
           text: "Beautiful sunset over the Catalinas tonight. God's country right here. \u{1f305}",
@@ -284,14 +294,14 @@ const FRIENDBOOK_DATA = {
           intel: null
         },
         {
-          text: "Dad's new laptop arrives tomorrow. Taking bets on how many times he calls me before Friday asking how to \"get to the Google.\" Love you, Pops. \u{1f602}",
-          time: '5 days ago',
-          likes: 15,
+          text: "Dad just called me about a weird charge on his checking account. He's had the same Arizona Federal debit card for 15 years and barely uses it online. Told him a hundred times to check the app but he still reads the paper statements with a magnifying glass. I'll look into it Saturday. \u{1f626}",
+          time: '1 day ago',
+          likes: 8,
           comments: [
-            { author: 'lisa_patterson', text: 'Be nice! \u{1f602} Your dad is trying!' },
-            { author: 'harold_patterson', text: 'I can read this you know, Richard.' }
+            { author: 'lisa_patterson', text: 'Let me know if you need me to call the bank. I can go through the fraud process with them.' },
+            { author: 'harold_patterson', text: 'I do NOT need an app, Richard. The paper works fine.' }
           ],
-          intel: null
+          intel: { key: 'ACCOUNT_TYPE', value: "Harold uses a checking account with a debit card at Arizona Federal \u2014 has had the account for 15 years" }
         },
         {
           text: "Tyler passed his driving test first try! Chip off the old block. Now I just need to survive being his passenger. \u{1f64f}\u{1f697}",
@@ -314,14 +324,14 @@ const FRIENDBOOK_DATA = {
           intel: null
         },
         {
-          text: "Harold sent Tyler a $50 Walgreens gift card for \"no reason.\" That man spoils this kid rotten and I am HERE for it. \u{1f62d}\u2764\ufe0f",
-          time: '5 days ago',
-          likes: 14,
+          text: "Harold's been stressing about that charge on his account since Thursday. He barely slept worrying about it. Richard's going over Saturday to help him sort it out with Arizona Federal. Poor guy just used his debit card online for the first time for that laptop and now he thinks the internet is stealing from him. \u{1f622}",
+          time: '1 day ago',
+          likes: 6,
           comments: [
-            { author: 'harold_patterson', text: "A grandfather's privilege! \u{1f60a}" },
-            { author: 'tyler_patterson', text: 'thanks grandpa!!! \u{1f64f}\u{1f64f}' }
+            { author: 'richard_patterson', text: "I'll handle it. Just need him to stop panicking." },
+            { author: 'harold_patterson', text: 'I am NOT panicking. I am concerned.' }
           ],
-          intel: null
+          intel: { key: 'TRANSACTION_TIMING', value: 'The suspicious charge appeared on Thursday (about 3 days ago) \u2014 shortly after his first online purchase' }
         }
       ],
       tyler_patterson: [
@@ -348,10 +358,10 @@ const FRIENDBOOK_DATA = {
       ]
     },
     intelKeys: [
-      { key: 'GRANDSON_NAME', boost: 15, description: "Grandson's name" },
-      { key: 'LATE_WIFE', boost: 10, description: "Late wife's name" },
-      { key: 'RECENT_PURCHASE', boost: 8, description: 'Recent laptop purchase' },
-      { key: 'PHARMACY', boost: 5, description: 'Pharmacy he uses' }
+      { key: 'BANK_NAME', boost: 15, description: 'Banks at Arizona Federal Credit Union', category: 'primary', callHint: 'Say "Arizona Federal Credit Union fraud department" to sound like you are his actual bank' },
+      { key: 'RECENT_CHARGE', boost: 10, description: 'Recent $489 Best Buy laptop purchase on debit card', category: 'corroborating', callHint: 'Reference his $489 Best Buy purchase to explain how the "unauthorized charge" appeared on his account' },
+      { key: 'ACCOUNT_TYPE', boost: 8, description: 'Checking account with debit card, 15-year customer', category: 'authority', callHint: 'Say "your checking account" or "debit card ending in" to sound like you are looking at his account file' },
+      { key: 'TRANSACTION_TIMING', boost: 5, description: 'Suspicious charge appeared Thursday', category: 'timing', callHint: 'Say "the charge from Thursday" to match the timeline he already knows' }
     ]
   },
 
@@ -417,15 +427,14 @@ const FRIENDBOOK_DATA = {
     posts: {
       betty_nakamura: [
         {
-          text: "50 years with this wonderful man! Ken surprised me with breakfast in bed and a bouquet of peonies \u2014 my favorite since our first date. Here's to 50 more. Happy anniversary, my love. \u{1f495}",
+          text: "Refilled my blood pressure medication and the arthritis pills through NorthwestRx this morning. Three prescriptions total and they charged my Blue Cross card $214! When did pills get so expensive? Ken says I should ask the doctor about generics but I don't want to mess with what's working. \u{1f48a}\u{1f614}",
           time: '1 day ago',
-          likes: 67,
+          likes: 9,
           comments: [
-            { author: 'yuki_nakamura_davis', text: 'Happy anniversary Mom and Dad!!! \u2764\ufe0f\u2764\ufe0f\u2764\ufe0f You two are the best.' },
-            { author: 'marcus_davis', text: 'Goals. Truly. Happy anniversary!' },
-            { author: 'ken_nakamura', text: 'Best 50 years of my life, Betty. \u{1f60a}' }
+            { author: 'yuki_nakamura_davis', text: 'Mom, generics are the same thing. Ask Dr. Tanaka next visit. $214 is ridiculous.' },
+            { author: 'ken_nakamura', text: 'The blood pressure one alone was $89. I checked.' }
           ],
-          intel: { key: 'HUSBAND_NAME', value: "Husband's name is Ken, married 50 years" }
+          intel: { key: 'PHARMACY_ORDER', value: 'Betty ordered prescriptions through NorthwestRx online pharmacy \u2014 total was $214' }
         },
         {
           text: "Made a little watercolor card for my granddaughter Hana's art show at school. She insisted on adding \"sparkles\" so we glued on some glitter together. My kitchen is now 40% glitter. Worth it. \u2728\u{1f3a8}",
@@ -436,7 +445,7 @@ const FRIENDBOOK_DATA = {
             { author: 'marcus_davis', text: 'She has been talking about the card all week. You made her day, Betty!' },
             { author: 'yuki_nakamura_davis', text: 'Mom the glitter is also in my car now somehow \u{1f602}' }
           ],
-          intel: { key: 'GRANDDAUGHTER', value: "Granddaughter's name is Hana, in kindergarten" }
+          intel: null
         },
         {
           text: "Ken tried to help me order new watercolor brushes online and somehow we ended up on a page asking for our credit card to \"verify our Amazon account.\" Closed the whole thing. Is that normal? These computers make me so nervous. \u{1f615}",
@@ -446,7 +455,7 @@ const FRIENDBOOK_DATA = {
             { author: 'yuki_nakamura_davis', text: 'MOM. That was a scam page. Please do NOT enter your credit card anywhere like that. I am coming over Saturday to look at your computer.' },
             { author: 'ken_nakamura', text: 'I told her not to worry about it but Yuki you should probably take a look.' }
           ],
-          intel: { key: 'TECH_STRUGGLE', value: 'Betty and Ken had a computer scam scare recently' }
+          intel: null
         },
         {
           text: "Big Fred Meyer run today \u2014 stocked up on baking supplies. Going to attempt Ken's mother's mochi recipe this weekend. Wish me luck! Last time was... crunchy. \u{1f605}",
@@ -456,7 +465,7 @@ const FRIENDBOOK_DATA = {
             { author: 'ken_nakamura', text: 'It was not that bad. Only a little crunchy.' },
             { author: 'yuki_nakamura_davis', text: 'Dad you are a diplomat \u{1f602}' }
           ],
-          intel: { key: 'SHOPPING_HABIT', value: 'Betty shops at Fred Meyer' }
+          intel: null
         },
         {
           text: "Spotted a Varied Thrush in the backyard this morning! First one this season. Ken said \"it's just a bird\" but I got a beautiful photo. He doesn't understand. \u{1f426}",
@@ -471,8 +480,18 @@ const FRIENDBOOK_DATA = {
       ],
       ken_nakamura: [
         {
+          text: "Betty's pharmacy bill this month is highway robbery. $214 for three medications! The blood pressure pill, the arthritis one, and the thyroid medication. Back in my day a doctor visit AND the prescription cost you twenty bucks. I told her to switch to that Canadian pharmacy Yuki found but she \"trusts NorthwestRx.\" Loyalty is expensive. \u{1f4b8}",
+          time: '1 day ago',
+          likes: 11,
+          comments: [
+            { author: 'betty_nakamura', text: 'Ken, I have been going to the same pharmacy for five years. I am not changing now.' },
+            { author: 'yuki_nakamura_davis', text: 'Dad the Canadian one requires a whole new signup process. Just let Mom use NorthwestRx.' }
+          ],
+          intel: { key: 'PRESCRIPTION_DETAILS', value: 'Betty takes three medications: blood pressure, arthritis, and thyroid \u2014 total $214' }
+        },
+        {
           text: "Finally finished the N-scale mountain tunnel for the train layout. Only took 6 months, 3 trips to Home Depot, and one very patient wife. \u{1f682}",
-          time: '2 days ago',
+          time: '3 days ago',
           likes: 16,
           imageKey: 'fb_l1_post_model_train',
           comments: [
@@ -483,7 +502,7 @@ const FRIENDBOOK_DATA = {
         },
         {
           text: "Happy anniversary to my beautiful Betty. 50 years and she still laughs at my bad jokes. That's love, folks. \u{1f338}",
-          time: '1 day ago',
+          time: '4 days ago',
           likes: 52,
           comments: [
             { author: 'betty_nakamura', text: 'I laugh DESPITE them, Ken. \u2764\ufe0f' }
@@ -492,6 +511,17 @@ const FRIENDBOOK_DATA = {
         }
       ],
       yuki_nakamura_davis: [
+        {
+          text: "Mom called me upset because NorthwestRx charged her Blue Cross card for the full $214 but she thought the insurance was supposed to cover more. I looked into it and her old plan changed their formulary \u2014 the blood pressure med doubled in price since last year. Spent an hour on the phone with Blue Cross. Healthcare in this country... \u{1f621}",
+          time: '12 hours ago',
+          likes: 27,
+          comments: [
+            { author: 'betty_nakamura', text: 'Thank you for calling them, sweetie. I just can\'t deal with those phone menus.' },
+            { author: 'ken_nakamura', text: 'Did they say anything about the blood pressure medication coverage?' },
+            { author: 'yuki_nakamura_davis', text: 'Still waiting on a callback. I\'ll let you know.' }
+          ],
+          intel: { key: 'BILLING_METHOD', value: 'Betty pays for prescriptions with her Blue Cross insurance card \u2014 coverage recently changed' }
+        },
         {
           text: "Hana's first art show at school today! She painted a family portrait \u2014 we're all purple apparently. So proud of this creative kiddo. \u{1f3a8}\u{1f49c}",
           time: '2 days ago',
@@ -516,15 +546,14 @@ const FRIENDBOOK_DATA = {
       ],
       marcus_davis: [
         {
-          text: "Kindergarten field trip to the Japanese Garden. 15 kids, 2 parents, 1 photographer dad trying not to let anyone fall in the koi pond. Success (barely). \u{1f4f8}",
-          time: '3 days ago',
-          likes: 19,
-          imageKey: 'fb_l1_post_japanese_garden',
+          text: "Betty told me she placed her refill order yesterday morning and is already anxious the confirmation email hasn't come. I checked for her \u2014 it was in her spam folder. NorthwestRx sends the confirmation right away but her email flags everything. Took 20 minutes to explain what a spam folder is. Worth it for the cookies she gave me as thanks. \u{1f36a}",
+          time: '12 hours ago',
+          likes: 14,
           comments: [
-            { author: 'yuki_nakamura_davis', text: 'You are a hero. A tired hero.' },
-            { author: 'betty_nakamura', text: 'I hope Hana loved it! The garden is so beautiful this time of year.' }
+            { author: 'betty_nakamura', text: 'Those cookies were for Hana! But you can have some too. \u{1f60a}' },
+            { author: 'yuki_nakamura_davis', text: 'Marcus you are a saint. Also save me a cookie.' }
           ],
-          intel: null
+          intel: { key: 'REFILL_TIMING', value: 'Betty placed her prescription refill order yesterday morning' }
         },
         {
           text: "Hana asked me to photograph her stuffed animals \"for their portfolio.\" I now have 47 professional headshots of teddy bears. This is my life.",
@@ -540,10 +569,10 @@ const FRIENDBOOK_DATA = {
       ]
     },
     intelKeys: [
-      { key: 'HUSBAND_NAME', boost: 15, description: "Husband's name" },
-      { key: 'GRANDDAUGHTER', boost: 10, description: "Granddaughter's name" },
-      { key: 'TECH_STRUGGLE', boost: 8, description: 'Recent computer scare' },
-      { key: 'SHOPPING_HABIT', boost: 5, description: 'Grocery store she uses' }
+      { key: 'PHARMACY_ORDER', boost: 15, description: 'Recent prescription order from NorthwestRx for $214', category: 'primary', callHint: 'Reference her recent NorthwestRx order to establish you are calling from the pharmacy billing department' },
+      { key: 'PRESCRIPTION_DETAILS', boost: 10, description: 'Three medications: blood pressure, arthritis, thyroid', category: 'corroborating', callHint: 'Mention her specific medications to sound like you are reading her prescription file' },
+      { key: 'BILLING_METHOD', boost: 8, description: 'Pays with Blue Cross insurance card', category: 'authority', callHint: 'Reference her Blue Cross card or insurance billing to sound like you see her payment records' },
+      { key: 'REFILL_TIMING', boost: 5, description: 'Refill order placed yesterday morning', category: 'timing', callHint: 'Say "your refill from yesterday morning" to match the exact timeline' }
     ]
   },
 
@@ -609,14 +638,15 @@ const FRIENDBOOK_DATA = {
     posts: {
       earl_washington: [
         {
-          text: "So proud of my daughter Denise \u2014 she just won her biggest case yet. That girl worked her way through law school while raising a baby. If her mama Gloria could see her now... \u{1f62d}\u{1f4aa}",
+          text: "My internet bill from Peachtree Broadband came in at $127 this month. WHAT. I signed up for the Basic 50 plan at $65/month three years ago and the bill just keeps going up! Denise says I should call and complain but every time I call them I'm on hold for an hour. This is robbery. \u{1f620}",
           time: '1 day ago',
-          likes: 45,
+          likes: 12,
           comments: [
-            { author: 'denise_washington_taylor', text: 'Daddy stop you\'re gonna make me cry at work \u{1f62d}\u2764\ufe0f' },
-            { author: 'jerome_taylor', text: 'Your father has been telling every person at church about this. EVERY person. \u{1f602}' }
+            { author: 'denise_washington_taylor', text: "Daddy I will call them for you. $127 for basic internet is insane. They're overcharging you." },
+            { author: 'jerome_taylor', text: 'Earl, we pay $65 for the same speed. They are definitely padding your bill.' },
+            { author: 'marcus_taylor', text: 'grandpa you should switch to fiber!! its way faster AND cheaper' }
           ],
-          intel: { key: 'DAUGHTER_NAME', value: "Daughter's name is Denise" }
+          intel: { key: 'ISP_PROVIDER', value: "Earl's internet provider is Peachtree Broadband \u2014 he's being charged $127/month for basic internet" }
         },
         {
           text: "My grandson Marcus showed me his robot at the science fair yesterday. It picks up objects and sorts them by color! This boy is going to change the world, I swear. Built the whole thing himself. \u{1f916}\u{1f3c6}",
@@ -627,7 +657,7 @@ const FRIENDBOOK_DATA = {
             { author: 'denise_washington_taylor', text: 'Dad you literally stood up and clapped for 30 seconds. There were other kids presenting. \u{1f926}\u200d\u2640\ufe0f\u{1f602}' },
             { author: 'jerome_taylor', text: 'He earned every clap. First place!' }
           ],
-          intel: { key: 'GRANDSON_HOBBY', value: "Grandson Marcus does robotics, won first place at science fair" }
+          intel: null
         },
         {
           text: "Sunday morning at Ebenezer Baptist. Choir was on FIRE today. Gloria always said the choir sounded like heaven itself. Seven years without her and Sundays still feel empty in that pew. But God is good. \u{1f64f}",
@@ -637,14 +667,7 @@ const FRIENDBOOK_DATA = {
             { author: 'denise_washington_taylor', text: 'Mama is singing right along with them, Daddy. I know it. \u2764\ufe0f' },
             { author: 'jerome_taylor', text: 'Amen, Mr. Washington.' }
           ],
-          intel: { key: 'LATE_WIFE', value: "Late wife's name was Gloria, died 2019" }
-        },
-        {
-          text: "Checked in at Ebenezer Baptist Church. \u{1f4cd}",
-          time: '4 days ago',
-          likes: 6,
-          comments: [],
-          intel: { key: 'CHURCH', value: 'Earl attends Ebenezer Baptist Church' }
+          intel: null
         },
         {
           text: "Beat three people at chess club today. These young folks think they can out-think an old mailman. Not yet! \u265f\ufe0f\u{1f60e}",
@@ -669,14 +692,14 @@ const FRIENDBOOK_DATA = {
       ],
       denise_washington_taylor: [
         {
-          text: "This man right here raised me solo after Mama passed, worked double shifts at the post office, and STILL made it to every single recital, game, and school play. Happy Father's Day to the greatest man I know. Love you, Daddy. \u{1f62d}\u2764\ufe0f",
-          time: '5 days ago',
-          likes: 72,
+          text: "Called Peachtree Broadband about Daddy's bill. They put me on hold for 40 MINUTES and then told me the rate is \"correct\" because he has \"premium support\" bundled in at $62/month. He never signed up for premium support! He's on the Basic 50 plan \u2014 should be $65 flat. I am filing a complaint with the state AG's office. This company is preying on seniors. \u{1f621}",
+          time: '8 hours ago',
+          likes: 34,
           comments: [
-            { author: 'earl_washington', text: 'Baby girl you are my whole heart. Your mama would be so proud of the woman you became.' },
-            { author: 'jerome_taylor', text: 'The best father-in-law a man could ask for.' }
+            { author: 'earl_washington', text: 'Premium support?? I have never heard of that in my life!' },
+            { author: 'jerome_taylor', text: 'Get \'em, Denise. Put that law degree to work. \u{1f602}' }
           ],
-          intel: null
+          intel: { key: 'PLAN_DETAILS', value: "Earl is on the Basic 50 plan ($65/month) but being charged $127 due to unauthorized 'premium support' add-on at $62/month" }
         },
         {
           text: "Marcus got first place at the district science fair!!! My baby is a genius \u{1f916}\u{1f3c6} Next stop: state competition! Jerome and Dad are already planning the road trip.",
@@ -714,8 +737,29 @@ const FRIENDBOOK_DATA = {
       ],
       marcus_taylor: [
         {
-          text: "my robot can now sort objects AND stack them!!! 2 months of coding and it finally works!! going to states!! \u{1f916}\u{1f916}\u{1f916}",
+          text: "i set up grandpa's internet for him last month because peachtree broadband said he needed a \"technician visit\" for $75. i did it in 10 minutes. he's been a customer since 2021 and they still try to charge him for basic stuff. \u{1f620}",
           time: '2 days ago',
+          likes: 24,
+          comments: [
+            { author: 'denise_washington_taylor', text: 'Marcus you are a good grandson. And Peachtree is going to hear from me.' },
+            { author: 'earl_washington', text: 'That boy saved me $75! I owe him some of my potato salad.' }
+          ],
+          intel: { key: 'ACCOUNT_HISTORY', value: "Earl has been a Peachtree Broadband customer since 2021 \u2014 about 5 years" }
+        },
+        {
+          text: "ok so i looked at grandpa's peachtree broadband billing history and they added \"premium support\" to his account back in October without him knowing. thats 6 months of extra charges at $62/month he never signed up for!! this is a scam fr \u{1f621}\u{1f621}",
+          time: '1 day ago',
+          likes: 19,
+          comments: [
+            { author: 'denise_washington_taylor', text: 'Marcus how did you find this?? Can you send me a screenshot?' },
+            { author: 'marcus_taylor', text: 'i logged into his account and looked at the billing history. the extra charge started in october.' },
+            { author: 'earl_washington', text: 'OCTOBER?! That is five months of stealing from me!' }
+          ],
+          intel: { key: 'BILLING_ISSUE', value: 'Unauthorized "premium support" add-on has been on his account since October \u2014 6 months of extra $62/month charges' }
+        },
+        {
+          text: "my robot can now sort objects AND stack them!!! 2 months of coding and it finally works!! going to states!! \u{1f916}\u{1f916}\u{1f916}",
+          time: '3 days ago',
           likes: 27,
           imageKey: 'fb_l1_post_robot_project',
           comments: [
@@ -738,10 +782,10 @@ const FRIENDBOOK_DATA = {
       ]
     },
     intelKeys: [
-      { key: 'DAUGHTER_NAME', boost: 15, description: "Daughter's name" },
-      { key: 'GRANDSON_HOBBY', boost: 10, description: "Grandson's robotics hobby" },
-      { key: 'LATE_WIFE', boost: 8, description: "Late wife's name" },
-      { key: 'CHURCH', boost: 5, description: 'Church he attends' }
+      { key: 'ISP_PROVIDER', boost: 15, description: 'Internet provider is Peachtree Broadband', category: 'primary', callHint: 'Say "Peachtree Broadband billing department" to sound like his actual internet provider' },
+      { key: 'PLAN_DETAILS', boost: 10, description: 'On Basic 50 plan at $65/month, being charged $127', category: 'corroborating', callHint: 'Reference his Basic 50 plan and the $127 charge to sound like you are looking at his account' },
+      { key: 'BILLING_ISSUE', boost: 8, description: 'Unauthorized premium support add-on since October', category: 'authority', callHint: 'Mention the "premium support" charge to confirm you found the billing error he already suspects' },
+      { key: 'ACCOUNT_HISTORY', boost: 5, description: 'Customer since 2021 (about 5 years)', category: 'timing', callHint: 'Say "as a customer since 2021" to sound like you are reading his account history' }
     ]
   },
 
@@ -807,15 +851,14 @@ const FRIENDBOOK_DATA = {
     posts: {
       margaret_obrien: [
         {
-          text: "Happy St. Patrick's Day from Southie! My Patrick was born on this very day 55 years ago and I've been blessed ever since. The whole family went to the parade \u2014 even little Fiona wore a tiny green hat! Frank would have loved that. \u2618\ufe0f\u{1f49a}",
+          text: "Went to see Dr. Callahan at Mass General on Wednesday for my checkup. My MassHealth Plus plan covered the visit but he wants to run more bloodwork because my cholesterol is \"a little high.\" A little high! I'm 81 years old, what does he expect? Anyway, at least the staff there are wonderful. \u{1f3e5}",
           time: '2 days ago',
-          likes: 41,
-          imageKey: 'fb_l1_post_parade_family',
+          likes: 18,
           comments: [
-            { author: 'patrick_obrien', text: 'Thanks Ma! Best birthday present is spending it with you and the family. \u2764\ufe0f' },
-            { author: 'colleen_obrien', text: 'Fiona stole the show in that hat!! Everyone was stopping us on the street \u{1f49a}' }
+            { author: 'patrick_obrien', text: "Ma, please listen to the doctor. We want you around for a long time." },
+            { author: 'colleen_obrien', text: 'Margaret did they say when the results come back? We can go with you to the follow-up.' }
           ],
-          intel: { key: 'SON_NAME', value: "Son's name is Patrick, born on St. Patrick's Day" }
+          intel: { key: 'INSURANCE_PROVIDER', value: "Margaret is insured through MassHealth Plus \u2014 it covered her recent checkup at Mass General" }
         },
         {
           text: "My great-granddaughter Fiona smiled at me today and I swear my heart grew three sizes. Eight months old and she's already got me wrapped around her tiny finger. Knitting her a little Red Sox blanket. \u{1f476}\u2764\ufe0f",
@@ -825,7 +868,7 @@ const FRIENDBOOK_DATA = {
             { author: 'colleen_obrien', text: 'Margaret she lights up every time she sees you! You have the magic touch \u{1f60d}' },
             { author: 'patrick_obrien', text: 'Ma you\'ve knit that kid more blankets than she has years on earth \u{1f602}' }
           ],
-          intel: { key: 'GREAT_GRANDCHILD', value: "Great-granddaughter Fiona, 8 months old" }
+          intel: null
         },
         {
           text: "Frank passed eight years ago today. Forty-two years of marriage and I still reach for his side of the bed every morning. Miss you, my love. Save me a seat up there. \u{1f54a}\ufe0f\u2764\ufe0f",
@@ -835,7 +878,7 @@ const FRIENDBOOK_DATA = {
             { author: 'patrick_obrien', text: 'Miss you every day, Dad. The best man I ever knew.' },
             { author: 'colleen_obrien', text: 'He was the kindest soul. Sending love, Margaret. \u2764\ufe0f' }
           ],
-          intel: { key: 'LATE_HUSBAND', value: "Late husband's name was Frank, died 2018, married 42 years" }
+          intel: null
         },
         {
           text: "Walked to Stop & Shop this morning and the nice young man at the register helped me carry my bags to the bench outside. There are still good people in this world. Picked up some of those cookies Patrick likes. \u{1f36a}",
@@ -845,7 +888,7 @@ const FRIENDBOOK_DATA = {
             { author: 'patrick_obrien', text: 'Ma you should let me drive you! Stop carrying bags!' },
             { author: 'margaret_obrien', text: 'Patrick Michael, I have walked to that store for 40 years and I am not stopping now.' }
           ],
-          intel: { key: 'STORE', value: 'Margaret shops at Stop & Shop' }
+          intel: null
         },
         {
           text: "Sox opening day next week! Frank and I never missed one in 30 years. Patrick's taking me this year \u2014 same seats Frank used to get. Section 27, row 5. Go Sox! \u26be\u2764\ufe0f",
@@ -870,14 +913,14 @@ const FRIENDBOOK_DATA = {
           intel: null
         },
         {
-          text: "Ma called me at the firehouse because her \"computer screen went blue and is yelling at her.\" It was a Windows update. She thought she was being hacked. I love this woman. \u{1f602}\u2764\ufe0f",
-          time: '4 days ago',
-          likes: 44,
+          text: "Ma called me after her doctor's appointment worried about the bloodwork. I told her it's routine but she's convinced \"high cholesterol\" means something terrible. She's been a nurse for 30 years, she KNOWS what it means, she just worries. Reminded her that her MassHealth Plus plan covers everything including the lab work. She pays the premium by auto-debit from her checking account every month and still asks me \"am I covered?\" every single time. \u{1f602}\u2764\ufe0f",
+          time: '1 day ago',
+          likes: 19,
           comments: [
-            { author: 'margaret_obrien', text: "It WAS yelling, Patrick! It said DO NOT TURN OFF YOUR COMPUTER! What was I supposed to think?!" },
-            { author: 'colleen_obrien', text: 'Oh Margaret \u{1f602}\u{1f602}\u{1f602} Never change' }
+            { author: 'margaret_obrien', text: "I am NOT worried, Patrick. I just like to be informed." },
+            { author: 'colleen_obrien', text: 'Margaret you called Patrick three times about it. You were a LITTLE worried. \u{1f602}' }
           ],
-          intel: null
+          intel: { key: 'PAYMENT_METHOD', value: "Margaret pays her MassHealth Plus premium by auto-debit from her checking account monthly" }
         },
         {
           text: "Happy birthday to the toughest, sweetest, most stubborn woman in all of Southie \u2014 my Ma. 81 years young and she still walks to Stop & Shop every morning \"for the exercise.\" I love you, Ma. \u{1f382}\u2764\ufe0f",
@@ -902,6 +945,16 @@ const FRIENDBOOK_DATA = {
           intel: null
         },
         {
+          text: "Drove Margaret to her follow-up bloodwork at Mass General this morning. Dr. Callahan ordered a full lipid panel and a thyroid check. She insisted on going in alone \u2014 \"I was a nurse here for 25 years, Colleen, I know where the lab is.\" This was on Wednesday. Still waiting on results. She's been checking the mail every day for the letter. \u{1f605}\u2764\ufe0f",
+          time: '1 day ago',
+          likes: 15,
+          comments: [
+            { author: 'margaret_obrien', text: 'The results should come any day now. I just want to know so I can stop thinking about it.' },
+            { author: 'patrick_obrien', text: "Ma they'll call you. Stop checking the mailbox." }
+          ],
+          intel: { key: 'RECENT_CLAIM', value: "Margaret had bloodwork done at Mass General on Wednesday \u2014 lipid panel and thyroid check ordered by Dr. Callahan" }
+        },
+        {
           text: "Margaret taught me her secret brown bread recipe today. She's been guarding it for 50 years but apparently having a great-grandchild earns you access to the vault. \u{1f35e}\u{1f511}",
           time: '4 days ago',
           likes: 22,
@@ -922,15 +975,15 @@ const FRIENDBOOK_DATA = {
             { author: 'margaret_obrien', text: "What a smart girl!! She is going to be something special, I just know it! \u{1f60d}" },
             { author: 'patrick_obrien', text: 'That\'s my girl!! \u{1f44f}\u{1f44f}\u{1f44f}' }
           ],
-          intel: null
+          intel: { key: 'COVERAGE_DETAILS', value: "Margaret's MassHealth Plus plan covers doctor visits, lab work, and prescriptions \u2014 she's had the plan for years" }
         }
       ]
     },
     intelKeys: [
-      { key: 'SON_NAME', boost: 15, description: "Son's name" },
-      { key: 'GREAT_GRANDCHILD', boost: 10, description: "Great-granddaughter's name" },
-      { key: 'LATE_HUSBAND', boost: 8, description: "Late husband's name" },
-      { key: 'STORE', boost: 5, description: 'Grocery store she uses' }
+      { key: 'INSURANCE_PROVIDER', boost: 15, description: 'Insured through MassHealth Plus', category: 'primary', callHint: 'Say "MassHealth Plus claims department" to sound like you are calling from her actual insurance provider' },
+      { key: 'RECENT_CLAIM', boost: 10, description: 'Recent bloodwork claim at Mass General (lipid panel, thyroid)', category: 'corroborating', callHint: 'Reference her bloodwork from Mass General to sound like you see the claim in your system' },
+      { key: 'COVERAGE_DETAILS', boost: 8, description: 'Plan covers visits, lab work, and prescriptions', category: 'authority', callHint: 'Mention her plan coverage details to sound like you are reading her policy file' },
+      { key: 'PAYMENT_METHOD', boost: 5, description: 'Pays premium by auto-debit from checking account', category: 'timing', callHint: 'Reference the auto-debit payment method to sound like you have her billing records' }
     ]
   }
 };

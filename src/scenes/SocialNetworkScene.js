@@ -486,6 +486,11 @@ export default class SocialNetworkScene extends Phaser.Scene {
     let yOffset = 0;
 
     posts.forEach((post) => {
+      // Mark intel as seen when the player views a post that contains it
+      if (post.intel && post.intel.key) {
+        gameState.markIntelSeen(post.intel.key);
+      }
+
       const cardH = this._estimatePostHeight(post, contentW);
 
       // Post card background with border
@@ -754,6 +759,7 @@ export default class SocialNetworkScene extends Phaser.Scene {
   // =========================================================================
 
   _drawIntelTracker() {
+    if (!gameState.callActive) return;
     if (!this.friendbookData || !this.friendbookData.intelKeys || this.friendbookData.intelKeys.length === 0) {
       return;
     }
