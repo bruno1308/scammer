@@ -275,13 +275,14 @@ export class LedgerScene extends Phaser.Scene {
 
     // Remittance buttons
     const amounts = [50, 100];
-    const btnY = boxY + 100;
-    const btnStartX = width / 2 - 150;
+    const btnY = boxY + 110;
+    const gap = 130;
+    const btnStartX = width / 2 - gap;
 
     amounts.forEach((amount, i) => {
       if (amount > this.walletBalance) return;
       this._createLedgerButton(
-        btnStartX + i * 120, btnY,
+        btnStartX + i * gap, btnY,
         `$${amount}`, 0x00ff88, 0x003322,
         () => {
           if (remittanceChosen) return;
@@ -296,7 +297,7 @@ export class LedgerScene extends Phaser.Scene {
 
     // Skip button
     this._createLedgerButton(
-      btnStartX + 240, btnY,
+      btnStartX + 2 * gap, btnY,
       'SKIP', 0x667788, 0x111122,
       () => {
         if (remittanceChosen) return;
@@ -406,8 +407,8 @@ export class LedgerScene extends Phaser.Scene {
    * Create a styled button.
    */
   _createLedgerButton(x, y, label, borderColor, bgColor, callback) {
-    const btnW = 180;
-    const btnH = 38;
+    const btnW = 110;
+    const btnH = 32;
     const container = this.add.container(x, y);
 
     const bg = this.add.graphics();

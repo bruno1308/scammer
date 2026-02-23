@@ -352,9 +352,10 @@ export class CallScene extends Phaser.Scene {
     // Base card height (without intel)
     const baseCardH = textY + 80 - cardY;
 
-    // Calculate intel section height
+    // Calculate intel section height (include space for callHint rows)
     const intelKeys = gameState.intelKeys || [];
-    const intelH = intelKeys.length > 0 ? 28 + intelKeys.length * 20 + 8 : 0;
+    const hintCount = intelKeys.filter(k => k.callHint).length;
+    const intelH = intelKeys.length > 0 ? 28 + intelKeys.length * 20 + hintCount * 16 + 8 : 0;
     const cardH = baseCardH + intelH;
 
     // ---- Card background ----

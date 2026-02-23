@@ -261,15 +261,19 @@ export default class WebMailScene extends Phaser.Scene {
     maskShape.fillRect(this.browserX, this.browserY + 40, this.browserW, this.browserH - 40);
     this.emailContainer.setMask(new Phaser.Display.Masks.GeometryMask(this, maskShape));
 
-    // Scroll support
-    this.input.on('wheel', (pointer, gameObjects, deltaX, deltaY) => {
+    // Scroll support — remove previous listener to avoid stacking
+    if (this._wheelListener) this.input.off('wheel', this._wheelListener);
+    const viewportH = this.browserH - 40;
+    this._wheelListener = (pointer, gameObjects, deltaX, deltaY) => {
       if (pointer.x >= this.browserX && pointer.x <= this.browserX + this.browserW) {
+        const minY = Math.min(-(yPos - this.browserY - viewportH), 0);
         this.emailContainer.y = Phaser.Math.Clamp(
           this.emailContainer.y - deltaY * 0.5,
-          -(yPos - (this.browserY + this.browserH) + 40), 0
+          minY, 0
         );
       }
-    });
+    };
+    this.input.on('wheel', this._wheelListener);
   }
 
   _showEmail(email) {
@@ -333,14 +337,18 @@ export default class WebMailScene extends Phaser.Scene {
     maskShape.fillRect(this.browserX, this.browserY + 40, this.browserW, this.browserH - 40);
     this.emailDetailContainer.setMask(new Phaser.Display.Masks.GeometryMask(this, maskShape));
 
-    this.input.on('wheel', (pointer, gameObjects, deltaX, deltaY) => {
+    // Scroll support — reuse tracked listener
+    if (this._wheelListener) this.input.off('wheel', this._wheelListener);
+    this._wheelListener = (pointer, gameObjects, deltaX, deltaY) => {
       if (pointer.x >= this.browserX && pointer.x <= this.browserX + this.browserW) {
+        const minY = Math.min(-(bodyText.height - this.browserH + 200), 0);
         this.emailDetailContainer.y = Phaser.Math.Clamp(
           this.emailDetailContainer.y - deltaY * 0.5,
-          -(bodyText.height - this.browserH + 200), 0
+          minY, 0
         );
       }
-    });
+    };
+    this.input.on('wheel', this._wheelListener);
   }
 
   _showError(msg) {
@@ -354,5 +362,12 @@ export default class WebMailScene extends Phaser.Scene {
   _close() {
     this.cameras.main.fadeOut(150, 0, 0, 0);
     this.cameras.main.once('camerafadeoutcomplete', () => { this.scene.stop(); });
+  }
+
+  shutdown() {
+    if (this._wheelListener) {
+      this.input.off('wheel', this._wheelListener);
+      this._wheelListener = null;
+    }
   }
 }

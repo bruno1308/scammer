@@ -882,15 +882,67 @@ export class OfficeScene extends Phaser.Scene {
 
   _showResearchModeUI() {
     const { width } = this.scale;
-    this.researchBanner = this.add.text(width / 2, 18, '\u{1F50D} RESEARCH PHASE \u2014 Browse the computer, then pick up the phone when ready', {
-      fontFamily: '"Courier New", monospace', fontSize: '12px',
-      color: '#44bbff', backgroundColor: '#0a1a2e',
-      padding: { x: 12, y: 4 }
-    }).setOrigin(0.5, 0).setDepth(50);
+
+    // Container for the entire research HUD strip
+    this.researchBanner = this.add.container(width / 2, 6).setDepth(50);
+
+    // Look up the next victim for the preview
+    const nextVictim = this._getOrPreSelectVictim();
+    const victimName = nextVictim ? nextVictim.name : 'Unknown';
+    const portraitIdx = nextVictim ? (nextVictim.portraitIdx || 1) : 1;
+    const portraitKey = `l${this.levelNum}_victim_${portraitIdx}`;
+
+    // --- Layout: two rows stacked ---
+    const barW = 520;
+    const row1Y = 10;  // research text row
+    const row2Y = 28;  // victim info row
+    const barH = 42;
+
+    // Background
+    const bar = this.add.rectangle(0, barH / 2, barW, barH, 0x0a1a2e, 0.92)
+      .setOrigin(0.5);
+    this.researchBanner.add(bar);
+
+    // Row 1: Research phase instruction (centered)
+    const researchText = this.add.text(0, row1Y, '\u{1F50D} RESEARCH PHASE \u2014 Browse the computer, then pick up the phone when ready', {
+      fontFamily: '"Courier New", monospace', fontSize: '10px',
+      color: '#44bbff'
+    }).setOrigin(0.5);
+    this.researchBanner.add(researchText);
+
+    // Row 2: Portrait + victim name (centered)
+    const thumbSize = 18;
+    const nameLabel = this.add.text(0, row2Y, `YOUR NEXT TARGET:  ${victimName}`, {
+      fontFamily: '"Courier New", monospace', fontSize: '11px',
+      fontStyle: 'bold', color: '#ffcc44'
+    }).setOrigin(0.5);
+    // Shift name right to make room for portrait
+    const totalW = thumbSize + 6 + nameLabel.width;
+    const portraitCenterX = -totalW / 2 + thumbSize / 2;
+    nameLabel.setX(portraitCenterX + thumbSize / 2 + 6 + nameLabel.width / 2);
+    this.researchBanner.add(nameLabel);
+
+    if (this.textures.exists(portraitKey)) {
+      const portrait = this.add.image(portraitCenterX, row2Y, portraitKey)
+        .setDisplaySize(thumbSize, thumbSize).setOrigin(0.5);
+
+      // Circular mask (needs world coords)
+      const maskShape = this.make.graphics({ x: 0, y: 0 });
+      const worldX = (width / 2) + portraitCenterX;
+      const worldY = 6 + row2Y;
+      maskShape.fillCircle(worldX, worldY, thumbSize / 2);
+      portrait.setMask(maskShape.createGeometryMask());
+      this.researchBanner.add(portrait);
+
+      // Circle border
+      const border = this.add.circle(portraitCenterX, row2Y, thumbSize / 2 + 1)
+        .setStrokeStyle(1.5, 0xffcc44).setFillStyle();
+      this.researchBanner.add(border);
+    }
 
     // Pulse animation
     this.tweens.add({
-      targets: this.researchBanner, alpha: 0.6, duration: 1200,
+      targets: this.researchBanner, alpha: { from: 1, to: 0.7 }, duration: 1200,
       yoyo: true, repeat: -1, ease: 'Sine.easeInOut'
     });
   }

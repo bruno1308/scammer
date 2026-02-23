@@ -212,7 +212,14 @@ class GameState extends Phaser.Events.EventEmitter {
    */
   initIntel(intelKeys) {
     this.intelKeys = intelKeys || [];
+    // Preserve intel discovered during research phase
+    const prevSeen = this.intelSeen;
     this.intelSeen = new Set();
+    for (const intel of this.intelKeys) {
+      if (prevSeen.has(intel.key)) {
+        this.intelSeen.add(intel.key);
+      }
+    }
     this.intelUsed = new Set();
     this.emit('intel_reset', this.intelKeys);
   }
@@ -721,6 +728,9 @@ class GameState extends Phaser.Events.EventEmitter {
     this.intelKeys = [];
     this.intelSeen = new Set();
     this.intelUsed = new Set();
+    this.researchPhase = true;
+    this.victimNotes = new Map();
+    this.emailLoggedIn = new Map();
   }
 
   /* ------------------------------------------------------------------
