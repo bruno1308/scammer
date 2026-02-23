@@ -8,6 +8,8 @@ import { OfficeScene } from './scenes/OfficeScene.js';
 import { CallScene } from './scenes/CallScene.js';
 import { TechDesktopScene } from './scenes/TechDesktopScene.js';
 import SocialNetworkScene from './scenes/SocialNetworkScene.js';
+import NotebookScene from './scenes/NotebookScene.js';
+import WebMailScene from './scenes/WebMailScene.js';
 import { LedgerScene } from './scenes/LedgerScene.js';
 import { GameOverScene } from './scenes/GameOverScene.js';
 
@@ -27,9 +29,14 @@ const config = {
     CallScene,
     TechDesktopScene,
     SocialNetworkScene,
+    NotebookScene,
+    WebMailScene,
     LedgerScene,
     GameOverScene
   ],
+  dom: {
+    createContainer: true
+  },
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH
