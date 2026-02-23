@@ -98,8 +98,8 @@ export class OfficeScene extends Phaser.Scene {
     // ---- Event listeners ----
     this._bindGameStateEvents();
 
-    // ---- Start the shift timer ----
-    this._startShiftTimer();
+    // ---- Research phase — timer starts when player picks up phone ----
+    this._showResearchModeUI();
 
     // ---- Phone starts idle — player clicks to initiate call ----
     this._setPhoneReady();
@@ -223,7 +223,7 @@ export class OfficeScene extends Phaser.Scene {
         ease: 'Sine.easeOut'
       });
     });
-    monitorZone.on('pointerdown', () => { this.sound.play('sfx_mouse_click', { volume: 0.4 }); this._openFriendBook(); });
+    monitorZone.on('pointerdown', () => { this.sound.play('sfx_mouse_click', { volume: 0.4 }); this._toggleDesktop(); });
 
   }
 
@@ -517,6 +517,115 @@ export class OfficeScene extends Phaser.Scene {
     });
   }
 
+  _toggleDesktop() {
+    // If any app overlay is open, don't show desktop
+    if (this.scene.isActive('social-network') || this.scene.isActive('notebook') || this.scene.isActive('webmail')) return;
+
+    if (this.desktopContainer && this.desktopContainer.visible) {
+      this.desktopContainer.setVisible(false);
+      return;
+    }
+
+    this._showDesktop();
+  }
+
+  _showDesktop() {
+    if (this.desktopContainer) {
+      this.desktopContainer.setVisible(true);
+      return;
+    }
+
+    const floor = FLOORS[this.levelNum];
+    const apps = floor?.availableApps || ['friendbook'];
+    const { width, height } = this.scale;
+
+    // Desktop panel over the monitor area
+    const mx = width * 0.475;
+    const my = height * 0.72;
+    const panelW = 260;
+    const panelH = 180;
+
+    this.desktopContainer = this.add.container(mx - panelW / 2, my - panelH / 2 - 20).setDepth(20);
+
+    // Desktop background
+    const bg = this.add.graphics();
+    bg.fillStyle(0x0a0a2e, 0.95);
+    bg.fillRoundedRect(0, 0, panelW, panelH, 6);
+    bg.lineStyle(1, 0x334466);
+    bg.strokeRoundedRect(0, 0, panelW, panelH, 6);
+    this.desktopContainer.add(bg);
+
+    // App icons grid
+    const appConfigs = {
+      friendbook: { icon: '\u{1F4D8}', label: 'FriendBook', action: () => this._openFriendBook() },
+      notebook: { icon: '\u{1F4D3}', label: 'Notebook', action: () => this._openNotebook() },
+      webmail: { icon: '\u{1F4E7}', label: 'WebMail', action: () => this._openWebMail() },
+      searchr: { icon: '\u{1F50D}', label: 'Searchr', action: () => {} }, // Placeholder for Floor 4+
+    };
+
+    const startX = 40;
+    const startY = 30;
+    const spacing = 70;
+
+    apps.forEach((appId, idx) => {
+      const cfg = appConfigs[appId];
+      if (!cfg) return;
+
+      const col = idx % 3;
+      const row = Math.floor(idx / 3);
+      const ax = startX + col * spacing;
+      const ay = startY + row * 80;
+
+      // Icon background (clickable)
+      const iconBg = this.add.rectangle(ax, ay, 50, 50, 0x1a2a4e)
+        .setInteractive({ useHandCursor: true }).setDepth(21);
+      iconBg.on('pointerover', () => iconBg.setFillStyle(0x2a3a5e));
+      iconBg.on('pointerout', () => iconBg.setFillStyle(0x1a2a4e));
+      iconBg.on('pointerdown', () => {
+        this.sound.play('sfx_mouse_click', { volume: 0.3 });
+        this.desktopContainer.setVisible(false);
+        cfg.action();
+      });
+      this.desktopContainer.add(iconBg);
+
+      // Emoji icon
+      const iconText = this.add.text(ax, ay - 4, cfg.icon, {
+        fontSize: '24px'
+      }).setOrigin(0.5).setDepth(22);
+      this.desktopContainer.add(iconText);
+
+      // Label
+      const label = this.add.text(ax, ay + 28, cfg.label, {
+        fontFamily: '"Courier New", monospace', fontSize: '10px',
+        color: '#aabbcc'
+      }).setOrigin(0.5).setDepth(22);
+      this.desktopContainer.add(label);
+    });
+  }
+
+  _openNotebook() {
+    if (this.scene.isActive('notebook')) return;
+    const victim = this.callInProgress && gameState.currentVictim
+      ? gameState.currentVictim
+      : this._getOrPreSelectVictim();
+    this.scene.launch('notebook', {
+      victimName: victim ? victim.name : 'General Notes',
+      level: this.levelNum
+    });
+  }
+
+  _openWebMail() {
+    if (this.scene.isActive('webmail')) return;
+    const victim = this.callInProgress && gameState.currentVictim
+      ? gameState.currentVictim
+      : this._getOrPreSelectVictim();
+    if (!victim) return;
+    this.scene.launch('webmail', {
+      victim,
+      level: this.levelNum
+    });
+  }
+
   _getFriendBookLaunchData() {
     // During a call, use the current victim
     const victim = this.callInProgress && gameState.currentVictim
@@ -535,10 +644,17 @@ export class OfficeScene extends Phaser.Scene {
   }
 
   _getOrPreSelectVictim() {
-    if (!this._preSelectedVictim) {
-      this._preSelectedVictim = gameState.getNextVictimTonight();
+    if (gameState.currentVictim) return gameState.currentVictim;
+    // During research phase, peek at the next victim without dequeuing
+    const queue = gameState.currentNightVictimQueue;
+    if (queue && queue.length > 0) {
+      // Find first victim not already attempted or completed
+      const next = queue.find(v =>
+        !gameState.attemptedTonight.includes(v.name) && !gameState.completedVictims[v.name]
+      );
+      return next || null;
     }
-    return this._preSelectedVictim;
+    return null;
   }
 
   // =========================================================================
@@ -564,6 +680,16 @@ export class OfficeScene extends Phaser.Scene {
    * Ring for ~2 seconds, then connect to the AI victim.
    */
   _initiateCall() {
+    // Exit research phase and start shift timer on first call
+    if (gameState.researchPhase) {
+      gameState.exitResearchPhase();
+      this._startShiftTimer();
+      if (this.researchBanner) {
+        this.researchBanner.destroy();
+        this.researchBanner = null;
+      }
+    }
+
     this.phoneReady = false;
     if (this.readyPulseTween) {
       this.readyPulseTween.stop();
@@ -731,6 +857,21 @@ export class OfficeScene extends Phaser.Scene {
       this.callTimerEvent.remove();
       this.callTimerEvent = null;
     }
+  }
+
+  _showResearchModeUI() {
+    const { width } = this.scale;
+    this.researchBanner = this.add.text(width / 2, 18, '\u{1F50D} RESEARCH PHASE \u2014 Browse the computer, then pick up the phone when ready', {
+      fontFamily: '"Courier New", monospace', fontSize: '12px',
+      color: '#44bbff', backgroundColor: '#0a1a2e',
+      padding: { x: 12, y: 4 }
+    }).setOrigin(0.5, 0).setDepth(50);
+
+    // Pulse animation
+    this.tweens.add({
+      targets: this.researchBanner, alpha: 0.6, duration: 1200,
+      yoyo: true, repeat: -1, ease: 'Sine.easeInOut'
+    });
   }
 
   _startShiftTimer() {
@@ -981,6 +1122,14 @@ export class OfficeScene extends Phaser.Scene {
   }
 
   _updateShiftTimerDisplay() {
+    if (gameState.researchPhase) {
+      // Don't show countdown during research
+      if (this.shiftTimerText) {
+        this.shiftTimerText.setText('RESEARCH');
+        this.shiftTimerText.setColor('#44bbff');
+      }
+      return;
+    }
     // Update the alarm clock game time
     this._updateClockTime();
   }
@@ -1407,6 +1556,8 @@ export class OfficeScene extends Phaser.Scene {
     if (this._bossSprite) this._bossSprite.destroy();
     if (this.readyPulseTween) this.readyPulseTween.stop();
     if (this._clockTimer) this._clockTimer.remove();
+    if (this.researchBanner) { this.researchBanner.destroy(); this.researchBanner = null; }
+    if (this.desktopContainer) { this.desktopContainer.destroy(); this.desktopContainer = null; }
 
     // Remove GameState listeners
     gameState.off('suspicion_change', this._onSuspicionChange, this);
