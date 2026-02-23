@@ -728,6 +728,26 @@ export default class SocialNetworkScene extends Phaser.Scene {
       });
 
       this.tabContentContainer.add([nameText, bioText]);
+
+      // Notification dot for profiles with unseen intel
+      if (this.levelNum <= 2) { // Floor 1: prominent, Floor 2: subtle, Floor 3+: none
+        const friendPosts = this.friendbookData.posts?.[friendId] || [];
+        const hasUnseenIntel = friendPosts.some(post =>
+          post.intel && post.intel.key && !gameState.intelSeen.has(post.intel.key)
+        );
+        if (hasUnseenIntel) {
+          const dotSize = this.levelNum === 1 ? 6 : 4;
+          const dotColor = this.levelNum === 1 ? 0x4488ff : 0x335588;
+          const nameWidth = nameText.width;
+          const dot = this.add.circle(
+            nameText.x + nameWidth + 8,
+            nameText.y + 6,
+            dotSize, dotColor
+          ).setDepth(nameText.depth + 1);
+          this.tabContentContainer.add(dot);
+        }
+      }
+
       yOffset += Math.max(44, bioText.height + 30);
     });
 
