@@ -44,6 +44,7 @@ const TERMINAL_EVENTS = [
  *   'intel_reset'         intelKeys[]
  *   'intel_seen'          key
  *   'intel_used'          key
+ *   'research_phase_end'  (no data)
  *   'no_victims_tonight'  (no data)
  *   'remittance_sent'     { amount, total }
  */
@@ -91,6 +92,18 @@ class GameState extends Phaser.Events.EventEmitter {
     this.intelKeys = [];
     this.intelSeen = new Set();
     this.intelUsed = new Set();
+
+    // Research phase — true until player picks up phone
+    this.researchPhase = true;
+
+    // Per-victim notebook: Map<victimName, string>
+    this.victimNotes = new Map();
+
+    // Per-victim email login state: Map<victimName, boolean>
+    this.emailLoggedIn = new Map();
+
+    // Tutorial flags (persist in localStorage)
+    this.tutorialsSeen = JSON.parse(localStorage.getItem('scammer_sim_tutorials') || '{}');
   }
 
   /* ------------------------------------------------------------------
@@ -112,6 +125,8 @@ class GameState extends Phaser.Events.EventEmitter {
     this.shiftEarnings = 0;
     this.shiftDurationSec = floor.shiftDurationSec;
     this.shiftActive = true;
+    this.researchPhase = true;
+    this.emailLoggedIn = new Map();
     this.shiftStartTime = Date.now();
     this.combo = 0;
     this.shiftResults = [];
@@ -152,6 +167,39 @@ class GameState extends Phaser.Events.EventEmitter {
     this.callActive = true;
     this.callStartTime = Date.now();
     this.callEndedClean = true;
+    this._pendingCallEnd = null;
+  }
+
+  exitResearchPhase() {
+    if (!this.researchPhase) return;
+    this.researchPhase = false;
+    this.shiftStartTime = Date.now();
+    this.emit('research_phase_end');
+  }
+
+  setVictimNote(victimName, text) {
+    this.victimNotes.set(victimName, text);
+  }
+
+  getVictimNote(victimName) {
+    return this.victimNotes.get(victimName) || '';
+  }
+
+  setEmailLoggedIn(victimName) {
+    this.emailLoggedIn.set(victimName, true);
+  }
+
+  isEmailLoggedIn(victimName) {
+    return this.emailLoggedIn.get(victimName) === true;
+  }
+
+  hasTutorialSeen(key) {
+    return this.tutorialsSeen[key] === true;
+  }
+
+  markTutorialSeen(key) {
+    this.tutorialsSeen[key] = true;
+    localStorage.setItem('scammer_sim_tutorials', JSON.stringify(this.tutorialsSeen));
   }
 
   /* ------------------------------------------------------------------
@@ -281,8 +329,13 @@ class GameState extends Phaser.Events.EventEmitter {
         }
 
         // Auto-end the call on terminal events
-        if (TERMINAL_EVENTS.includes(data.event)) {
-          this.endCall(data.event);
+        if (TERMINAL_EVENTS.includes(data.event) && !this._pendingCallEnd) {
+          const isSuccessEvent = ['agrees_to_pay', 'gives_gift_card_code'].includes(data.event);
+          if (isSuccessEvent) {
+            this._scheduleCallEnd(data.event, 4000);
+          } else {
+            this.endCall(data.event);
+          }
         }
       }
     }
@@ -296,9 +349,30 @@ class GameState extends Phaser.Events.EventEmitter {
     if (this.callActive && this.suspicion >= 100) {
       this.endCall('suspicion_maxed');
     }
-    if (this.callActive && this.compliance >= 100) {
-      this.endCall('compliance_maxed');
+    if (this.callActive && !this._pendingCallEnd && this.compliance >= 100) {
+      this._scheduleCallEnd('compliance_maxed', 4000);
     }
+  }
+
+  /**
+   * Schedule a delayed call end, giving the AI time to speak a final response.
+   * @param {string} reason - Why the call is ending
+   * @param {number} delayMs - Milliseconds to wait before ending
+   * @private
+   */
+  _scheduleCallEnd(reason, delayMs) {
+    if (this._pendingCallEnd) return;
+
+    console.log(`[GameState] Call ending in ${delayMs}ms (reason: ${reason})`);
+    this._pendingCallEnd = {
+      reason,
+      timerId: setTimeout(() => {
+        this._pendingCallEnd = null;
+        if (this.callActive) {
+          this.endCall(reason);
+        }
+      }, delayMs),
+    };
   }
 
   /**
@@ -307,6 +381,12 @@ class GameState extends Phaser.Events.EventEmitter {
    */
   endCall(reason) {
     if (!this.callActive) return;
+
+    // Clear any pending delayed end (e.g. player hung up or suspicion maxed during delay)
+    if (this._pendingCallEnd) {
+      clearTimeout(this._pendingCallEnd.timerId);
+      this._pendingCallEnd = null;
+    }
 
     this.callActive = false;
 
