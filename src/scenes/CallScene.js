@@ -787,29 +787,47 @@ export class CallScene extends Phaser.Scene {
     const intelY = cardY + baseCardH;
 
     // Divider line
-    const divider = this.add.graphics();
-    divider.lineStyle(1, 0x334466, 0.5);
-    divider.lineBetween(cardX + 12, intelY, cardX + cardW - 12, intelY);
+    const g = this.add.graphics().setDepth(200);
+    g.lineStyle(1, 0x334455);
+    g.lineBetween(cardX + 8, intelY + 2, cardX + cardW - 8, intelY + 2);
 
-    const header = this.add.text(cardX + 14, intelY + 6, 'Intel', {
-      fontFamily: '"Courier New", monospace',
-      fontSize: '11px',
-      color: '#ffd54f',
-      fontStyle: 'bold'
-    });
+    // Header
+    this.add.text(cardX + 14, intelY + 6, 'Intel', {
+      fontFamily: '"Courier New", monospace', fontSize: '11px',
+      fontStyle: 'bold', color: '#66aacc'
+    }).setDepth(201);
 
-    this.callIntelTexts = {};
-    gameState.intelKeys.forEach((intel, i) => {
-      const y = intelY + 24 + i * 20;
+    this.callIntelItems = {};
+    let yOffset = intelY + 24;
+
+    gameState.intelKeys.forEach((intel) => {
       const isUsed = gameState.intelUsed.has(intel.key);
-      const state = isUsed ? '[OK]' : '[??]';
-      const label = isUsed ? intel.description : '???';
-      const text = this.add.text(cardX + 14, y, `${state} ${label}`, {
-        fontFamily: '"Courier New", monospace',
-        fontSize: '10px',
-        color: isUsed ? '#66bb6a' : '#cccccc'
-      });
-      this.callIntelTexts[intel.key] = text;
+      const category = intel.trackerCategory || intel.category || '???';
+
+      // Category/status line
+      const statusIcon = isUsed ? '\u2B50' : '\uD83D\uDD0D';
+      const statusText = isUsed ? intel.description : category;
+      const statusColor = isUsed ? '#66bb6a' : '#aaaaaa';
+      const suffix = isUsed ? ' \u2014 CONFIRMED' : '';
+
+      const text = this.add.text(cardX + 14, yOffset, `${statusIcon} ${statusText}${suffix}`, {
+        fontFamily: '"Courier New", monospace', fontSize: '11px',
+        color: statusColor, wordWrap: { width: cardW - 32 }
+      }).setDepth(201);
+
+      // CallHint (shown only when used)
+      let hintText = null;
+      if (isUsed && intel.callHint) {
+        hintText = this.add.text(cardX + 28, yOffset + 16, `\uD83D\uDCAC "${intel.callHint}"`, {
+          fontFamily: '"Courier New", monospace', fontSize: '9px',
+          color: '#88aa66', fontStyle: 'italic',
+          wordWrap: { width: cardW - 48 }
+        }).setDepth(201);
+        yOffset += hintText.height + 4;
+      }
+
+      this.callIntelItems[intel.key] = { text, hintText };
+      yOffset += 20;
     });
 
     gameState.on('intel_used', this._onCallIntelUsed, this);
@@ -817,22 +835,33 @@ export class CallScene extends Phaser.Scene {
 
   _onCallIntelUsed(key) {
     const intel = gameState.intelKeys.find(i => i.key === key);
-    const text = this.callIntelTexts?.[key];
-    if (intel && text) {
-      text.setText(`[OK] ${intel.description}`);
-      text.setColor('#66bb6a');
+    const item = this.callIntelItems?.[key];
+
+    if (intel && item && item.text) {
+      // Update status text
+      item.text.setText(`\u2B50 ${intel.description} \u2014 CONFIRMED`);
+      item.text.setColor('#66bb6a');
+
+      // Scale animation
       this.tweens.add({
-        targets: text,
-        scaleX: 1.2, scaleY: 1.2,
-        duration: 150,
-        yoyo: true,
-        ease: 'Quad.easeOut'
+        targets: item.text, scaleX: 1.15, scaleY: 1.15,
+        duration: 150, yoyo: true, ease: 'Quad.easeOut'
       });
+
+      // Show callHint below (if not already shown)
+      if (!item.hintText && intel.callHint) {
+        const hintY = item.text.y + 16;
+        item.hintText = this.add.text(item.text.x + 14, hintY, `\uD83D\uDCAC "${intel.callHint}"`, {
+          fontFamily: '"Courier New", monospace', fontSize: '9px',
+          color: '#88aa66', fontStyle: 'italic',
+          wordWrap: { width: (this._cardLayout?.cardW || 200) - 48 }
+        }).setDepth(201).setAlpha(0);
+
+        this.tweens.add({ targets: item.hintText, alpha: 1, duration: 300 });
+      }
     }
 
-    if (intel) {
-      this._showIntelToast(intel.description);
-    }
+    if (intel) { this._showIntelToast(intel.description); }
   }
 
   // =========================================================================
