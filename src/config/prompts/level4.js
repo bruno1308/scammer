@@ -161,7 +161,7 @@ IMPORTANT: If the caller uses these details in a FORCED, ROBOTIC, or UNNATURAL w
   return {
     instructions,
     tools: [UPDATE_GAME_STATE_TOOL],
-    voice: victimGender === "male" ? "echo" : "nova",
+    voice: victimGender === "male" ? "echo" : "coral",
   };
 }
 

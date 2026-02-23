@@ -31,7 +31,7 @@ PERSONALITY — JENNIFER WALSH, CFO (44, San Francisco, California):
 `,
   },
   'Amanda Price, CFO': {
-    voice: 'nova',
+    voice: 'coral',
     filterParams: { highpass: 260, lowpass: 3600, midFreq: 1300, midGain: 3, midQ: 1.0, compThreshold: -26, compRatio: 5 },
     personalityBlock: `
 PERSONALITY — AMANDA PRICE, CFO (41, Boston, Massachusetts):

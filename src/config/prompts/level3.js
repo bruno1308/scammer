@@ -191,7 +191,7 @@ IMPORTANT: If the caller uses these details in a FORCED, ROBOTIC, or UNNATURAL w
   return {
     instructions,
     tools: [UPDATE_GAME_STATE_TOOL, TECH_SUPPORT_DESKTOP_ACTION_TOOL],
-    voice: victimGender === "male" ? "onyx" : "shimmer",
+    voice: victimGender === "male" ? "ash" : "shimmer",
   };
 }
 

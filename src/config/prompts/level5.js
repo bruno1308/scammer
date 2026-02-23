@@ -172,7 +172,7 @@ IMPORTANT: If the caller uses these details in a FORCED or UNNATURAL way (listin
   return {
     instructions,
     tools: [UPDATE_GAME_STATE_TOOL],
-    voice: victimGender === "male" ? "onyx" : "alloy",
+    voice: victimGender === "male" ? "ash" : "alloy",
   };
 }
 

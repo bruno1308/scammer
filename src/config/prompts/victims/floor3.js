@@ -1,7 +1,7 @@
 // src/config/prompts/victims/floor3.js - Tech Support (mixed ages)
 export const FLOOR3_VICTIMS = {
   'Karen Thompson': {
-    voice: 'nova',
+    voice: 'coral',
     filterParams: { highpass: 220, lowpass: 3800, midFreq: 1400, midGain: 2, midQ: 0.8, compThreshold: -24, compRatio: 4 },
     personalityBlock: `
 PERSONALITY — KAREN THOMPSON (35, Denver, Colorado):
@@ -49,7 +49,7 @@ PERSONALITY — SUSAN LEE (52, Seattle, Washington):
 `,
   },
   'Tom Anderson': {
-    voice: 'onyx',
+    voice: 'ash',
     filterParams: { highpass: 280, lowpass: 3500, midFreq: 1250, midGain: 4, midQ: 1.0, compThreshold: -30, compRatio: 6 },
     personalityBlock: `
 PERSONALITY — TOM ANDERSON (44, Minneapolis, Minnesota):

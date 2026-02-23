@@ -17,7 +17,7 @@ PERSONALITY — DAVID CHEN (42, Sacramento, California):
 `,
   },
   'Maria Gonzalez': {
-    voice: 'nova',
+    voice: 'coral',
     filterParams: { highpass: 280, lowpass: 3500, midFreq: 1300, midGain: 3, midQ: 1.0, compThreshold: -26, compRatio: 5 },
     personalityBlock: `
 PERSONALITY — MARIA GONZALEZ (38, Houston, Texas):
@@ -33,7 +33,7 @@ PERSONALITY — MARIA GONZALEZ (38, Houston, Texas):
 `,
   },
   'James Wilson': {
-    voice: 'onyx',
+    voice: 'ash',
     filterParams: { highpass: 300, lowpass: 3400, midFreq: 1200, midGain: 4, midQ: 1.0, compThreshold: -30, compRatio: 6 },
     personalityBlock: `
 PERSONALITY — JAMES WILSON (45, Chicago, Illinois):

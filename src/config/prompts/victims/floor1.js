@@ -18,7 +18,7 @@ PERSONALITY — DOROTHY MILLER (72, Des Moines, Iowa):
 `,
   },
   'Harold Patterson': {
-    voice: 'onyx',
+    voice: 'ash',
     filterParams: { highpass: 350, lowpass: 3000, midFreq: 1200, midGain: 4, midQ: 1.0, compThreshold: -30, compRatio: 6 },
     personalityBlock: `
 PERSONALITY — HAROLD PATTERSON (78, Tucson, Arizona):
@@ -66,7 +66,7 @@ PERSONALITY — EARL WASHINGTON (74, Atlanta, Georgia):
 `,
   },
   "Margaret O'Brien": {
-    voice: 'nova',
+    voice: 'coral',
     filterParams: { highpass: 360, lowpass: 3200, midFreq: 1250, midGain: 3, midQ: 1.0, compThreshold: -28, compRatio: 6 },
     personalityBlock: `
 PERSONALITY — MARGARET O'BRIEN (81, Boston, Massachusetts):

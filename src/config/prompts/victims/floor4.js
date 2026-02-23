@@ -1,7 +1,7 @@
 // src/config/prompts/victims/floor4.js - Romance Scam (lonely adults)
 export const FLOOR4_VICTIMS = {
   'Linda Foster': {
-    voice: 'nova',
+    voice: 'coral',
     filterParams: { highpass: 260, lowpass: 3600, midFreq: 1300, midGain: 3, midQ: 1.0, compThreshold: -26, compRatio: 5 },
     personalityBlock: `
 PERSONALITY — LINDA FOSTER (56, Nashville, Tennessee):
@@ -49,7 +49,7 @@ PERSONALITY — PATRICIA MARTINEZ (62, Albuquerque, New Mexico):
 `,
   },
   'William Brooks': {
-    voice: 'onyx',
+    voice: 'ash',
     filterParams: { highpass: 250, lowpass: 3500, midFreq: 1150, midGain: 4, midQ: 1.1, compThreshold: -30, compRatio: 6 },
     personalityBlock: `
 PERSONALITY — WILLIAM BROOKS (53, Charlotte, North Carolina):
