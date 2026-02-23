@@ -90,7 +90,7 @@ const FRIENDBOOK_DATA = {
             { author: 'mei_chen', text: 'Babe for the LAST TIME just let Steve handle it. That is literally what we pay him for \ud83d\ude02' },
             { author: 'lily_chen', text: 'Do not worry my son. Mei will take care of the numbers! She is very smart with money \ud83d\ude0a' }
           ],
-          intel: { key: 'TAX_STRESS', value: "David is stressed about tax season and confused about filing his contractor income correctly" }
+          intel: null
         },
         {
           text: 'Brandon scored the game winner in overtime today. 2-1!! This kid is going places. Proudest dad in Sacramento right now \ud83d\ude2d\u26bd',
@@ -120,7 +120,7 @@ const FRIENDBOOK_DATA = {
             { author: 'david_chen', text: 'Babe I literally just started, calm down about the taxes already \ud83d\ude05' },
             { author: 'lily_chen', text: 'My son is working so hard! But Mei is right, you must keep good records. Listen to your wife!' }
           ],
-          intel: { key: 'FREELANCE_WORK', value: "David started freelance contracting through UpBuild Consulting on the side, earning 1099 income on top of his regular job at Meridian" }
+          intel: { key: 'FREELANCE_INCOME', value: "David started freelance contracting through UpBuild Consulting on the side, earning 1099 income on top of his regular job at Meridian" }
         },
         {
           text: "Kitchen renovation is FINALLY done!! Only took 3 months longer than quoted and cost... let's not talk about what it cost. But David insisted on the top-of-the-line everything. New appliances, quartz countertops, custom cabinets. He says it's an \"investment.\" I say it's an excuse to buy a bigger grill. \ud83d\ude0d",
@@ -130,7 +130,7 @@ const FRIENDBOOK_DATA = {
             { author: 'david_chen', text: 'The grill is a separate line item and you know it \ud83d\ude02' },
             { author: 'lily_chen', text: 'The kitchen is beautiful! I made dumplings on the new stove today. Perfect!' }
           ],
-          intel: { key: 'NEW_PURCHASE', value: "Major kitchen renovation recently completed with expensive upgrades \u2014 could look like unreported income funding it" }
+          intel: { key: 'RENOVATION_EXPENSE', value: "$22K kitchen renovation recently completed with expensive upgrades \u2014 could look like unreported income funding it" }
         },
         {
           text: "Tax season is upon us \ud83d\ude29 At least we have Steve at H&R Block handling ours. I may be a CPA but I am NOT doing my own taxes. That's like a doctor operating on themselves. No thank you.",
@@ -140,7 +140,7 @@ const FRIENDBOOK_DATA = {
             { author: 'david_chen', text: 'Steve is the man. Been doing ours for 5 years now' },
             { author: 'lily_chen', text: 'Can Steve do mine too? I have so many forms this year with the move...' }
           ],
-          intel: { key: 'FILING_DETAIL', value: "Mei is a CPA at Wallace & Associates; they use Steve at H&R Block for their own taxes and file jointly" }
+          intel: null
         },
         {
           text: 'Yoga then wine. The only acceptable order of operations on a Friday night. \ud83e\uddd8\u200d\u2640\ufe0f\ud83c\udf77',
@@ -157,6 +157,14 @@ const FRIENDBOOK_DATA = {
           likes: 41,
           comments: [
             { author: 'lily_chen', text: 'My smart grandson! The B+ will be an A next time, I will help him study \ud83d\udcda' }
+          ],
+          intel: null
+        },
+        {
+          text: "David I swear if your email password is still 'upbuild2019' I'm changing it myself \ud83d\ude44 You use the same password for EVERYTHING",
+          time: '4 days ago', likes: 3,
+          comments: [
+            { author: 'david_chen', text: "It's a good password! It has numbers AND letters \ud83d\ude24", time: '4 days ago', likes: 1 }
           ],
           intel: null
         }
@@ -232,10 +240,9 @@ const FRIENDBOOK_DATA = {
       ]
     },
     intelKeys: [
-      { key: 'FREELANCE_WORK', boost: 15, description: "Wife posted about David's new freelance contracting side jobs", category: 'primary', callHint: "Reference his 1099 contractor income through UpBuild Consulting that wasn't reported on his return" },
-      { key: 'TAX_STRESS', boost: 10, description: 'David mentioned being confused about tax forms for contractor work', category: 'authority', callHint: "Show you know he's been struggling with the filing \u2014 say your records show discrepancies matching what he filed" },
-      { key: 'NEW_PURCHASE', boost: 8, description: 'Expensive kitchen renovation recently completed', category: 'pressure', callHint: "Mention that large expenditures flagged against reported income \u2014 the renovation raises audit flags" },
-      { key: 'FILING_DETAIL', boost: 5, description: 'Wife is a CPA; they file jointly through Steve at H&R Block', category: 'corroborating', callHint: "Reference their joint filing or their preparer to sound like you have their actual tax records" }
+      { key: 'FREELANCE_INCOME', boost: 15, description: "Wife posted about David's UpBuild Consulting 1099 income", category: 'primary', trackerCategory: 'Income source', callHint: "Reference his 1099 contractor income through UpBuild Consulting that wasn't reported" },
+      { key: 'TAX_FILING', boost: 12, description: 'H&R Block email shows 1099 discrepancy in joint filing', category: 'legitimacy', trackerCategory: 'Tax filing details', callHint: "Reference the joint filing and contractor income discrepancy" },
+      { key: 'RENOVATION_EXPENSE', boost: 10, description: '$22K kitchen renovation flagged against reported income', category: 'pressure', trackerCategory: 'Flagged expenditure', callHint: "Mention the renovation raises audit flags against reported income" },
     ]
   },
 
@@ -350,7 +357,7 @@ const FRIENDBOOK_DATA = {
             { author: 'diego_morales', text: 'Sis you definitely cried. I heard you from the other room \ud83d\ude02 But that package is beautiful. Abuela will flip.' },
             { author: 'sofia_gonzalez', text: 'i drew abuela a picture of luna in a sombrero!!!' }
           ],
-          intel: { key: 'INTERNATIONAL_PACKAGE', value: "Maria shipped an international care package via DHL to her grandmother in Guadalajara, Mexico for her 80th birthday" }
+          intel: { key: 'PACKAGE_DETAILS', value: "Maria shipped an international care package via DHL to her grandmother in Guadalajara, Mexico for her 80th birthday \u2014 declared $340" }
         },
         {
           text: "12 hour shift at Valero but the overtime is worth it. Gotta keep the lights on and Sofia in Girl Scout uniforms. Houston refinery crew putting in work \ud83d\udcaa\u26fd",
@@ -369,7 +376,7 @@ const FRIENDBOOK_DATA = {
             { author: 'maria_gonzalez', text: 'Carlos why are you posting our personal business!! \ud83d\ude24 Also yes I called FOUR times actually' },
             { author: 'diego_morales', text: 'Sis I could have helped you with the customs forms \ud83d\ude02 that is literally what I deal with all day' }
           ],
-          intel: { key: 'RECIPIENT_DETAILS', value: "Package shipped to Calle Reforma 247, Colonia Centro, Guadalajara \u2014 Maria verified the address and customs forms multiple times" }
+          intel: { key: 'DESTINATION_ADDRESS', value: "Package shipped to Calle Reforma 247, Colonia Centro, Guadalajara \u2014 Maria verified the address and customs forms multiple times" }
         },
         {
           text: 'Astros spring training starts next week. This is our year. I can feel it. \u26be\ud83e\udd20',
@@ -385,6 +392,14 @@ const FRIENDBOOK_DATA = {
           comments: [
             { author: 'maria_gonzalez', text: 'It is very nice. The PAYMENTS are not very nice. \ud83d\ude11' },
             { author: 'diego_morales', text: 'Bro that thing is clean \ud83d\udd25' }
+          ],
+          intel: null
+        },
+        {
+          text: "Maria your DHL login still uses abuela's name right? 'rosa1946'? I need to check the tracking \ud83d\udce6",
+          time: '3 days ago', likes: 2,
+          comments: [
+            { author: 'maria_gonzalez', text: "Carlos!! Don't post my passwords on here! \ud83d\ude21 Yes that one, I'll text it to you", time: '3 days ago', likes: 5 }
           ],
           intel: null
         }
@@ -409,7 +424,7 @@ const FRIENDBOOK_DATA = {
             { author: 'maria_gonzalez', text: 'Abuela is going to LOVE it mija. She will probably cry just like mommy did \ud83d\ude02\u2764\ufe0f' },
             { author: 'diego_morales', text: 'Sofia your drawing is the best thing in that whole package. Trust your tio on this \ud83d\ude02' }
           ],
-          intel: { key: 'GIFT_FOR_FAMILY', value: "The package is a deeply personal birthday gift for Maria's beloved 80-year-old abuela \u2014 the whole family contributed" }
+          intel: { key: 'EMOTIONAL_STAKES', value: "The package is a deeply personal birthday gift for Maria's beloved 80-year-old abuela Rosa \u2014 the whole family contributed irreplaceable items" }
         },
         {
           text: 'i sold 12 boxes of cookies today at the table!! im gonna reach my goal!!!',
@@ -430,7 +445,7 @@ const FRIENDBOOK_DATA = {
             { author: 'maria_gonzalez', text: 'I am NOT checking every hour. Just every two hours. \ud83d\ude24' },
             { author: 'carlos_gonzalez', text: 'She literally has the tracking page bookmarked on her phone AND her work computer' }
           ],
-          intel: { key: 'SHIPPING_TIMING', value: "Package shipped last Thursday via DHL from Houston, 5-7 business days delivery, Maria is anxiously tracking it" }
+          intel: null
         },
         {
           text: 'Won my client\'s asylum case today. 3 years of fighting and we finally got the approval. This is why I do this work. \ud83c\uddfa\ud83c\uddf8\u2696\ufe0f',
@@ -462,10 +477,9 @@ const FRIENDBOOK_DATA = {
       ]
     },
     intelKeys: [
-      { key: 'INTERNATIONAL_PACKAGE', boost: 15, description: "Husband posted about Maria shipping a care package to Guadalajara via DHL", category: 'primary', callHint: "Reference the DHL international shipment to Guadalajara that was flagged at the border for exceeding duty-free limits" },
-      { key: 'RECIPIENT_DETAILS', boost: 10, description: 'Destination address and customs form details visible in posts', category: 'authority', callHint: "Cite the destination address (Calle Reforma 247, Colonia Centro) to prove you have the actual customs filing" },
-      { key: 'GIFT_FOR_FAMILY', boost: 8, description: "The package is a birthday gift for her 80-year-old grandmother", category: 'pressure', callHint: "Mention the package will be destroyed if the fee isn't paid \u2014 she'll panic about losing abuela's birthday gift" },
-      { key: 'SHIPPING_TIMING', boost: 5, description: 'Package shipped last Thursday, 5-7 business days, Maria tracking anxiously', category: 'corroborating', callHint: "Reference the shipping date and transit timeline to match what she already knows about the delivery window" }
+      { key: 'PACKAGE_DETAILS', boost: 15, description: 'DHL shipment to Guadalajara, declared $340, tracking available', category: 'primary', trackerCategory: 'Shipment details', callHint: "Reference the DHL international shipment that was flagged at customs" },
+      { key: 'DESTINATION_ADDRESS', boost: 12, description: 'Destination: Calle Reforma 247, Colonia Centro, Guadalajara', category: 'legitimacy', trackerCategory: 'Destination address', callHint: "Cite the destination address to prove you have the customs filing" },
+      { key: 'EMOTIONAL_STAKES', boost: 10, description: "Package is for abuela Rosa's 80th birthday \u2014 irreplaceable items", category: 'pressure', trackerCategory: 'Package contents', callHint: "Mention the package will be destroyed \u2014 she'll panic about abuela's gift" },
     ]
   },
 
@@ -591,7 +605,7 @@ const FRIENDBOOK_DATA = {
             { author: 'james_wilson', text: 'This is going to be a headache for weeks. I can already tell.' },
             { author: 'tamara_wilson', text: 'At least you have the police report. That other driver cannot dispute a citation.' }
           ],
-          intel: { key: 'CASE_DETAIL', value: "Incident on Kennedy Expressway near Diversey, police report filed with 14th District, other driver was cited" }
+          intel: { key: 'CASE_DETAILS', value: "Incident on Kennedy Expressway near Diversey, police report filed with 14th District, other driver was cited" }
         },
         {
           text: "College tour week! Jason and I are visiting Northwestern, U of I, and Wisconsin this week. My baby is growing up and I am NOT handling it well. Already cried twice and we haven't left yet. \ud83d\ude2d\u2708\ufe0f\ud83c\udf93",
@@ -609,6 +623,14 @@ const FRIENDBOOK_DATA = {
           likes: 15,
           imageKey: 'fb_l2_post_open_house',
           comments: [],
+          intel: null
+        },
+        {
+          text: "Happy anniversary to the love of my life! 12 years since that first date on Diversey Ave \u2764\ufe0f Still the best night of my life @jameswilson",
+          time: '1 week ago', likes: 24,
+          comments: [
+            { author: 'tamara_wilson', text: "You two are the cutest! I remember you wouldn't stop talking about that date for WEEKS \ud83d\ude02", time: '1 week ago', likes: 8 }
+          ],
           intel: null
         }
       ],
@@ -653,7 +675,7 @@ const FRIENDBOOK_DATA = {
             { author: 'james_wilson', text: 'T I told you that in CONFIDENCE. Also it is a legitimate question!!' },
             { author: 'angela_wilson', text: 'James you were NOT at fault. The other driver got the citation. Relax babe \ud83d\ude02' }
           ],
-          intel: { key: 'WORK_IMPACT', value: "James recently promoted to Operations Manager at Lakefront Manufacturing \u2014 worried about his record affecting his career" }
+          intel: { key: 'CAREER_STAKES', value: "James recently promoted to Operations Manager at Lakefront Manufacturing \u2014 worried about his record affecting his career" }
         },
         {
           text: "James is still complaining about his neck from that accident. I told him to come into Rush for an X-ray but he insists he's \"fine.\" Classic big brother. Angela, MAKE him go. \ud83d\ude44",
@@ -663,7 +685,7 @@ const FRIENDBOOK_DATA = {
             { author: 'angela_wilson', text: 'I have been TRYING. You know how stubborn he is.' },
             { author: 'james_wilson', text: 'I am FINE. It is just sore.' }
           ],
-          intel: { key: 'FRIEND_MENTION', value: "Tamara (sister, ER nurse) confirming James's traffic accident and injuries \u2014 the incident is well-documented among family" }
+          intel: null
         },
         {
           text: "Just booked a solo trip to Costa Rica for spring break! After 60+ hour weeks at the hospital I deserve this. Beach. Books. No pagers. \ud83c\udfd6\ufe0f\ud83d\udcda",
@@ -685,10 +707,9 @@ const FRIENDBOOK_DATA = {
       ]
     },
     intelKeys: [
-      { key: 'TRAFFIC_INCIDENT', boost: 15, description: "Wife posted about James's rear-end collision on the Kennedy Expressway", category: 'primary', callHint: "Reference the traffic incident on the Kennedy Expressway \u2014 say his citation from the accident triggered an outstanding fine in the system" },
-      { key: 'CASE_DETAIL', boost: 10, description: 'Police report filed with 14th District, location near Diversey exit', category: 'authority', callHint: "Cite the 14th District police report and the Diversey/Kennedy location to sound like you have the actual court records" },
-      { key: 'WORK_IMPACT', boost: 8, description: 'Just promoted at Lakefront Manufacturing, worried about his record', category: 'pressure', callHint: "Warn that an outstanding bench warrant would show up on employer background checks \u2014 he'll panic about his new promotion" },
-      { key: 'FRIEND_MENTION', boost: 5, description: 'Sister confirmed the accident details publicly, well-documented incident', category: 'corroborating', callHint: "Reference details that match what multiple family members have confirmed about the accident" }
+      { key: 'TRAFFIC_INCIDENT', boost: 15, description: "Rear-end collision on the Kennedy Expressway", category: 'primary', trackerCategory: 'Legal incident', callHint: "Reference the Kennedy Expressway incident \u2014 say it triggered an outstanding fine" },
+      { key: 'CASE_DETAILS', boost: 12, description: 'Court email: Case #2026-TR-041892, 14th District, $375 fine', category: 'legitimacy', trackerCategory: 'Case details', callHint: "Cite the case number and 14th District filing to sound official" },
+      { key: 'CAREER_STAKES', boost: 10, description: 'Just promoted to Operations Manager \u2014 bench warrant would show on background check', category: 'pressure', trackerCategory: 'Employment risk', callHint: "Warn a bench warrant would appear on employer background checks" },
     ]
   },
 
@@ -897,7 +918,7 @@ const FRIENDBOOK_DATA = {
             { author: 'raj_patel', text: 'Mom you literally just admitted government paperwork has always been bad \ud83d\ude02' },
             { author: 'priya_patel', text: 'Three hours Mummyji. THREE HOURS. And they told us to come back Tuesday. I wanted to scream \ud83d\ude29' }
           ],
-          intel: { key: 'ADMIN_FRUSTRATION', value: "Sunita accompanied Priya to the Social Security office \u2014 3 hour wait, rejected form, had to return. Family frustrated with government paperwork process" }
+          intel: null
         },
         {
           text: 'Made aloo paratha and kheer for my grandson Dev today. He ate four parathas! Growing boy needs good food. Not like that pizza he always wants. Homemade food is best food! \ud83e\udd58',
@@ -933,10 +954,9 @@ const FRIENDBOOK_DATA = {
       ]
     },
     intelKeys: [
-      { key: 'NAME_CHANGE', boost: 15, description: "Husband posted about Priya updating her name across government records (SSA, DMV, pension)", category: 'primary', callHint: "Reference the recent name change on her pension account \u2014 say it triggered a verification flag in the system" },
-      { key: 'PAPERWORK_DETAIL', boost: 10, description: 'Pension office keeps sending letters requesting updated info after name change', category: 'authority', callHint: "Mention the repeated letters and say this call is the final step before they escalate to account suspension" },
-      { key: 'FAMILY_CONCERN', boost: 8, description: "Mother-in-law worried pension could be frozen; family relies on teacher's pension", category: 'pressure', callHint: "Warn that benefits will be frozen immediately without the verification fee \u2014 she knows the family depends on it" },
-      { key: 'ADMIN_FRUSTRATION', boost: 5, description: 'Family spent 3 hours at Social Security office, rejected forms, had to return', category: 'corroborating', callHint: "Reference the SSA visit and form issues to make it seem like this call is part of the same bureaucratic chain" }
+      { key: 'NAME_CHANGE', boost: 15, description: "Husband posted about Priya updating her name across government records (SSA, DMV, pension)", category: 'primary', trackerCategory: 'Account flag', callHint: "Reference the recent name change on her pension account \u2014 say it triggered a verification flag in the system" },
+      { key: 'PAPERWORK_DETAIL', boost: 12, description: 'Pension office keeps sending letters requesting updated info after name change', category: 'legitimacy', trackerCategory: 'Correspondence history', callHint: "Mention the repeated letters and say this call is the final step before they escalate to account suspension" },
+      { key: 'FAMILY_CONCERN', boost: 10, description: "Mother-in-law worried pension could be frozen; family relies on teacher's pension", category: 'pressure', trackerCategory: 'Financial dependency', callHint: "Warn that benefits will be frozen immediately without the verification fee \u2014 she knows the family depends on it" },
     ]
   },
 };
