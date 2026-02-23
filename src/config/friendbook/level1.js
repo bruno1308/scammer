@@ -5,11 +5,10 @@
  * Intel redesign: each piece of intel makes the scam story CREDIBLE
  * rather than just revealing personal trivia.
  *
- * Categories per victim:
+ * Categories per victim (3 intel pieces each):
  *   primary (boost 15)       — The specific purchase/transaction to reference
- *   corroborating (boost 10) — A detail that makes you sound like you have their file
- *   authority (boost 8)      — Payment method or account detail adding legitimacy
- *   timing (boost 5)         — When it happened, making the claim date-specific
+ *   corroborating (boost 12) — A detail that makes you sound like you have their file
+ *   legitimacy (boost 10)    — Payment method or account detail adding legitimacy
  */
 
 const FRIENDBOOK_DATA = {
@@ -124,14 +123,16 @@ const FRIENDBOOK_DATA = {
             { author: 'dorothy_miller', text: "Oh I wish I could be there in person! Sending a big box of surprises \u{1f4e6}" },
             { author: 'mike_mitchell', text: 'I have been assigned balloon duty \u{1fae1}' }
           ],
-          intel: { key: 'ORDER_DETAILS', value: "Dorothy ordered a LEGO Unicorn set for $49.99 as a birthday gift \u2014 Emma turns 8 next Tuesday" }
+          intel: null
         },
         {
-          text: 'School pickup line is my personal purgatory. 45 minutes. FORTY. FIVE. MINUTES.',
+          text: "Dropped off Emma's birthday cupcakes at Mom's place on 847 Elm Street before work. She insisted on making the frosting herself. That woman does not rest. Love you, Mom \u2764\ufe0f",
           time: '3 days ago',
           likes: 47,
-          comments: [],
-          intel: null
+          comments: [
+            { author: 'dorothy_miller', text: "The frosting is the best part, Karen! And those cupcakes turned out beautiful \u{1f60a}" }
+          ],
+          intel: { key: 'SHIPPING_ADDRESS', value: "Dorothy's address is 847 Elm Street, Des Moines" }
         }
       ],
       mike_mitchell: [
@@ -142,7 +143,7 @@ const FRIENDBOOK_DATA = {
           comments: [
             { author: 'karen_mitchell', text: "She called me about it too! Mom, if you're reading this, it's FINE \u{1f602}" }
           ],
-          intel: { key: 'PAYMENT_CARD', value: 'Dorothy used her Visa debit card for the Amazon purchase' }
+          intel: { key: 'VISA_CARD', value: 'Dorothy used her Visa debit card for the Amazon purchase' }
         },
         {
           text: "Vikings game day! Who's coming over? Bringing the smoker out \u{1f3c8}\u{1f525}",
@@ -161,7 +162,7 @@ const FRIENDBOOK_DATA = {
             { author: 'dorothy_miller', text: "No peeking, young lady! \u{1f60a}" },
             { author: 'karen_mitchell', text: "Emma do NOT look at Grandma's order history again \u{1f624}" }
           ],
-          intel: { key: 'DELIVERY_STATUS', value: "Dorothy's Amazon order shipped Saturday, tracking shows delivery by Wednesday" }
+          intel: null
         },
         {
           text: "my cat mr whiskers learned a new trick!! he sits when i say sit!! well sometimes \u{1f431}",
@@ -175,10 +176,9 @@ const FRIENDBOOK_DATA = {
       ]
     },
     intelKeys: [
-      { key: 'AMAZON_ORDER', boost: 15, description: 'Ordered a LEGO Unicorn set ($49.99) on Amazon', category: 'primary', callHint: 'Reference her specific Amazon order for the LEGO set to establish you have her account on file' },
-      { key: 'ORDER_DETAILS', boost: 10, description: 'Order was $49.99 birthday gift for granddaughter', category: 'corroborating', callHint: 'Mention the $49.99 charge and the item description to sound like you are reading her order record' },
-      { key: 'PAYMENT_CARD', boost: 8, description: 'Paid with Visa debit card', category: 'authority', callHint: 'Say "the Visa debit card on file" to sound like you see her payment method' },
-      { key: 'DELIVERY_STATUS', boost: 5, description: 'Order shipped Saturday, delivery by Wednesday', category: 'timing', callHint: 'Mention the shipping status or Saturday order date to make the billing error feel date-specific' }
+      { key: 'AMAZON_ORDER', boost: 15, description: 'Ordered a LEGO Unicorn Castle ($49.99) on Amazon', category: 'primary', trackerCategory: 'Order details', callHint: 'Reference her specific Amazon order for the LEGO set to establish you have her account on file' },
+      { key: 'VISA_CARD', boost: 12, description: 'Paid with Visa debit card', category: 'legitimacy', trackerCategory: 'Payment method', callHint: "Say 'the Visa debit card on file' to sound like you see her payment method" },
+      { key: 'SHIPPING_ADDRESS', boost: 10, description: 'Ships to 847 Elm Street, Des Moines', category: 'legitimacy', trackerCategory: 'Shipping address', callHint: 'Confirm her shipping address to prove you are in the system' },
     ]
   },
 
@@ -272,7 +272,7 @@ const FRIENDBOOK_DATA = {
             { author: 'richard_patterson', text: "Dad I told you I'd come set it up this weekend. Please don't click on anything until I get there." },
             { author: 'lisa_patterson', text: 'Exciting! You can video call Tyler now \u{1f60a}' }
           ],
-          intel: { key: 'RECENT_CHARGE', value: 'Harold recently purchased a laptop from Best Buy for $489 using his debit card' }
+          intel: { key: 'RECENT_PURCHASE', value: 'Harold recently purchased a laptop from Best Buy for $489 using his debit card' }
         },
         {
           text: "Beautiful sunset over the Catalinas tonight. God's country right here. \u{1f305}",
@@ -331,7 +331,7 @@ const FRIENDBOOK_DATA = {
             { author: 'richard_patterson', text: "I'll handle it. Just need him to stop panicking." },
             { author: 'harold_patterson', text: 'I am NOT panicking. I am concerned.' }
           ],
-          intel: { key: 'TRANSACTION_TIMING', value: 'The suspicious charge appeared on Thursday (about 3 days ago) \u2014 shortly after his first online purchase' }
+          intel: null
         }
       ],
       tyler_patterson: [
@@ -358,10 +358,9 @@ const FRIENDBOOK_DATA = {
       ]
     },
     intelKeys: [
-      { key: 'BANK_NAME', boost: 15, description: 'Banks at Arizona Federal Credit Union', category: 'primary', callHint: 'Say "Arizona Federal Credit Union fraud department" to sound like you are his actual bank' },
-      { key: 'RECENT_CHARGE', boost: 10, description: 'Recent $489 Best Buy laptop purchase on debit card', category: 'corroborating', callHint: 'Reference his $489 Best Buy purchase to explain how the "unauthorized charge" appeared on his account' },
-      { key: 'ACCOUNT_TYPE', boost: 8, description: 'Checking account with debit card, 15-year customer', category: 'authority', callHint: 'Say "your checking account" or "debit card ending in" to sound like you are looking at his account file' },
-      { key: 'TRANSACTION_TIMING', boost: 5, description: 'Suspicious charge appeared Thursday', category: 'timing', callHint: 'Say "the charge from Thursday" to match the timeline he already knows' }
+      { key: 'BANK_NAME', boost: 15, description: 'Banks at Arizona Federal Credit Union', category: 'primary', trackerCategory: 'Bank name', callHint: "Say 'Arizona Federal Credit Union fraud department' to establish authority" },
+      { key: 'RECENT_PURCHASE', boost: 12, description: 'Bought HP laptop ($489) at Best Buy', category: 'primary', trackerCategory: 'Recent purchase', callHint: 'Reference the $489 Best Buy charge as the suspicious transaction' },
+      { key: 'ACCOUNT_TYPE', boost: 10, description: 'Has had Arizona Federal debit card for 15 years', category: 'legitimacy', trackerCategory: 'Account details', callHint: 'Mention his longtime debit account to sound like you have his full file' },
     ]
   },
 
@@ -553,7 +552,7 @@ const FRIENDBOOK_DATA = {
             { author: 'betty_nakamura', text: 'Those cookies were for Hana! But you can have some too. \u{1f60a}' },
             { author: 'yuki_nakamura_davis', text: 'Marcus you are a saint. Also save me a cookie.' }
           ],
-          intel: { key: 'REFILL_TIMING', value: 'Betty placed her prescription refill order yesterday morning' }
+          intel: null
         },
         {
           text: "Hana asked me to photograph her stuffed animals \"for their portfolio.\" I now have 47 professional headshots of teddy bears. This is my life.",
@@ -569,10 +568,9 @@ const FRIENDBOOK_DATA = {
       ]
     },
     intelKeys: [
-      { key: 'PHARMACY_ORDER', boost: 15, description: 'Recent prescription order from NorthwestRx for $214', category: 'primary', callHint: 'Reference her recent NorthwestRx order to establish you are calling from the pharmacy billing department' },
-      { key: 'PRESCRIPTION_DETAILS', boost: 10, description: 'Three medications: blood pressure, arthritis, thyroid', category: 'corroborating', callHint: 'Mention her specific medications to sound like you are reading her prescription file' },
-      { key: 'BILLING_METHOD', boost: 8, description: 'Pays with Blue Cross insurance card', category: 'authority', callHint: 'Reference her Blue Cross card or insurance billing to sound like you see her payment records' },
-      { key: 'REFILL_TIMING', boost: 5, description: 'Refill order placed yesterday morning', category: 'timing', callHint: 'Say "your refill from yesterday morning" to match the exact timeline' }
+      { key: 'PHARMACY_ORDER', boost: 15, description: 'Recent prescription refill order', category: 'primary', trackerCategory: 'Pharmacy order', callHint: 'Reference the specific prescription to establish you have her pharmacy records' },
+      { key: 'PRESCRIPTION_DETAILS', boost: 12, description: 'Prescription and medication details', category: 'corroborating', trackerCategory: 'Prescription info', callHint: 'Mention prescription details to sound like you have her file' },
+      { key: 'BILLING_METHOD', boost: 10, description: 'Billing and payment method on file', category: 'legitimacy', trackerCategory: 'Billing method', callHint: 'Reference her payment method to prove account access' },
     ]
   },
 
@@ -744,7 +742,7 @@ const FRIENDBOOK_DATA = {
             { author: 'denise_washington_taylor', text: 'Marcus you are a good grandson. And Peachtree is going to hear from me.' },
             { author: 'earl_washington', text: 'That boy saved me $75! I owe him some of my potato salad.' }
           ],
-          intel: { key: 'ACCOUNT_HISTORY', value: "Earl has been a Peachtree Broadband customer since 2021 \u2014 about 5 years" }
+          intel: null
         },
         {
           text: "ok so i looked at grandpa's peachtree broadband billing history and they added \"premium support\" to his account back in October without him knowing. thats 6 months of extra charges at $62/month he never signed up for!! this is a scam fr \u{1f621}\u{1f621}",
@@ -782,10 +780,9 @@ const FRIENDBOOK_DATA = {
       ]
     },
     intelKeys: [
-      { key: 'ISP_PROVIDER', boost: 15, description: 'Internet provider is Peachtree Broadband', category: 'primary', callHint: 'Say "Peachtree Broadband billing department" to sound like his actual internet provider' },
-      { key: 'PLAN_DETAILS', boost: 10, description: 'On Basic 50 plan at $65/month, being charged $127', category: 'corroborating', callHint: 'Reference his Basic 50 plan and the $127 charge to sound like you are looking at his account' },
-      { key: 'BILLING_ISSUE', boost: 8, description: 'Unauthorized premium support add-on since October', category: 'authority', callHint: 'Mention the "premium support" charge to confirm you found the billing error he already suspects' },
-      { key: 'ACCOUNT_HISTORY', boost: 5, description: 'Customer since 2021 (about 5 years)', category: 'timing', callHint: 'Say "as a customer since 2021" to sound like you are reading his account history' }
+      { key: 'ISP_PROVIDER', boost: 15, description: 'Internet service provider details', category: 'primary', trackerCategory: 'ISP provider', callHint: 'Reference his ISP to establish you are from their company' },
+      { key: 'PLAN_DETAILS', boost: 12, description: 'Internet plan and service details', category: 'corroborating', trackerCategory: 'Service plan', callHint: 'Mention specific plan details to sound like you have his account' },
+      { key: 'BILLING_ISSUE', boost: 10, description: 'Recent billing issue or overcharge', category: 'legitimacy', trackerCategory: 'Billing issue', callHint: 'Reference the billing issue to establish the reason for your call' },
     ]
   },
 
@@ -952,7 +949,7 @@ const FRIENDBOOK_DATA = {
             { author: 'margaret_obrien', text: 'The results should come any day now. I just want to know so I can stop thinking about it.' },
             { author: 'patrick_obrien', text: "Ma they'll call you. Stop checking the mailbox." }
           ],
-          intel: { key: 'RECENT_CLAIM', value: "Margaret had bloodwork done at Mass General on Wednesday \u2014 lipid panel and thyroid check ordered by Dr. Callahan" }
+          intel: { key: 'MEDICAL_DETAILS', value: "Margaret had bloodwork done at Mass General on Wednesday \u2014 lipid panel and thyroid check ordered by Dr. Callahan" }
         },
         {
           text: "Margaret taught me her secret brown bread recipe today. She's been guarding it for 50 years but apparently having a great-grandchild earns you access to the vault. \u{1f35e}\u{1f511}",
@@ -975,15 +972,14 @@ const FRIENDBOOK_DATA = {
             { author: 'margaret_obrien', text: "What a smart girl!! She is going to be something special, I just know it! \u{1f60d}" },
             { author: 'patrick_obrien', text: 'That\'s my girl!! \u{1f44f}\u{1f44f}\u{1f44f}' }
           ],
-          intel: { key: 'COVERAGE_DETAILS', value: "Margaret's MassHealth Plus plan covers doctor visits, lab work, and prescriptions \u2014 she's had the plan for years" }
+          intel: null
         }
       ]
     },
     intelKeys: [
-      { key: 'INSURANCE_PROVIDER', boost: 15, description: 'Insured through MassHealth Plus', category: 'primary', callHint: 'Say "MassHealth Plus claims department" to sound like you are calling from her actual insurance provider' },
-      { key: 'RECENT_CLAIM', boost: 10, description: 'Recent bloodwork claim at Mass General (lipid panel, thyroid)', category: 'corroborating', callHint: 'Reference her bloodwork from Mass General to sound like you see the claim in your system' },
-      { key: 'COVERAGE_DETAILS', boost: 8, description: 'Plan covers visits, lab work, and prescriptions', category: 'authority', callHint: 'Mention her plan coverage details to sound like you are reading her policy file' },
-      { key: 'PAYMENT_METHOD', boost: 5, description: 'Pays premium by auto-debit from checking account', category: 'timing', callHint: 'Reference the auto-debit payment method to sound like you have her billing records' }
+      { key: 'INSURANCE_PROVIDER', boost: 15, description: 'Insured with MassHealth Plus', category: 'primary', trackerCategory: 'Insurance provider', callHint: "Say 'MassHealth Plus billing department' to establish authority" },
+      { key: 'MEDICAL_DETAILS', boost: 12, description: 'Recent bloodwork \u2014 lipid panel + thyroid', category: 'primary', trackerCategory: 'Recent medical visit', callHint: 'Reference the lipid panel bloodwork to prove you have her medical records' },
+      { key: 'PAYMENT_METHOD', boost: 10, description: 'Premiums auto-debit from checking account', category: 'legitimacy', trackerCategory: 'Payment method', callHint: 'Mention the auto-debit from checking to sound like you see her billing profile' },
     ]
   }
 };
