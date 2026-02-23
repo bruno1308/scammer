@@ -90,6 +90,17 @@ export default class NotebookScene extends Phaser.Scene {
     // Fade in
     this.cameras.main.setAlpha(0);
     this.tweens.add({ targets: this.cameras.main, alpha: 1, duration: 150 });
+
+    if (!gameState.hasTutorialSeen('notebook_intro')) {
+      gameState.markTutorialSeen('notebook_intro');
+      const tipText = this.add.text(nbX + nbW / 2, nbY + nbH - 24,
+        "\u{1F4A1} Jot down useful details here. Reference your notes during calls.",
+        { fontFamily: '"Courier New", monospace', fontSize: '11px', color: '#44bbff' }
+      ).setOrigin(0.5).setDepth(103);
+      this.time.delayedCall(5000, () => {
+        this.tweens.add({ targets: tipText, alpha: 0, duration: 500, onComplete: () => tipText.destroy() });
+      });
+    }
   }
 
   _escapeHtml(text) {

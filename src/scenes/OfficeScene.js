@@ -515,6 +515,27 @@ export class OfficeScene extends Phaser.Scene {
       targetProfileId: data.targetProfileId,
       level: this.levelNum
     });
+
+    if (!gameState.hasTutorialSeen('friendbook_intro') && this.levelNum === 1) {
+      gameState.markTutorialSeen('friendbook_intro');
+      this.time.delayedCall(500, () => {
+        const snScene = this.scene.get('social-network');
+        if (snScene && snScene.scene.isActive()) {
+          const { width } = snScene.scale;
+          const tip = snScene.add.text(width / 2, 640,
+            "\u{1F4A1} TIP: This is FriendBook. Your targets and their friends post here.\nDig through their network for details you can use on the call.",
+            {
+              fontFamily: '"Courier New", monospace', fontSize: '12px',
+              color: '#44bbff', backgroundColor: '#0a0a2e',
+              padding: { x: 12, y: 8 }, wordWrap: { width: 500 }
+            }
+          ).setOrigin(0.5).setDepth(300);
+          snScene.time.delayedCall(6000, () => {
+            snScene.tweens.add({ targets: tip, alpha: 0, duration: 500, onComplete: () => tip.destroy() });
+          });
+        }
+      });
+    }
   }
 
   _toggleDesktop() {

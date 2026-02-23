@@ -862,6 +862,22 @@ export class CallScene extends Phaser.Scene {
     }
 
     if (intel) { this._showIntelToast(intel.description); }
+
+    if (!gameState.hasTutorialSeen('intel_confirmed')) {
+      gameState.markTutorialSeen('intel_confirmed');
+      const { width } = this.scale;
+      const tip = this.add.text(width / 2, 160,
+        "\u{1F4A1} Intel confirmed! Mentioning real details naturally makes your scam story credible.",
+        {
+          fontFamily: '"Courier New", monospace', fontSize: '12px',
+          color: '#44ff88', backgroundColor: '#0a2a0a',
+          padding: { x: 12, y: 8 }, wordWrap: { width: 400 }
+        }
+      ).setOrigin(0.5).setDepth(350);
+      this.time.delayedCall(5000, () => {
+        this.tweens.add({ targets: tip, alpha: 0, duration: 500, onComplete: () => tip.destroy() });
+      });
+    }
   }
 
   // =========================================================================
