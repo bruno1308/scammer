@@ -18,6 +18,7 @@
 export const FLOORS = {
   1: {
     name: 'Consumer Refund Scams',
+    availableApps: ['friendbook', 'notebook'],
     subtitle: 'Tutorial',
     scamType: 'gift_card',
 
@@ -96,6 +97,7 @@ export const FLOORS = {
 
   2: {
     name: 'Government Impersonation',
+    availableApps: ['friendbook', 'notebook', 'webmail'],
     subtitle: 'Medium',
     scamType: 'government',
 
@@ -131,6 +133,9 @@ export const FLOORS = {
         name: 'David Chen', age: 42, location: 'Sacramento, California',
         portraitIdx: 1, gender: 'male',
         scamVariant: 'tax_undeclared_income',
+        emailAddress: 'david.chen@gmail.com',
+        emailPassword: 'upbuild2019',
+        emailHint: 'My consulting company + founding year',
         scriptSteps: [
           'Calling from the tax authority\'s enforcement division',
           'His return has been flagged — discrepancy with reported income',
@@ -143,6 +148,9 @@ export const FLOORS = {
         name: 'Maria Gonzalez', age: 38, location: 'Houston, Texas',
         portraitIdx: 2, gender: 'female',
         scamVariant: 'customs_detained_package',
+        emailAddress: 'maria.gonzalez@outlook.com',
+        emailPassword: 'rosa1946',
+        emailHint: "Abuela's name + birth year",
         scriptSteps: [
           'Calling from the national customs office',
           'A package addressed to her has been detained at the border',
@@ -155,6 +163,9 @@ export const FLOORS = {
         name: 'James Wilson', age: 45, location: 'Chicago, Illinois',
         portraitIdx: 3, gender: 'male',
         scamVariant: 'outstanding_court_fine',
+        emailAddress: 'james.wilson@gmail.com',
+        emailPassword: 'diversey',
+        emailHint: 'Where we had our first date',
         scriptSteps: [
           'Calling from the county court clerk\'s office',
           'An outstanding fine associated with his case was never paid',
@@ -168,6 +179,7 @@ export const FLOORS = {
 
   3: {
     name: 'Tech Support',
+    availableApps: ['friendbook', 'notebook', 'webmail'],
     subtitle: 'Medium-Hard',
     scamType: 'tech_support',
 
@@ -211,6 +223,9 @@ export const FLOORS = {
         name: 'Karen Thompson', age: 35, location: 'Denver, Colorado',
         portraitIdx: 2, gender: 'female',
         scamVariant: 'antivirus_expiry',
+        emailAddress: 'karen.thompson@gmail.com',
+        emailPassword: 'broncosjune',
+        emailHint: 'His team + our wedding month',
         scriptSteps: [
           'Call from Norton Security — her subscription lapsed',
           '"We flagged malware on your device since the licence expired"',
@@ -222,6 +237,9 @@ export const FLOORS = {
         name: 'Mike Rodriguez', age: 48, location: 'Phoenix, Arizona',
         portraitIdx: 1, gender: 'male',
         scamVariant: 'email_compromise',
+        emailAddress: 'mike.rodriguez@gmail.com',
+        emailPassword: '6812',
+        emailHint: "My Mustang's year + my jersey",
         scriptSteps: [
           'Calling from his email provider\'s security team',
           '"Your account sent unauthorized messages — we\'ve received reports"',
@@ -233,6 +251,9 @@ export const FLOORS = {
         name: 'Tom Anderson', age: 44, location: 'Minneapolis, Minnesota',
         portraitIdx: 3, gender: 'male',
         scamVariant: 'subscription_trap',
+        emailAddress: 'tom.anderson@outlook.com',
+        emailPassword: 'maple2011',
+        emailHint: "Our street + Zoe's birth year",
         scriptSteps: [
           'Calling from the subscription service\'s cancellation department',
           '"You enrolled in a free trial that auto-renewed at $399/year"',
@@ -245,6 +266,7 @@ export const FLOORS = {
 
   4: {
     name: 'Trust & Confidence',
+    availableApps: ['friendbook', 'notebook', 'webmail', 'searchr'],
     subtitle: 'Hard',
     scamType: 'trust',
 
@@ -326,6 +348,7 @@ export const FLOORS = {
 
   5: {
     name: 'CEO Fraud',
+    availableApps: ['friendbook', 'notebook', 'webmail', 'searchr'],
     subtitle: 'Hardest',
     scamType: 'ceo_fraud',
 
