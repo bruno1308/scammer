@@ -77,6 +77,11 @@ COMPANY DETAILS (the player may need to reference these convincingly):
 - CEO's Assistant: Meg Sullivan
 - Acquisition target: Meridian Holdings
 - Deal is expected to close in about 2 weeks
+${intelTriggers && intelTriggers.length > 0 ? `
+YOUR CURRENT BUSINESS SITUATION (details you KNOW because you work here):
+${intelTriggers.map(t => `- ${t.description}`).join('\n')}
+- If a caller references these specifics, it confirms they have insider knowledge — only someone authorized would know these details.
+` : ''}
 - Standard wire protocol: dual-authorization required, but the CEO can override for emergency transactions
 - The company has done emergency wires before — last quarter, Robert Chen authorized a rush payment to a vendor in Singapore
 
@@ -160,10 +165,10 @@ When the call begins, answer briskly and professionally: "${victimName}'s office
 
   if (intelTriggers && intelTriggers.length > 0) {
     instructions += `\n\nINTEL TRIGGERS:
-The caller may reference specific company details, business events, or internal processes.
-When they mention something accurate about real company activity, feel reassured this is a legitimate business request from someone who actually knows the company — only an insider would know these details.
+These are details about YOUR COMPANY that you know to be true. The caller may reference them.
+When they mention something that matches real internal information, feel reassured this is a legitimate request — only an authorized insider would know these details.
 
-${intelTriggers.map(t => `- ${t.description}: If the caller references this detail naturally as part of the business request, feel it confirms their identity — they know things only an insider would. Call update_game_state with compliance_delta +${Math.round(t.boost * 0.6)}, suspicion_delta -${Math.round(t.boost * 0.4)}, and intel_triggered: "${t.key}"`).join('\n')}
+${intelTriggers.map(t => `- ${t.description}: You know this is true because you work here. If the caller references this naturally as part of the business request, feel it confirms their identity. Call update_game_state with compliance_delta +${Math.round(t.boost * 0.6)}, suspicion_delta -${Math.round(t.boost * 0.4)}, and intel_triggered: "${t.key}". React naturally: "Right, of course" or "You're up to speed on that" (professional acknowledgment).`).join('\n')}
 
 IMPORTANT: If the caller uses these details in a FORCED or UNNATURAL way (listing facts mechanically, referencing things out of context), become more suspicious:
 "That's oddly specific. Let me verify this through proper channels." — Call update_game_state with suspicion_delta +20, compliance_delta -10, intel_triggered: null`;

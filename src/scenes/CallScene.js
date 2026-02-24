@@ -41,7 +41,6 @@ export class CallScene extends Phaser.Scene {
 
     // ---- Tutorial popups (Level 1 only) ----
     if (this.levelNum === 1) {
-      this._showTutorial('start');
       this._bindTutorialEvents();
     }
 
@@ -119,7 +118,7 @@ export class CallScene extends Phaser.Scene {
 
     const panelW = 340;
     const panelH = 420;
-    const tabW = 30;
+    const tabW = 40;
     const panelX = 0;       // relative inside container
     const panelY = 0;
 
@@ -128,34 +127,29 @@ export class CallScene extends Phaser.Scene {
     this.scriptOpen = false;
 
     // ---- Toggle tab (always visible) ----
-    if (this.textures.exists('ui_script_tab')) {
-      const tabImg = this.add.image(-tabW / 2, 40, 'ui_script_tab')
-        .setDisplaySize(tabW + 8, 84);
-      this.scriptContainer.add(tabImg);
-    } else {
-      const tab = this.add.graphics();
-      tab.fillStyle(0x1a1a2e, 0.95);
-      tab.fillRoundedRect(-tabW, 0, tabW, 80, { tl: 6, tr: 0, bl: 6, br: 0 });
-      tab.lineStyle(1, 0xffcc00, 0.5);
-      tab.strokeRoundedRect(-tabW, 0, tabW, 80, { tl: 6, tr: 0, bl: 6, br: 0 });
-      this.scriptContainer.add(tab);
-    }
+    const tabH = 120;
+    const tab = this.add.graphics();
+    tab.fillStyle(0x1a1a2e, 0.95);
+    tab.fillRoundedRect(-tabW, 0, tabW, tabH, { tl: 8, tr: 0, bl: 8, br: 0 });
+    tab.lineStyle(2, 0xffcc00, 0.6);
+    tab.strokeRoundedRect(-tabW, 0, tabW, tabH, { tl: 8, tr: 0, bl: 8, br: 0 });
+    this.scriptContainer.add(tab);
 
     // Tab text (vertical)
-    const tabLabel = this.add.text(-tabW / 2, 40, 'S\nC\nR\nI\nP\nT', {
+    const tabLabel = this.add.text(-tabW / 2, tabH / 2, 'S\nC\nR\nI\nP\nT', {
       fontFamily: '"Courier New", monospace',
-      fontSize: '9px',
+      fontSize: '12px',
       fontStyle: 'bold',
       color: '#ffcc00',
       align: 'center',
-      lineSpacing: -2,
+      lineSpacing: 0,
       stroke: '#000000',
-      strokeThickness: 1
+      strokeThickness: 3
     }).setOrigin(0.5);
     this.scriptContainer.add(tabLabel);
 
     // Tab hit zone
-    const tabZone = this.add.zone(-tabW / 2, 40, tabW, 80)
+    const tabZone = this.add.zone(-tabW / 2, tabH / 2, tabW, tabH)
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
     this.scriptContainer.add(tabZone);
@@ -352,18 +346,17 @@ export class CallScene extends Phaser.Scene {
     // Base card height (without intel)
     const baseCardH = textY + 80 - cardY;
 
-    // Calculate intel section height (include space for callHint rows)
+    // Calculate initial intel section height (generous estimate — will be redrawn after layout)
     const intelKeys = gameState.intelKeys || [];
-    const hintCount = intelKeys.filter(k => k.callHint).length;
-    const intelH = intelKeys.length > 0 ? 28 + intelKeys.length * 20 + hintCount * 16 + 8 : 0;
+    const intelH = intelKeys.length > 0 ? 28 + intelKeys.length * 40 + 20 : 0;
     const cardH = baseCardH + intelH;
 
     // ---- Card background ----
-    const card = this.add.graphics();
-    card.fillStyle(0x0a0e18, 0.88);
-    card.fillRoundedRect(cardX, cardY, cardW, cardH, 10);
-    card.lineStyle(1, 0x334466, 0.5);
-    card.strokeRoundedRect(cardX, cardY, cardW, cardH, 10);
+    this._cardBg = this.add.graphics();
+    this._cardBg.fillStyle(0x0a0e18, 0.88);
+    this._cardBg.fillRoundedRect(cardX, cardY, cardW, cardH, 10);
+    this._cardBg.lineStyle(1, 0x334466, 0.5);
+    this._cardBg.strokeRoundedRect(cardX, cardY, cardW, cardH, 10);
 
     // Store layout info for intel panel
     this._cardLayout = { cardX, cardY, cardW, baseCardH };
@@ -656,11 +649,6 @@ export class CallScene extends Phaser.Scene {
 
     const { width, height } = this.scale;
     const messages = {
-      start: {
-        title: 'TIP: Getting Started',
-        text: 'Build rapport first -- be friendly and\nprofessional. The victim needs to trust you.',
-        color: 0x00ccff,
-      },
       suspicion: {
         title: 'WARNING: Suspicion Rising!',
         text: 'They\'re getting suspicious! Try changing\nthe subject or being more reassuring.',
@@ -832,6 +820,9 @@ export class CallScene extends Phaser.Scene {
     });
 
     gameState.on('intel_used', this._onCallIntelUsed, this);
+
+    // Reflow immediately to size the card background correctly
+    this._reflowIntelItems();
   }
 
   _onCallIntelUsed(key) {
@@ -851,15 +842,18 @@ export class CallScene extends Phaser.Scene {
 
       // Show callHint below (if not already shown)
       if (!item.hintText && intel.callHint) {
-        const hintY = item.text.y + 16;
-        item.hintText = this.add.text(item.text.x + 14, hintY, `\uD83D\uDCAC "${intel.callHint}"`, {
+        const cardW = this._cardLayout?.cardW || 200;
+        item.hintText = this.add.text(item.text.x + 14, item.text.y + item.text.height + 2, `\uD83D\uDCAC "${intel.callHint}"`, {
           fontFamily: '"Courier New", monospace', fontSize: '9px',
           color: '#88aa66', fontStyle: 'italic',
-          wordWrap: { width: (this._cardLayout?.cardW || 200) - 48 }
+          wordWrap: { width: cardW - 48 }
         }).setDepth(201).setAlpha(0);
 
         this.tweens.add({ targets: item.hintText, alpha: 1, duration: 300 });
       }
+
+      // Reflow all intel items to avoid overlapping
+      this._reflowIntelItems();
     }
 
     if (intel) { this._showIntelToast(intel.description); }
@@ -878,6 +872,39 @@ export class CallScene extends Phaser.Scene {
       this.time.delayedCall(5000, () => {
         this.tweens.add({ targets: tip, alpha: 0, duration: 500, onComplete: () => tip.destroy() });
       });
+    }
+  }
+
+  /**
+   * Reposition all intel items top-to-bottom based on actual text heights,
+   * preventing overlap when descriptions wrap or hints are added.
+   */
+  _reflowIntelItems() {
+    if (!this._cardLayout || !gameState.intelKeys) return;
+    const { cardX, cardY, cardW, baseCardH } = this._cardLayout;
+    let yOffset = cardY + baseCardH + 24; // after header
+
+    gameState.intelKeys.forEach((intel) => {
+      const item = this.callIntelItems?.[intel.key];
+      if (!item || !item.text) return;
+
+      item.text.setY(yOffset);
+      yOffset += item.text.height + 4;
+
+      if (item.hintText) {
+        item.hintText.setY(yOffset);
+        yOffset += item.hintText.height + 4;
+      }
+    });
+
+    // Redraw card background to fit actual content
+    if (this._cardBg) {
+      const newCardH = yOffset - cardY + 10;
+      this._cardBg.clear();
+      this._cardBg.fillStyle(0x0a0e18, 0.88);
+      this._cardBg.fillRoundedRect(cardX, cardY, cardW, newCardH, 10);
+      this._cardBg.lineStyle(1, 0x334466, 0.5);
+      this._cardBg.strokeRoundedRect(cardX, cardY, cardW, newCardH, 10);
     }
   }
 

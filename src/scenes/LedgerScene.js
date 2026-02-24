@@ -278,34 +278,52 @@ export class LedgerScene extends Phaser.Scene {
     const btnY = boxY + 110;
     const gap = 130;
     const btnStartX = width / 2 - gap;
+    const allBtns = [];
+
+    const disableOtherBtns = (chosenBtn) => {
+      allBtns.forEach(btn => {
+        if (btn === chosenBtn) {
+          // Highlight chosen
+          this.tweens.add({ targets: btn, scaleX: 1.1, scaleY: 1.1, duration: 150, ease: 'Back.easeOut' });
+        } else {
+          // Dim and disable others
+          this.tweens.add({ targets: btn, alpha: 0.3, duration: 200 });
+          btn.getAll().forEach(child => {
+            if (child.input) child.disableInteractive();
+          });
+        }
+      });
+    };
 
     amounts.forEach((amount, i) => {
       if (amount > this.walletBalance) return;
-      this._createLedgerButton(
+      const btn = this._createLedgerButton(
         btnStartX + i * gap, btnY,
         `$${amount}`, 0x00ff88, 0x003322,
         () => {
           if (remittanceChosen) return;
           remittanceChosen = true;
+          disableOtherBtns(btn);
           gameState.sendRemittance(amount);
           this.walletBalance = gameState.wallet;
-          this._showTransition(width, boxY + boxH + 20);
-          bg.destroy();
+          this.time.delayedCall(600, () => this._showTransition(width, boxY + boxH + 20));
         }
       );
+      allBtns.push(btn);
     });
 
     // Skip button
-    this._createLedgerButton(
+    const skipBtn = this._createLedgerButton(
       btnStartX + 2 * gap, btnY,
       'SKIP', 0x667788, 0x111122,
       () => {
         if (remittanceChosen) return;
         remittanceChosen = true;
-        this._showTransition(width, boxY + boxH + 20);
-        bg.destroy();
+        disableOtherBtns(skipBtn);
+        this.time.delayedCall(600, () => this._showTransition(width, boxY + boxH + 20));
       }
     );
+    allBtns.push(skipBtn);
   }
 
   /**

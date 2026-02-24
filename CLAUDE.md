@@ -65,14 +65,14 @@ BootScene → MenuScene → SettingsScene (API key entry)
 
 ## Floor/Victim Structure
 
-5 floors with 20 total victims (5+4+4+4+3):
+5 floors with 14 total victims (2+3+3+3+3):
 
 | Floor | Scam Type | Victims | Base Payout | Total Expenses |
 |-------|-----------|---------|-------------|----------------|
-| 1 | Gift Card Refund | 5 | $200 | $270 |
-| 2 | IRS Tax Scam | 4 | $350 | $345 |
-| 3 | Tech Support | 4 | $400 | $500 |
-| 4 | Romance Scam | 4 | $800 | $655 |
+| 1 | Gift Card Refund | 2 | $200 | $270 |
+| 2 | IRS Tax Scam | 3 | $350 | $345 |
+| 3 | Tech Support | 3 | $400 | $500 |
+| 4 | Romance Scam | 3 | $800 | $655 |
 | 5 | CEO Fraud | 3 | $800 | $890 |
 
 Victims within each floor are shuffled each night. Successfully scammed victims are permanently completed. Failed victims can be re-attempted on future nights. Only one attempt per victim per night.
@@ -170,7 +170,7 @@ Every level prompt includes a COMPLIANCE STAGES section that prevents AI behavio
 
 Portraits use editorial caricature style (MAD Magazine-inspired: exaggerated features, ink lines, flat watercolor washes, satirical/ugly-funny). Generated via Meshy API.
 
-Portrait counts per level: L1=5, L2=4, L3=4, L4=4, L5=3, Boss=2. Total: 22 images.
+Portrait counts per level: L1=2, L2=3, L3=3, L4=3, L5=3, Boss=2. Total: 16 images.
 
 Each victim in FLOORS[n].victims has a `portraitIdx` field that maps to a specific portrait file. BootScene preloads all portraits with keys like `l1_victim_1`, `l2_victim_3`, etc.
 

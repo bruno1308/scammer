@@ -1,8 +1,9 @@
 /**
- * NotebookScene.js - Player Notebook Overlay
+ * NotebookScene.js - Draggable Player Notebook Overlay
  *
- * Simple note-taking app accessible from the office computer.
- * Players jot down intel and observations per victim.
+ * Floating note-taking pad that stays on top of other overlays.
+ * Designed to be used alongside FriendBook so players can take
+ * notes while researching victims.
  * Notes persist across the shift via GameState.victimNotes.
  */
 
@@ -22,53 +23,78 @@ export default class NotebookScene extends Phaser.Scene {
   create() {
     const { width, height } = this.scale;
 
-    // Semi-transparent backdrop
-    this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.6)
-      .setInteractive().setDepth(99);
+    // Notebook dimensions — compact so it fits beside FriendBook
+    const nbW = 340;
+    const nbH = 420;
+    // Default position: right side of screen
+    const startX = width - nbW - 30;
+    const startY = (height - nbH) / 2;
 
-    // Notebook dimensions
-    const nbW = 500;
-    const nbH = 520;
-    const nbX = (width - nbW) / 2;
-    const nbY = (height - nbH) / 2;
+    // Main container — everything is a child so dragging moves it all
+    this.nbContainer = this.add.container(startX, startY).setDepth(200);
 
-    // Notebook background (yellow legal pad style)
-    const g = this.add.graphics().setDepth(100);
-    g.fillStyle(0xfffde7);
-    g.fillRoundedRect(nbX, nbY, nbW, nbH, 8);
-    g.lineStyle(2, 0xccbb66);
-    g.strokeRoundedRect(nbX, nbY, nbW, nbH, 8);
+    // Drop shadow
+    const shadow = this.add.graphics();
+    shadow.fillStyle(0x000000, 0.3);
+    shadow.fillRoundedRect(4, 4, nbW, nbH, 8);
+    this.nbContainer.add(shadow);
 
-    // Red margin line
-    g.lineStyle(1, 0xdd8888);
-    g.lineBetween(nbX + 60, nbY + 50, nbX + 60, nbY + nbH - 10);
+    // Notebook background (yellow legal pad)
+    const bg = this.add.graphics();
+    bg.fillStyle(0xfffde7);
+    bg.fillRoundedRect(0, 0, nbW, nbH, 8);
+    bg.lineStyle(2, 0xccbb66);
+    bg.strokeRoundedRect(0, 0, nbW, nbH, 8);
+    this.nbContainer.add(bg);
 
-    // Ruled lines
-    g.lineStyle(0.5, 0xccccbb);
-    for (let y = nbY + 74; y < nbY + nbH - 20; y += 24) {
-      g.lineBetween(nbX + 10, y, nbX + nbW - 10, y);
-    }
+    // Title bar (drag handle)
+    const titleBar = this.add.rectangle(nbW / 2, 18, nbW, 36, 0xf0e6b0)
+      .setInteractive({ useHandCursor: true, draggable: true });
+    this.nbContainer.add(titleBar);
 
-    // Header
-    this.add.text(nbX + nbW / 2, nbY + 16, `📓 ${this.victimName}`, {
-      fontFamily: '"Courier New", monospace', fontSize: '16px',
+    // Top border on title bar
+    const titleBorder = this.add.graphics();
+    titleBorder.lineStyle(1, 0xccbb66);
+    titleBorder.lineBetween(0, 36, nbW, 36);
+    this.nbContainer.add(titleBorder);
+
+    // Header text
+    const headerText = this.add.text(nbW / 2, 18, `\u{1F4D3} ${this.victimName}`, {
+      fontFamily: '"Courier New", monospace', fontSize: '14px',
       fontStyle: 'bold', color: '#4a4a3a'
-    }).setOrigin(0.5, 0).setDepth(101);
+    }).setOrigin(0.5);
+    this.nbContainer.add(headerText);
 
     // Close button (red circle, top-right)
-    const closeBtn = this.add.circle(nbX + nbW - 16, nbY + 16, 8, 0xff5555)
-      .setInteractive({ useHandCursor: true }).setDepth(102);
+    const closeBtn = this.add.circle(nbW - 16, 18, 8, 0xff5555)
+      .setInteractive({ useHandCursor: true });
+    closeBtn.on('pointerover', () => closeBtn.setFillStyle(0xff3333));
+    closeBtn.on('pointerout', () => closeBtn.setFillStyle(0xff5555));
     closeBtn.on('pointerdown', () => this._close());
+    this.nbContainer.add(closeBtn);
+
+    // Red margin line
+    const lines = this.add.graphics();
+    lines.lineStyle(1, 0xdd8888);
+    lines.lineBetween(50, 44, 50, nbH - 10);
+    // Ruled lines
+    lines.lineStyle(0.5, 0xccccbb);
+    for (let y = 60; y < nbH - 20; y += 24) {
+      lines.lineBetween(10, y, nbW - 10, y);
+    }
+    this.nbContainer.add(lines);
 
     // DOM textarea for editable text input
+    const taW = nbW - 70;
+    const taH = nbH - 70;
     const textareaHTML = `<textarea id="notebook-textarea" style="
-      width: ${nbW - 80}px;
-      height: ${nbH - 80}px;
+      width: ${taW}px;
+      height: ${taH}px;
       background: transparent;
       border: none;
       outline: none;
       font-family: 'Courier New', monospace;
-      font-size: 14px;
+      font-size: 13px;
       color: #3a3a2a;
       line-height: 24px;
       padding: 0;
@@ -76,7 +102,8 @@ export default class NotebookScene extends Phaser.Scene {
       overflow-y: auto;
     " placeholder="Type your notes here...">${this._escapeHtml(gameState.getVictimNote(this.victimName))}</textarea>`;
 
-    this.textareaDom = this.add.dom(nbX + 70, nbY + 54).createFromHTML(textareaHTML).setDepth(101);
+    this.textareaDom = this.add.dom(58, 44).createFromHTML(textareaHTML).setOrigin(0, 0);
+    this.nbContainer.add(this.textareaDom);
 
     // Save on every keystroke
     const textarea = document.getElementById('notebook-textarea');
@@ -84,19 +111,37 @@ export default class NotebookScene extends Phaser.Scene {
       textarea.addEventListener('input', () => {
         gameState.setVictimNote(this.victimName, textarea.value);
       });
-      textarea.focus();
+      // Stop keyboard events from propagating to Phaser when textarea is focused,
+      // so typing here doesn't also feed into FriendBook search or other Phaser keyboard listeners
+      textarea.addEventListener('keydown', (e) => e.stopPropagation());
+      textarea.addEventListener('keyup', (e) => e.stopPropagation());
+      // Don't auto-focus — prevents stealing input from other overlays (e.g. FriendBook search)
     }
 
-    // Fade in
-    this.cameras.main.setAlpha(0);
-    this.tweens.add({ targets: this.cameras.main, alpha: 1, duration: 150 });
+    // --- Dragging ---
+    let grabOffsetX = 0;
+    let grabOffsetY = 0;
+    this.input.setDraggable(titleBar);
+    this.input.on('dragstart', (pointer) => {
+      grabOffsetX = pointer.x - this.nbContainer.x;
+      grabOffsetY = pointer.y - this.nbContainer.y;
+    });
+    this.input.on('drag', (pointer) => {
+      this.nbContainer.x = Phaser.Math.Clamp(pointer.x - grabOffsetX, -nbW + 60, width - 60);
+      this.nbContainer.y = Phaser.Math.Clamp(pointer.y - grabOffsetY, -10, height - 60);
+    });
+
+    // Quick fade-in on the notebook container
+    this.nbContainer.setAlpha(0);
+    this.tweens.add({ targets: this.nbContainer, alpha: 1, duration: 150 });
 
     if (!gameState.hasTutorialSeen('notebook_intro')) {
       gameState.markTutorialSeen('notebook_intro');
-      const tipText = this.add.text(nbX + nbW / 2, nbY + nbH - 24,
-        "\u{1F4A1} Jot down useful details here. Reference your notes during calls.",
-        { fontFamily: '"Courier New", monospace', fontSize: '11px', color: '#44bbff' }
-      ).setOrigin(0.5).setDepth(103);
+      const tipText = this.add.text(nbW / 2, nbH - 20,
+        "\u{1F4A1} Drag the title bar to move. Use alongside FriendBook!",
+        { fontFamily: '"Courier New", monospace', fontSize: '10px', color: '#44bbff' }
+      ).setOrigin(0.5);
+      this.nbContainer.add(tipText);
       this.time.delayedCall(5000, () => {
         this.tweens.add({ targets: tipText, alpha: 0, duration: 500, onComplete: () => tipText.destroy() });
       });
@@ -113,7 +158,6 @@ export default class NotebookScene extends Phaser.Scene {
     if (textarea) {
       gameState.setVictimNote(this.victimName, textarea.value);
     }
-    this.cameras.main.fadeOut(150, 0, 0, 0);
-    this.cameras.main.once('camerafadeoutcomplete', () => { this.scene.stop(); });
+    this.scene.stop();
   }
 }

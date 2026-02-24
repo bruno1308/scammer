@@ -42,7 +42,7 @@ export class IntroScene extends Phaser.Scene {
     // ---- Current text display ----
     this.introText = this.add.text(width / 2, height / 2, '', {
       fontFamily: '"Courier New", monospace',
-      fontSize: '22px',
+      fontSize: '24px',
       color: '#cccccc',
       align: 'center',
       wordWrap: { width: 700 },
@@ -63,14 +63,14 @@ export class IntroScene extends Phaser.Scene {
     // ---- "Click or press Space" hint ----
     this.hintText = this.add.text(width / 2, height - 60, '[ click or press space to continue ]', {
       fontFamily: '"Courier New", monospace',
-      fontSize: '11px',
-      color: '#333333',
+      fontSize: '13px',
+      color: '#888888',
     }).setOrigin(0.5);
 
     this.tweens.add({
       targets: this.hintText,
-      alpha: { from: 0.3, to: 0.8 },
-      duration: 1500,
+      alpha: { from: 0.6, to: 1 },
+      duration: 1200,
       yoyo: true,
       repeat: -1,
     });
@@ -104,11 +104,13 @@ export class IntroScene extends Phaser.Scene {
       },
     });
 
-    // Shift color darker for early lines, then brighter
-    if (this.lineIndex >= 3) {
+    // Gradually brighten text as the tone shifts
+    if (this.lineIndex >= 5) {
       this.introText.setColor('#ffffff');
+    } else if (this.lineIndex >= 3) {
+      this.introText.setColor('#e0e0e0');
     } else {
-      this.introText.setColor('#999999');
+      this.introText.setColor('#cccccc');
     }
   }
 

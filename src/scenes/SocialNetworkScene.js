@@ -166,6 +166,11 @@ export default class SocialNetworkScene extends Phaser.Scene {
     this.searchText.setText('\uD83D\uDD0D Search FriendBook...');
     this._renderSearchResults();
 
+    // Blur any focused DOM element (e.g. notebook textarea) so keystrokes go to Phaser only
+    if (document.activeElement && document.activeElement !== document.body) {
+      document.activeElement.blur();
+    }
+
     // Listen for keyboard input to filter
     if (this._searchKeyHandler) {
       this.input.keyboard.off('keydown', this._searchKeyHandler);
@@ -787,17 +792,12 @@ export default class SocialNetworkScene extends Phaser.Scene {
     const intelKeys = this.friendbookData.intelKeys;
     const trackerX = this.browserX + this.browserW - 180;
     const trackerY = this.browserY + 76;
-    const panelH = 30 + intelKeys.length * 22;
 
     this.intelTrackerContainer = this.add.container(trackerX, trackerY);
 
-    // Background panel (light yellow sticky note style)
-    const bg = this.add.graphics();
-    bg.fillStyle(0xfffde7, 1);
-    bg.lineStyle(1, 0xe0d68a, 1);
-    bg.fillRoundedRect(0, 0, 165, panelH, 6);
-    bg.strokeRoundedRect(0, 0, 165, panelH, 6);
-    this.intelTrackerContainer.add(bg);
+    // Background panel (light yellow sticky note style) — redrawn dynamically
+    this.intelBg = this.add.graphics();
+    this.intelTrackerContainer.add(this.intelBg);
 
     // Header: "Intel" with count
     const header = this.add.text(8, 6, '\uD83D\uDCCB Intel', {
@@ -816,32 +816,65 @@ export default class SocialNetworkScene extends Phaser.Scene {
     });
     this.intelTrackerContainer.add(this.intelCountText);
 
-    // Intel items (each starts as locked/unknown, only revealed by AI tool call)
+    // Intel items — show category name, highlight when seen/used
     this.intelItemTexts = {};
-    intelKeys.forEach((intel, i) => {
-      const y = 28 + i * 22;
-
-      // Only show description if the AI has confirmed it was used in conversation
+    this.intelKeyOrder = intelKeys.map(i => i.key);
+    intelKeys.forEach((intel) => {
       const isUsed = gameState.intelUsed.has(intel.key);
-      const displayText = isUsed ? `\u2705 ${intel.description}` : '\uD83D\uDD12 ???';
-      const displayColor = isUsed ? '#2e7d32' : '#999999';
+      const isSeen = gameState.intelSeen && gameState.intelSeen.has(intel.key);
+      const category = intel.trackerCategory || intel.category || '???';
 
-      const text = this.add.text(8, y, displayText, {
+      let displayText, displayColor;
+      if (isUsed) {
+        displayText = `\u2705 ${intel.description}`;
+        displayColor = '#2e7d32';
+      } else if (isSeen) {
+        displayText = `\u2B50 ${category}`;
+        displayColor = '#5588bb';
+      } else {
+        displayText = `\uD83D\uDD0D ${category}`;
+        displayColor = '#999999';
+      }
+
+      const text = this.add.text(8, 0, displayText, {
         fontSize: '11px',
         color: displayColor,
-        fontFamily: 'Arial'
+        fontFamily: 'Arial',
+        wordWrap: { width: 145 }
       });
       this.intelTrackerContainer.add(text);
       this.intelItemTexts[intel.key] = text;
     });
 
+    this._relayoutIntelItems();
     this.intelTrackerContainer.setDepth(50);
 
     // Update initial count
     this._updateIntelCount();
 
-    // Listen for intel_used events (AI confirms intel was referenced in call)
+    // Listen for intel events
     gameState.on('intel_used', this._onIntelUsed, this);
+    gameState.on('intel_seen', this._onIntelSeen, this);
+  }
+
+  _relayoutIntelItems() {
+    let y = 28;
+    for (const key of this.intelKeyOrder) {
+      const text = this.intelItemTexts[key];
+      if (text && text.active) {
+        text.setY(y);
+        y += text.height + 4;
+      }
+    }
+    // Redraw background to fit content
+    if (this.intelBg) {
+      const panelH = y + 6;
+      this.intelBg.clear();
+      this.intelBg.fillStyle(0xfffde7, 1);
+      this.intelBg.lineStyle(1, 0xe0d68a, 1);
+      this.intelBg.fillRoundedRect(0, 0, 165, panelH, 6);
+      this.intelBg.strokeRoundedRect(0, 0, 165, panelH, 6);
+    }
   }
 
   _onIntelUsed(key) {
@@ -855,7 +888,26 @@ export default class SocialNetworkScene extends Phaser.Scene {
       text.setText(`\u2705 ${intel.description}`);
       text.setColor('#2e7d32');
     }
+    this._relayoutIntelItems();
     this._updateIntelCount();
+  }
+
+  _onIntelSeen(key) {
+    if (!this.scene.isActive()) return;
+
+    const intel = this.friendbookData.intelKeys.find(i => i.key === key);
+    if (!intel) return;
+
+    // Only update if not already used (used state takes priority)
+    if (gameState.intelUsed.has(key)) return;
+
+    const category = intel.trackerCategory || intel.category || '???';
+    const text = this.intelItemTexts[key];
+    if (text && text.active) {
+      text.setText(`\u2B50 ${category}`);
+      text.setColor('#5588bb');
+    }
+    this._relayoutIntelItems();
   }
 
   _updateIntelCount() {
@@ -882,6 +934,7 @@ export default class SocialNetworkScene extends Phaser.Scene {
 
   shutdown() {
     gameState.off('intel_used', this._onIntelUsed, this);
+    gameState.off('intel_seen', this._onIntelSeen, this);
     if (this._scrollListener) {
       this.input.off('wheel', this._scrollListener);
       this._scrollListener = null;

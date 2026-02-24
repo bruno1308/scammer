@@ -70,6 +70,10 @@ export class OfficeScene extends Phaser.Scene {
         }
       }
     };
+    vm.onConnected = () => {
+      // AI has picked up — re-enable phone so the player can hang up
+      if (this.phoneZone) this.phoneZone.setInteractive({ useHandCursor: true });
+    };
     vm.onCallEnd = (reason) => {
       gameState.endCall(reason);
     };
@@ -78,6 +82,8 @@ export class OfficeScene extends Phaser.Scene {
       if (this.callInProgress) {
         gameState.endCall('voice_error');
       }
+      // Re-enable phone on error so it's not permanently stuck
+      if (this.phoneZone) this.phoneZone.setInteractive({ useHandCursor: true });
     };
 
     // ---- Build the office environment ----
@@ -203,27 +209,93 @@ export class OfficeScene extends Phaser.Scene {
       this.monitorContainer.add(g);
     }
 
-    // Make monitor interactive for FriendBook
-    const monitorZone = this.add.zone(mx, my, 200, 200).setInteractive({ useHandCursor: true }).setDepth(8);
-    monitorZone.on('pointerover', () => {
-      this.tweens.add({
-        targets: this.monitorContainer,
-        scaleX: 1.03,
-        scaleY: 1.03,
-        duration: 150,
-        ease: 'Back.easeOut'
+    // Render app icons directly on the monitor screen
+    const floor = FLOORS[this.levelNum];
+    const apps = floor?.availableApps || ['friendbook'];
+
+    const appConfigs = {
+      friendbook: { icon: '\u{1F4D8}', label: 'FriendBook', texture: 'ui_friendbook_logo', action: () => this._openFriendBook() },
+      notebook: { icon: '\u{1F4D3}', label: 'Notebook', action: () => this._openNotebook() },
+      webmail: { icon: '\u{1F4E7}', label: 'WebMail', action: () => this._openWebMail() },
+      searchr: { icon: '\u{1F50D}', label: 'Searchr', action: () => {} },
+    };
+
+    const iconSize = 44;
+    const cols = Math.min(apps.length, 3);
+    const rows = Math.ceil(apps.length / 3);
+    const spacingX = 70;
+    const spacingY = 68;
+    const gridW = (cols - 1) * spacingX;
+    const gridH = (rows - 1) * spacingY;
+    const startX = -gridW / 2;
+    const startY = -gridH / 2 - 6;
+
+    apps.forEach((appId, idx) => {
+      const cfg = appConfigs[appId];
+      if (!cfg) return;
+
+      const col = idx % 3;
+      const row = Math.floor(idx / 3);
+      const ax = startX + col * spacingX;
+      const ay = startY + row * spacingY;
+
+      // Invisible hit area for click/hover (no visible background)
+      const iconBg = this.add.rectangle(ax, ay, iconSize, iconSize, 0x000000, 0)
+        .setInteractive({ useHandCursor: true }).setDepth(9);
+
+      iconBg.on('pointerover', () => {
+        const siblings = iconBg.getData('siblings') || [];
+        [iconBg, ...siblings].forEach(obj => {
+          const bx = obj.getData('baseScaleX') ?? obj.scaleX;
+          const by = obj.getData('baseScaleY') ?? obj.scaleY;
+          obj.setData('baseScaleX', bx);
+          obj.setData('baseScaleY', by);
+          this.tweens.add({ targets: obj, scaleX: bx * 1.15, scaleY: by * 1.15, duration: 100, ease: 'Back.easeOut' });
+        });
       });
-    });
-    monitorZone.on('pointerout', () => {
-      this.tweens.add({
-        targets: this.monitorContainer,
-        scaleX: 1,
-        scaleY: 1,
-        duration: 150,
-        ease: 'Sine.easeOut'
+      iconBg.on('pointerout', () => {
+        const siblings = iconBg.getData('siblings') || [];
+        [iconBg, ...siblings].forEach(obj => {
+          const bx = obj.getData('baseScaleX') ?? 1;
+          const by = obj.getData('baseScaleY') ?? 1;
+          this.tweens.add({ targets: obj, scaleX: bx, scaleY: by, duration: 100, ease: 'Sine.easeOut' });
+        });
       });
+      iconBg.on('pointerdown', () => {
+        // Notebook can coexist with other overlays; block only for non-notebook apps when an overlay is up
+        const snActive = this.scene.isActive('social-network');
+        const nbActive = this.scene.isActive('notebook');
+        const wmActive = this.scene.isActive('webmail');
+        if (appId === 'notebook') {
+          if (nbActive) return; // already open
+        } else {
+          if (snActive || wmActive) return; // block opening another full overlay
+        }
+        this.sound.play('sfx_mouse_click', { volume: 0.3 });
+        cfg.action();
+      });
+      this.monitorContainer.add(iconBg);
+
+      // Icon — use texture for FriendBook, emoji for others
+      let iconObj;
+      if (cfg.texture && this.textures.exists(cfg.texture)) {
+        iconObj = this.add.image(ax, ay - 2, cfg.texture).setDisplaySize(28, 28).setDepth(10);
+      } else {
+        iconObj = this.add.text(ax, ay - 4, cfg.icon, { fontSize: '22px' }).setOrigin(0.5).setDepth(10);
+      }
+      this.monitorContainer.add(iconObj);
+
+      // Label
+      const label = this.add.text(ax, ay + 24, cfg.label, {
+        fontFamily: '"Courier New", monospace', fontSize: '11px',
+        fontStyle: 'bold', color: '#ffffff',
+        stroke: '#000000', strokeThickness: 3
+      }).setOrigin(0.5).setDepth(10);
+      this.monitorContainer.add(label);
+
+      // Store siblings for grouped hover scaling
+      iconBg.setData('siblings', [iconObj, label]);
     });
-    monitorZone.on('pointerdown', () => { this.sound.play('sfx_mouse_click', { volume: 0.4 }); this._toggleDesktop(); });
 
   }
 
@@ -252,8 +324,8 @@ export class OfficeScene extends Phaser.Scene {
 
 
     // Make phone interactive
-    const phoneZone = this.add.zone(px, py + 10, 110, 120).setInteractive({ useHandCursor: true }).setDepth(6);
-    phoneZone.on('pointerover', () => {
+    this.phoneZone = this.add.zone(px, py + 10, 110, 120).setInteractive({ useHandCursor: true }).setDepth(6);
+    this.phoneZone.on('pointerover', () => {
       if (!this.callInProgress) {
         this.tweens.add({
           targets: this.phoneContainer,
@@ -264,7 +336,7 @@ export class OfficeScene extends Phaser.Scene {
         });
       }
     });
-    phoneZone.on('pointerout', () => {
+    this.phoneZone.on('pointerout', () => {
       this.tweens.add({
         targets: this.phoneContainer,
         scaleX: 1,
@@ -273,7 +345,7 @@ export class OfficeScene extends Phaser.Scene {
         ease: 'Sine.easeOut'
       });
     });
-    phoneZone.on('pointerup', () => {
+    this.phoneZone.on('pointerup', () => {
       if (this.callInProgress) {
         this._hangUpCall();
       } else if (this.phoneReady && !this.phoneRinging) {
@@ -393,14 +465,15 @@ export class OfficeScene extends Phaser.Scene {
   _updateCashRegister() {
     if (!this.cashRegisterText) return;
     const floor = FLOORS[this.levelNum];
-    const expenses = floor?.totalExpenses ?? 0;
+    const expenseObj = floor?.expenses || {};
+    const totalExpenses = Object.values(expenseObj).reduce((sum, v) => sum + (v || 0), 0);
     const wallet = gameState.wallet + gameState.shiftEarnings;
-    this.cashRegisterText.setText(`$${wallet} / $${expenses}`);
+    this.cashRegisterText.setText(`$${wallet} / $${totalExpenses}`);
 
-    // Color based on progress toward goal
-    if (wallet >= expenses) {
+    // Color based on whether earnings cover tonight's expenses
+    if (wallet >= totalExpenses) {
       this.cashRegisterText.setColor('#00ff88');
-    } else if (wallet >= expenses * 0.5) {
+    } else if (wallet >= totalExpenses * 0.5) {
       this.cashRegisterText.setColor('#ffcc00');
     } else {
       this.cashRegisterText.setColor('#ff4444');
@@ -538,91 +611,6 @@ export class OfficeScene extends Phaser.Scene {
     }
   }
 
-  _toggleDesktop() {
-    // If any app overlay is open, don't show desktop
-    if (this.scene.isActive('social-network') || this.scene.isActive('notebook') || this.scene.isActive('webmail')) return;
-
-    if (this.desktopContainer && this.desktopContainer.visible) {
-      this.desktopContainer.setVisible(false);
-      return;
-    }
-
-    this._showDesktop();
-  }
-
-  _showDesktop() {
-    if (this.desktopContainer) {
-      this.desktopContainer.setVisible(true);
-      return;
-    }
-
-    const floor = FLOORS[this.levelNum];
-    const apps = floor?.availableApps || ['friendbook'];
-    const { width, height } = this.scale;
-
-    // Desktop panel over the monitor area
-    const mx = width * 0.475;
-    const my = height * 0.72;
-    const panelW = 260;
-    const panelH = 180;
-
-    this.desktopContainer = this.add.container(mx - panelW / 2, my - panelH / 2 - 20).setDepth(20);
-
-    // Desktop background
-    const bg = this.add.graphics();
-    bg.fillStyle(0x0a0a2e, 0.95);
-    bg.fillRoundedRect(0, 0, panelW, panelH, 6);
-    bg.lineStyle(1, 0x334466);
-    bg.strokeRoundedRect(0, 0, panelW, panelH, 6);
-    this.desktopContainer.add(bg);
-
-    // App icons grid
-    const appConfigs = {
-      friendbook: { icon: '\u{1F4D8}', label: 'FriendBook', action: () => this._openFriendBook() },
-      notebook: { icon: '\u{1F4D3}', label: 'Notebook', action: () => this._openNotebook() },
-      webmail: { icon: '\u{1F4E7}', label: 'WebMail', action: () => this._openWebMail() },
-      searchr: { icon: '\u{1F50D}', label: 'Searchr', action: () => {} }, // Placeholder for Floor 4+
-    };
-
-    const startX = 40;
-    const startY = 30;
-    const spacing = 70;
-
-    apps.forEach((appId, idx) => {
-      const cfg = appConfigs[appId];
-      if (!cfg) return;
-
-      const col = idx % 3;
-      const row = Math.floor(idx / 3);
-      const ax = startX + col * spacing;
-      const ay = startY + row * 80;
-
-      // Icon background (clickable)
-      const iconBg = this.add.rectangle(ax, ay, 50, 50, 0x1a2a4e)
-        .setInteractive({ useHandCursor: true }).setDepth(21);
-      iconBg.on('pointerover', () => iconBg.setFillStyle(0x2a3a5e));
-      iconBg.on('pointerout', () => iconBg.setFillStyle(0x1a2a4e));
-      iconBg.on('pointerdown', () => {
-        this.sound.play('sfx_mouse_click', { volume: 0.3 });
-        this.desktopContainer.setVisible(false);
-        cfg.action();
-      });
-      this.desktopContainer.add(iconBg);
-
-      // Emoji icon
-      const iconText = this.add.text(ax, ay - 4, cfg.icon, {
-        fontSize: '24px'
-      }).setOrigin(0.5).setDepth(22);
-      this.desktopContainer.add(iconText);
-
-      // Label
-      const label = this.add.text(ax, ay + 28, cfg.label, {
-        fontFamily: '"Courier New", monospace', fontSize: '10px',
-        color: '#aabbcc'
-      }).setOrigin(0.5).setDepth(22);
-      this.desktopContainer.add(label);
-    });
-  }
 
   _openNotebook() {
     if (this.scene.isActive('notebook')) return;
@@ -694,6 +682,7 @@ export class OfficeScene extends Phaser.Scene {
     if (!nextVictim) return;
 
     this.phoneReady = true;
+    if (this.phoneZone) this.phoneZone.setInteractive({ useHandCursor: true });
   }
 
   /**
@@ -715,6 +704,9 @@ export class OfficeScene extends Phaser.Scene {
     if (this.readyPulseTween) {
       this.readyPulseTween.stop();
     }
+
+    // Disable phone interaction until the AI connects
+    if (this.phoneZone) this.phoneZone.disableInteractive();
 
     // Start ringing (outgoing call dialing)
     this._startPhoneRinging();
@@ -893,10 +885,10 @@ export class OfficeScene extends Phaser.Scene {
     const portraitKey = `l${this.levelNum}_victim_${portraitIdx}`;
 
     // --- Layout: two rows stacked ---
-    const barW = 520;
-    const row1Y = 10;  // research text row
-    const row2Y = 28;  // victim info row
-    const barH = 42;
+    const barW = 620;
+    const row1Y = 12;  // research text row
+    const row2Y = 34;  // victim info row
+    const barH = 54;
 
     // Background
     const bar = this.add.rectangle(0, barH / 2, barW, barH, 0x0a1a2e, 0.92)
@@ -905,15 +897,15 @@ export class OfficeScene extends Phaser.Scene {
 
     // Row 1: Research phase instruction (centered)
     const researchText = this.add.text(0, row1Y, '\u{1F50D} RESEARCH PHASE \u2014 Browse the computer, then pick up the phone when ready', {
-      fontFamily: '"Courier New", monospace', fontSize: '10px',
+      fontFamily: '"Courier New", monospace', fontSize: '13px',
       color: '#44bbff'
     }).setOrigin(0.5);
     this.researchBanner.add(researchText);
 
     // Row 2: Portrait + victim name (centered)
-    const thumbSize = 18;
+    const thumbSize = 22;
     const nameLabel = this.add.text(0, row2Y, `YOUR NEXT TARGET:  ${victimName}`, {
-      fontFamily: '"Courier New", monospace', fontSize: '11px',
+      fontFamily: '"Courier New", monospace', fontSize: '14px',
       fontStyle: 'bold', color: '#ffcc44'
     }).setOrigin(0.5);
     // Shift name right to make room for portrait
@@ -1630,7 +1622,6 @@ export class OfficeScene extends Phaser.Scene {
     if (this.readyPulseTween) this.readyPulseTween.stop();
     if (this._clockTimer) this._clockTimer.remove();
     if (this.researchBanner) { this.researchBanner.destroy(); this.researchBanner = null; }
-    if (this.desktopContainer) { this.desktopContainer.destroy(); this.desktopContainer = null; }
 
     // Remove GameState listeners
     gameState.off('suspicion_change', this._onSuspicionChange, this);
