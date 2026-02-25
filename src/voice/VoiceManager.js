@@ -20,7 +20,7 @@ import { getRandomVictim } from '../config/levels.js';
 import { getFriendBookData } from '../config/friendbook/index.js';
 
 const REALTIME_API_URL =
-  'https://api.openai.com/v1/realtime?model=gpt-realtime';
+  'https://api.openai.com/v1/realtime?model=gpt-realtime-1.5';
 
 class VoiceManager {
   constructor() {
