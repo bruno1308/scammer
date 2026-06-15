@@ -1,0 +1,92 @@
+{
+  "1": {
+    "status": "succeeded",
+    "output": "public\\assets\\spritesheets\\light_flicker_spritesheet.png",
+    "spritesheet_url": "https://storage.googleapis.com/ludo-assets/955e526e8e8371acc6804a70ac659ec1.png",
+    "video_url": "https://storage.googleapis.com/ludo-assets/98a6157b890d1a9043e015b77f3129a9.mp4",
+    "num_frames": 36,
+    "num_cols": 6,
+    "num_rows": 6
+  },
+  "4": {
+    "status": "succeeded",
+    "output": "public\\assets\\spritesheets\\worker_headset_mid_spritesheet.png",
+    "spritesheet_url": "https://storage.googleapis.com/ludo-assets/cc6602bfa8c3b62a38e93027fcda6c82.png",
+    "video_url": "https://storage.googleapis.com/ludo-assets/b666911cebe07bbd054650e77c1dbe60.mp4",
+    "num_frames": 36,
+    "num_cols": 6,
+    "num_rows": 6
+  },
+  "5": {
+    "status": "succeeded",
+    "output": "public\\assets\\spritesheets\\worker_typing_right_spritesheet.png",
+    "spritesheet_url": "https://storage.googleapis.com/ludo-assets/c9a7a12558c1c2112fda34ccaab0eaf5.png",
+    "video_url": "https://storage.googleapis.com/ludo-assets/3f44eb26ba58035a76b97c2f01ec4f83.mp4",
+    "num_frames": 49,
+    "num_cols": 7,
+    "num_rows": 7
+  },
+  "7": {
+    "status": "succeeded",
+    "output": "public\\assets\\spritesheets\\fan_spin_spritesheet.png",
+    "spritesheet_url": "https://storage.googleapis.com/ludo-assets/3269b612b8402c1d56d1107e529e9288.png",
+    "video_url": "https://storage.googleapis.com/ludo-assets/5086d5e32827e3f423f853ca6fc4bc1a.mp4",
+    "num_frames": 64,
+    "num_cols": 8,
+    "num_rows": 8
+  },
+  "9": {
+    "status": "succeeded",
+    "output": "public\\assets\\spritesheets\\paper_flutter_spritesheet.png",
+    "spritesheet_url": "https://storage.googleapis.com/ludo-assets/d2bfe7341d890071611a0ea92ddf5193.png",
+    "video_url": "https://storage.googleapis.com/ludo-assets/b74008f8a97b3d0aec3621d5a6eb3033.mp4",
+    "num_frames": 36,
+    "num_cols": 6,
+    "num_rows": 6
+  },
+  "10": {
+    "status": "succeeded",
+    "output": "public\\assets\\spritesheets\\cable_sway_spritesheet.png",
+    "spritesheet_url": "https://storage.googleapis.com/ludo-assets/eb6e605db88939071a2922f952ce893c.png",
+    "video_url": "https://storage.googleapis.com/ludo-assets/684f1a14c9a614b788c63b40c5d45ece.mp4",
+    "num_frames": 49,
+    "num_cols": 7,
+    "num_rows": 7
+  },
+  "11": {
+    "status": "succeeded",
+    "output": "public\\assets\\spritesheets\\crt_shimmer_spritesheet.png",
+    "spritesheet_url": "https://storage.googleapis.com/ludo-assets/b4fc1823c744e67a16777bdb51f97824.png",
+    "video_url": "https://storage.googleapis.com/ludo-assets/c52bfa094efaa0d0c5a594c5575f3fb3.mp4",
+    "num_frames": 36,
+    "num_cols": 6,
+    "num_rows": 6
+  },
+  "16": {
+    "status": "succeeded",
+    "output": "public\\assets\\spritesheets\\smoke_wisp_rise_spritesheet.png",
+    "spritesheet_url": "https://storage.googleapis.com/ludo-assets/0dddfa4a1c2ee13bdfa79d25e55e4b78.png",
+    "video_url": "https://storage.googleapis.com/ludo-assets/965225fe5777decfffbd139163716ab9.mp4",
+    "num_frames": 49,
+    "num_cols": 7,
+    "num_rows": 7
+  },
+  "18": {
+    "status": "succeeded",
+    "output": "public\\assets\\spritesheets\\tape_recorder_reels_spritesheet.png",
+    "spritesheet_url": "https://storage.googleapis.com/ludo-assets/6a686f187d388655d348bf6a26e748a5.png",
+    "video_url": "https://storage.googleapis.com/ludo-assets/6f2133111357ec4056afb3b7b533018c.mp4",
+    "num_frames": 64,
+    "num_cols": 8,
+    "num_rows": 8
+  },
+  "19": {
+    "status": "succeeded",
+    "output": "public\\assets\\spritesheets\\receipt_tape_feed_spritesheet.png",
+    "spritesheet_url": "https://storage.googleapis.com/ludo-assets/79b8c2ddbf91b33b65b178ee98457ba4.png",
+    "video_url": "https://storage.googleapis.com/ludo-assets/4115356f41fb5c68dd25ee75af7348a6.mp4",
+    "num_frames": 25,
+    "num_cols": 5,
+    "num_rows": 5
+  }
+}

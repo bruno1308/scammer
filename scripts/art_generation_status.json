@@ -1,0 +1,176 @@
+{
+  "submitted_at": "2026-02-16 19:34:42",
+  "total": 34,
+  "tasks": [
+    {
+      "id": "019c67ba-d178-7c96-b809-f66ba3243fe5",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\office_v2\\back_wall_base.png",
+      "api": "image-to-image"
+    },
+    {
+      "id": "019c67ba-d87f-7c04-9ddc-09b6f120b250",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\office_v2\\foreground_desk.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67ba-df07-7b22-af54-4585d08ade88",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\office_v2\\grime_overlay.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67ba-e57f-7fca-9ea3-0c5ee90916dd",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\office_v2\\light_fixture.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67ba-ec0d-7c16-adae-c923dbb27195",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\office_v2\\light_beam.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67ba-f288-7c16-95ec-03fb37a31423",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\office_v2\\worker_left.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67ba-f95a-7caa-85c8-8c2358460657",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\office_v2\\worker_mid.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67ba-ffb7-7b33-8a46-d067bf8e4215",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\office_v2\\worker_right.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67bb-0622-7b34-ac15-1614600c585a",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\office_v2\\bg_monitor.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67bb-0fff-7b3a-8afc-7664e3855f22",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\office_v2\\main_monitor.png",
+      "api": "image-to-image"
+    },
+    {
+      "id": "019c67bb-1773-7caa-9bf1-2acd5999d448",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\office_v2\\monitor_screen_overlay.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67bb-209c-7cab-892c-bc7a86ab2019",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\office_v2\\phone_body.png",
+      "api": "image-to-image"
+    },
+    {
+      "id": "019c67bb-2787-7b42-8eec-424109c0f526",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\office_v2\\phone_handset.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67bb-2e0c-7fca-acf1-98c12c221008",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\office_v2\\phone_cord.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67bb-34b4-7b42-b5af-4f608744e59c",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\office_v2\\desk_fan.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67bb-3b2a-7c2f-a9db-69fe7ff0e4a8",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\office_v2\\coffee_mug.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67bb-41a6-7fcb-9a1b-265db5a67bee",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\office_v2\\coffee_steam.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67bb-4843-7fcb-9722-a78ffb38633b",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\office_v2\\loose_papers.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67bb-4eca-7c2f-820f-1c92c22b7219",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\office_v2\\hanging_cable.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67bb-555e-7b43-a82f-2425b477ca9f",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\office_v2\\dust_particles.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67bb-5bcf-7c42-82f5-cee9a9de864d",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\office_v2\\smoke_wisp.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67bb-65bf-7c43-a737-25c9686e99c0",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\characters\\boss_full_body.png",
+      "api": "image-to-image"
+    },
+    {
+      "id": "019c67bb-6d25-7c43-99a2-10b58b822b2f",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\ui\\gauge_frame.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67bb-738c-7c52-baec-a7d3d4f087f1",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\ui\\dossier_panel.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67bb-7a38-7c52-abc7-78b36dd8b343",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\ui\\portrait_frame_polaroid.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67bb-80b5-7b56-9cd7-852cb1263911",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\ui\\script_panel.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67bb-8739-7b56-b76f-ada1188ee25d",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\ui\\script_tab.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67bb-8dc2-7b56-8eba-75a1e10dc65a",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\ui\\quota_board.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67bb-9445-7b56-852a-2af5b6271050",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\ui\\tape_recorder.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67bb-9b01-7fed-9629-d67002825875",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\ui\\money_machine.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67bb-a1a2-7b56-8337-5e1722a8ece9",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\ui\\button_green.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67bb-a825-7fee-841d-5c7de8dbf455",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\ui\\button_red.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67bb-aeb6-7fef-a229-368ed22d27ba",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\ui\\stamp_confirmed.png",
+      "api": "text-to-image"
+    },
+    {
+      "id": "019c67bb-b540-7cd7-adab-52afc2e57e9b",
+      "output": "B:\\Projects\\ScammerSimmulator\\public\\assets\\ui\\receipt_tape.png",
+      "api": "text-to-image"
+    }
+  ]
+}
